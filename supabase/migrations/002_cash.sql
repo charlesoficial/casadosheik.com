@@ -1,0 +1,2 @@
+-- Estruturas de caixa ja estao incorporadas em 001_initial.sql.
+-- Este arquivo fica reservado para futuras evolucoes incrementais do dominio de caixa.

@@ -1,0 +1,3 @@
+-- Adiciona a camada de impressoras, destinos operacionais e print jobs.
+-- Estruturas de impressoras ja estao incorporadas em 001_initial.sql.
+-- Este arquivo fica reservado para futuras evolucoes incrementais do dominio de impressao.

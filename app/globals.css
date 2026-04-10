@@ -1,0 +1,1860 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 40 25% 98%;
+  --foreground: 20 14% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14% 9%;
+  --primary: 43 73% 46%;
+  --primary-foreground: 48 100% 98%;
+  --secondary: 35 22% 94%;
+  --secondary-foreground: 20 14% 18%;
+  --muted: 36 18% 93%;
+  --muted-foreground: 25 8% 42%;
+  --accent: 42 72% 92%;
+  --accent-foreground: 28 24% 20%;
+  --border: 34 20% 87%;
+  --input: 34 18% 87%;
+  --ring: 43 73% 46%;
+  --radius: 1rem;
+  --ui-input-bg: #ffffff;
+  --ui-input-border: hsl(var(--input));
+  --ui-input-fg: hsl(var(--foreground));
+  --ui-input-placeholder: hsl(var(--muted-foreground));
+  --ui-badge-default-bg: color-mix(in srgb, hsl(var(--primary)) 10%, transparent);
+  --ui-badge-default-fg: hsl(var(--primary));
+  --ui-badge-secondary-bg: hsl(var(--background));
+  --ui-badge-secondary-border: hsl(var(--border));
+  --ui-badge-secondary-fg: hsl(var(--muted-foreground));
+  --ui-badge-admin-bg: #1b1b1b;
+  --ui-badge-admin-border: #343434;
+  --ui-badge-admin-fg: #ffffff;
+  --admin-foreground: #ece7db;
+  --admin-shell-bg: linear-gradient(180deg, #0d0d0d 0%, #070707 100%);
+  --admin-sidebar-bg: #101010;
+  --admin-sidebar-border: #262626;
+  --admin-topbar-bg: rgba(16, 16, 16, 0.92);
+  --admin-topbar-border: #242424;
+  --admin-nav-fg: #bdb7ab;
+  --admin-nav-hover-bg: #181818;
+  --admin-nav-hover-fg: #ffffff;
+  --admin-nav-active-bg: #181818;
+  --admin-nav-active-border: #2f2f2f;
+  --admin-nav-active-fg: #ffffff;
+  --admin-control-bg: #121212;
+  --admin-control-border: #2f2f2f;
+  --admin-control-fg: #ffffff;
+  --admin-control-hover-bg: #181818;
+  --admin-panel-bg: #111111;
+  --admin-panel-border: #2d2d2d;
+  --admin-panel-shadow: 0 22px 54px rgba(0, 0, 0, 0.46);
+  --admin-panel-header-bg: #151515;
+  --admin-panel-header-border: #232323;
+  --admin-title: #ffffff;
+  --admin-subtle: #8f8f8f;
+  --admin-alert-description: #aaa295;
+  --admin-icon-wrap-bg: #101010;
+  --admin-icon-wrap-border: #2d2d2d;
+  --admin-icon-wrap-fg: #ffffff;
+  --admin-counter-bg: #ffffff;
+  --admin-counter-fg: #000000;
+  --admin-status-chip-bg: #151515;
+  --admin-status-chip-border: #303030;
+  --admin-status-chip-fg: #ffffff;
+  --admin-loading-bg: #111111;
+  --admin-loading-border: #2c2c2c;
+  --admin-loading-fg: #b8b8b8;
+  --admin-alert-card-bg: #121212;
+  --admin-alert-card-border: #2c2c2c;
+  --admin-alert-card-hover-bg: #171717;
+  --admin-alert-card-hover-border: #404040;
+  --admin-chip-cta-bg: #ffffff;
+  --admin-chip-cta-border: #ffffff;
+  --admin-chip-cta-fg: #000000;
+  --admin-chevron: #8e8679;
+  --admin-empty-bg: #111111;
+  --admin-empty-border: #2f2d29;
+  --admin-footer-bg: #141414;
+  --admin-footer-border: #232323;
+  --admin-footer-inner-bg: #111111;
+  --admin-footer-inner-border: #302d29;
+  --admin-footer-fg: #d6cfbf;
+  --admin-footer-link: #ffffff;
+  --admin-footer-link-hover: #cccccc;
+  --admin-brand-tile-bg: #1d1203;
+  --admin-brand-tile-fg: #f4c35a;
+  --admin-brand-wordmark: #8f6d1e;
+  --admin-logout-fg: #c1bbb0;
+  --admin-logout-hover-bg: #1b1b1b;
+  --admin-logout-hover-fg: #ffffff;
+  --admin-admin-button-bg: #5b34ff;
+  --admin-admin-button-fg: #ffffff;
+}
+
+* {
+  @apply border-border;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-[#f7f3ec] text-foreground antialiased;
+}
+
+.admin-shell {
+  background: var(--admin-shell-bg);
+  color: var(--admin-foreground);
+}
+
+.admin-orders-detail-label,
+.admin-orders-detail-title,
+.admin-orders-detail-meta,
+.admin-orders-workflow-chip {
+  color: var(--admin-title);
+}
+
+.admin-shell,
+.admin-sidebar,
+.admin-topbar,
+.admin-shell [data-ui-card],
+.admin-shell [data-ui-button],
+.admin-shell [data-ui-input],
+.admin-shell [data-ui-textarea],
+.admin-shell [data-ui-badge] {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.admin-shell.admin-theme-black {
+  background: linear-gradient(180deg, #0a0a0a 0%, #171717 100%);
+  color: #fafafa !important;
+}
+
+.admin-shell.admin-theme-dark {
+  --admin-foreground: #ece7db;
+  --admin-shell-bg: radial-gradient(circle at top right, rgba(212, 160, 23, 0.1), transparent 26%), linear-gradient(180deg, #121212 0%, #111111 100%);
+  --admin-sidebar-bg: #101010;
+  --admin-sidebar-border: #262626;
+  --admin-topbar-bg: rgba(16, 16, 16, 0.92);
+  --admin-topbar-border: #242424;
+  --admin-nav-fg: #d6d1c4;
+  --admin-nav-hover-bg: #191919;
+  --admin-nav-hover-fg: #ffffff;
+  --admin-nav-active-bg: #181818;
+  --admin-nav-active-border: #2f2f2f;
+  --admin-nav-active-fg: #ffffff;
+  --admin-control-bg: #171717;
+  --admin-control-border: #323232;
+  --admin-control-fg: #ece7db;
+  --admin-control-hover-bg: #212121;
+  --admin-panel-bg: linear-gradient(180deg, #181615 0%, #121212 100%);
+  --admin-panel-border: #302b23;
+  --admin-panel-shadow: 0 22px 54px rgba(0, 0, 0, 0.46);
+  --admin-panel-header-bg: radial-gradient(circle at top right, rgba(91, 52, 255, 0.14), transparent 32%), radial-gradient(circle at top left, rgba(212, 167, 78, 0.12), transparent 28%), linear-gradient(180deg, #1b1916 0%, #151413 100%);
+  --admin-panel-header-border: #2b2721;
+  --admin-title: #ffffff;
+  --admin-subtle: #a79a82;
+  --admin-alert-description: #aaa295;
+  --admin-icon-wrap-bg: #1d1913;
+  --admin-icon-wrap-border: #3d3528;
+  --admin-icon-wrap-fg: #d2a246;
+  --admin-counter-bg: #5b34ff;
+  --admin-counter-fg: #ffffff;
+  --admin-status-chip-bg: #1b1a18;
+  --admin-status-chip-border: #3a352d;
+  --admin-status-chip-fg: #ece3d2;
+  --admin-loading-bg: #111111;
+  --admin-loading-border: #2f2d29;
+  --admin-loading-fg: #b8b0a4;
+  --admin-alert-card-bg: linear-gradient(180deg, #141312 0%, #101010 100%);
+  --admin-alert-card-border: #2f2d29;
+  --admin-alert-card-hover-bg: #171614;
+  --admin-alert-card-hover-border: #4b4030;
+  --admin-chip-cta-bg: #211b10;
+  --admin-chip-cta-border: #43361f;
+  --admin-chip-cta-fg: #d2a246;
+  --admin-chevron: #8e8679;
+  --admin-empty-bg: #111111;
+  --admin-empty-border: #2f2d29;
+  --admin-footer-bg: #141414;
+  --admin-footer-border: #2b2925;
+  --admin-footer-inner-bg: #111111;
+  --admin-footer-inner-border: #302d29;
+  --admin-footer-fg: #d6cfbf;
+  --admin-footer-link: #c9a24d;
+  --admin-footer-link-hover: #e4bc64;
+  --admin-brand-tile-bg: #1d1203;
+  --admin-brand-tile-fg: #f4c35a;
+  --admin-brand-wordmark: #8f6d1e;
+  --admin-logout-fg: #c1bbb0;
+  --admin-logout-hover-bg: #1b1b1b;
+  --admin-logout-hover-fg: #ffffff;
+  --admin-admin-button-bg: #5b34ff;
+  --admin-admin-button-fg: #ffffff;
+}
+
+.admin-shell.admin-theme-light {
+  --admin-foreground: #111111;
+  --admin-shell-bg: linear-gradient(180deg, #fafafa 0%, #f4f5f7 100%);
+  --admin-sidebar-bg: #ffffff;
+  --admin-sidebar-border: #e6e8ec;
+  --admin-topbar-bg: rgba(255, 255, 255, 0.92);
+  --admin-topbar-border: #e6e8ec;
+  --admin-nav-fg: #475569;
+  --admin-nav-hover-bg: #f8fafc;
+  --admin-nav-hover-fg: #111111;
+  --admin-nav-active-bg: #111111;
+  --admin-nav-active-border: #111111;
+  --admin-nav-active-fg: #ffffff;
+  --admin-control-bg: #ffffff;
+  --admin-control-border: #d7dce3;
+  --admin-control-fg: #111111;
+  --admin-control-hover-bg: #f3f4f6;
+  --admin-panel-bg: #ffffff;
+  --admin-panel-border: #e6e8ec;
+  --admin-panel-shadow: 0 22px 54px rgba(0, 0, 0, 0.12);
+  --admin-panel-header-bg: #fafafa;
+  --admin-panel-header-border: #e5e5e5;
+  --admin-title: #111111;
+  --admin-subtle: #6b6b6b;
+  --admin-alert-description: #606060;
+  --admin-icon-wrap-bg: #ffffff;
+  --admin-icon-wrap-border: #dcdcdc;
+  --admin-icon-wrap-fg: #111111;
+  --admin-counter-bg: #000000;
+  --admin-counter-fg: #ffffff;
+  --admin-status-chip-bg: #ffffff;
+  --admin-status-chip-border: #d8d8d8;
+  --admin-status-chip-fg: #111111;
+  --admin-loading-bg: #ffffff;
+  --admin-loading-border: #e4e4e4;
+  --admin-loading-fg: #5f5f5f;
+  --admin-alert-card-bg: #ffffff;
+  --admin-alert-card-border: #e4e4e4;
+  --admin-alert-card-hover-bg: #f8f8f8;
+  --admin-alert-card-hover-border: #111111;
+  --admin-chip-cta-bg: #111111;
+  --admin-chip-cta-border: #111111;
+  --admin-chip-cta-fg: #ffffff;
+  --admin-chevron: #6a6a6a;
+  --admin-empty-bg: #ffffff;
+  --admin-empty-border: #e4e4e4;
+  --admin-footer-bg: #fafafa;
+  --admin-footer-border: #e5e5e5;
+  --admin-footer-inner-bg: #ffffff;
+  --admin-footer-inner-border: #e4e4e4;
+  --admin-footer-fg: #111111;
+  --admin-footer-link: #111111;
+  --admin-footer-link-hover: #444444;
+  --admin-brand-tile-bg: #111111;
+  --admin-brand-tile-fg: #fafafa;
+  --admin-brand-wordmark: #111111;
+  --admin-logout-fg: #6b7280;
+  --admin-logout-hover-bg: #f3f4f6;
+  --admin-logout-hover-fg: #111111;
+  --admin-admin-button-bg: #111111;
+  --admin-admin-button-fg: #ffffff;
+}
+
+.admin-shell.admin-theme-black {
+  --admin-foreground: #fafafa;
+  --admin-shell-bg: linear-gradient(180deg, #0a0a0a 0%, #171717 100%);
+  --admin-sidebar-bg: #0a0a0a;
+  --admin-sidebar-border: #262626;
+  --admin-topbar-bg: rgba(10, 10, 10, 0.92);
+  --admin-topbar-border: #262626;
+  --admin-nav-fg: #a1a1a1;
+  --admin-nav-hover-bg: #171717;
+  --admin-nav-hover-fg: #fafafa;
+  --admin-nav-active-bg: #171717;
+  --admin-nav-active-border: #262626;
+  --admin-nav-active-fg: #fafafa;
+  --admin-control-bg: #0a0a0a;
+  --admin-control-border: #262626;
+  --admin-control-fg: #fafafa;
+  --admin-control-hover-bg: #171717;
+  --admin-panel-bg: #0a0a0a;
+  --admin-panel-border: #262626;
+  --admin-panel-shadow: 0 22px 54px rgba(0, 0, 0, 0.46);
+  --admin-panel-header-bg: #0a0a0a;
+  --admin-panel-header-border: #262626;
+  --admin-title: #fafafa;
+  --admin-subtle: #a1a1a1;
+  --admin-alert-description: #a1a1a1;
+  --admin-icon-wrap-bg: #171717;
+  --admin-icon-wrap-border: #262626;
+  --admin-icon-wrap-fg: #fafafa;
+  --admin-counter-bg: #fafafa;
+  --admin-counter-fg: #0a0a0a;
+  --admin-status-chip-bg: #171717;
+  --admin-status-chip-border: #262626;
+  --admin-status-chip-fg: #fafafa;
+  --admin-loading-bg: #0a0a0a;
+  --admin-loading-border: #262626;
+  --admin-loading-fg: #a1a1a1;
+  --admin-alert-card-bg: #0a0a0a;
+  --admin-alert-card-border: #262626;
+  --admin-alert-card-hover-bg: #171717;
+  --admin-alert-card-hover-border: #404040;
+  --admin-chip-cta-bg: #fafafa;
+  --admin-chip-cta-border: #fafafa;
+  --admin-chip-cta-fg: #0a0a0a;
+  --admin-chevron: #a1a1a1;
+  --admin-empty-bg: #0a0a0a;
+  --admin-empty-border: #262626;
+  --admin-footer-bg: #141414;
+  --admin-footer-border: #262626;
+  --admin-footer-inner-bg: #0a0a0a;
+  --admin-footer-inner-border: #262626;
+  --admin-footer-fg: #fafafa;
+  --admin-footer-link: #fafafa;
+  --admin-footer-link-hover: #d4d4d4;
+  --admin-brand-tile-bg: #171717;
+  --admin-brand-tile-fg: #fafafa;
+  --admin-brand-wordmark: #fafafa;
+  --admin-logout-fg: #a1a1a1;
+  --admin-logout-hover-bg: #171717;
+  --admin-logout-hover-fg: #fafafa;
+  --admin-admin-button-bg: #fafafa;
+  --admin-admin-button-fg: #0a0a0a;
+}
+
+.admin-shell.admin-theme-graphite {
+  --admin-foreground: #f5f5f5;
+  --admin-shell-bg: linear-gradient(180deg, #2a2a2a 0%, #151515 100%);
+  --admin-sidebar-bg: #1a1a1a;
+  --admin-sidebar-border: #383838;
+  --admin-topbar-bg: rgba(26, 26, 26, 0.82);
+  --admin-topbar-border: #383838;
+  --admin-nav-fg: #d4d4d4;
+  --admin-nav-hover-bg: #252525;
+  --admin-nav-hover-fg: #f5f5f5;
+  --admin-nav-active-bg: #232323;
+  --admin-nav-active-border: #4a4a4a;
+  --admin-nav-active-fg: #f5f5f5;
+  --admin-control-bg: #232323;
+  --admin-control-border: #464646;
+  --admin-control-fg: #efefef;
+  --admin-control-hover-bg: #2b2b2b;
+  --admin-panel-bg: linear-gradient(180deg, #242424 0%, #181818 100%);
+  --admin-panel-border: #3a3a3a;
+  --admin-panel-shadow: 0 22px 54px rgba(0, 0, 0, 0.42);
+  --admin-panel-header-bg: linear-gradient(180deg, #2a2a2a 0%, #1e1e1e 100%);
+  --admin-panel-header-border: #3a3a3a;
+  --admin-title: #f5f5f5;
+  --admin-subtle: #8f8f8f;
+  --admin-alert-description: #b5b5b5;
+  --admin-icon-wrap-bg: #1f1f1f;
+  --admin-icon-wrap-border: #4a4a4a;
+  --admin-icon-wrap-fg: #f5f5f5;
+  --admin-counter-bg: #f5f5f5;
+  --admin-counter-fg: #0f0f0f;
+  --admin-status-chip-bg: #262626;
+  --admin-status-chip-border: #4a4a4a;
+  --admin-status-chip-fg: #f2f2f2;
+  --admin-loading-bg: #111111;
+  --admin-loading-border: #2c2c2c;
+  --admin-loading-fg: #b8b8b8;
+  --admin-alert-card-bg: #1d1d1d;
+  --admin-alert-card-border: #3c3c3c;
+  --admin-alert-card-hover-bg: #252525;
+  --admin-alert-card-hover-border: #636363;
+  --admin-chip-cta-bg: #ffffff;
+  --admin-chip-cta-border: #ffffff;
+  --admin-chip-cta-fg: #111111;
+  --admin-chevron: #a1a1a1;
+  --admin-empty-bg: #1d1d1d;
+  --admin-empty-border: #3c3c3c;
+  --admin-footer-bg: #1a1a1a;
+  --admin-footer-border: #393939;
+  --admin-footer-inner-bg: #1f1f1f;
+  --admin-footer-inner-border: #4a4a4a;
+  --admin-footer-fg: #f5f5f5;
+  --admin-footer-link: #ffffff;
+  --admin-footer-link-hover: #d4d4d4;
+  --admin-brand-tile-bg: #1f1f1f;
+  --admin-brand-tile-fg: #f5f5f5;
+  --admin-brand-wordmark: #f5f5f5;
+  --admin-logout-fg: #d4d4d4;
+  --admin-logout-hover-bg: #252525;
+  --admin-logout-hover-fg: #f5f5f5;
+  --admin-admin-button-bg: #f5f5f5;
+  --admin-admin-button-fg: #0f0f0f;
+}
+
+.admin-shell.admin-theme-sand {
+  --admin-foreground: #2d2214;
+  --admin-shell-bg: linear-gradient(180deg, #efe2c5 0%, #dcc08d 100%);
+  --admin-sidebar-bg: #f7eedf;
+  --admin-sidebar-border: #d4bb8f;
+  --admin-topbar-bg: rgba(247, 238, 223, 0.86);
+  --admin-topbar-border: #d4bb8f;
+  --admin-nav-fg: #755a33;
+  --admin-nav-hover-bg: #efdfbd;
+  --admin-nav-hover-fg: #3c2e18;
+  --admin-nav-active-bg: #f6ebd4;
+  --admin-nav-active-border: #c9b28b;
+  --admin-nav-active-fg: #3c2e18;
+  --admin-control-bg: #f6ebd4;
+  --admin-control-border: #c9b28b;
+  --admin-control-fg: #3c2e18;
+  --admin-control-hover-bg: #efdfbd;
+  --admin-panel-bg: #fff8ec;
+  --admin-panel-border: #d7c3a0;
+  --admin-panel-shadow: 0 22px 54px rgba(88, 60, 11, 0.14);
+  --admin-panel-header-bg: linear-gradient(180deg, #fbf2e3 0%, #f1e0bd 100%);
+  --admin-panel-header-border: #e3d5bb;
+  --admin-title: #2d2214;
+  --admin-subtle: #8c6a38;
+  --admin-alert-description: #6b5a3f;
+  --admin-icon-wrap-bg: #fffaf0;
+  --admin-icon-wrap-border: #d8c4a0;
+  --admin-icon-wrap-fg: #8f6d1e;
+  --admin-counter-bg: #9b6a22;
+  --admin-counter-fg: #ffffff;
+  --admin-status-chip-bg: #fff8eb;
+  --admin-status-chip-border: #d5c29e;
+  --admin-status-chip-fg: #3f2f16;
+  --admin-loading-bg: #fff9ed;
+  --admin-loading-border: #e0cfb2;
+  --admin-loading-fg: #6b5a3f;
+  --admin-alert-card-bg: #fff9ed;
+  --admin-alert-card-border: #e0cfb2;
+  --admin-alert-card-hover-bg: #fbf0d9;
+  --admin-alert-card-hover-border: #b89153;
+  --admin-chip-cta-bg: #9b6a22;
+  --admin-chip-cta-border: #9b6a22;
+  --admin-chip-cta-fg: #ffffff;
+  --admin-chevron: #8c6a38;
+  --admin-empty-bg: #fff9ed;
+  --admin-empty-border: #e0cfb2;
+  --admin-footer-bg: #f8efde;
+  --admin-footer-border: #e3d5bb;
+  --admin-footer-inner-bg: #fff9ed;
+  --admin-footer-inner-border: #e0cfb2;
+  --admin-footer-fg: #2d2214;
+  --admin-footer-link: #9b6a22;
+  --admin-footer-link-hover: #7e5312;
+  --admin-brand-tile-bg: #1d1203;
+  --admin-brand-tile-fg: #f4c35a;
+  --admin-brand-wordmark: #8f6d1e;
+  --admin-logout-fg: #755a33;
+  --admin-logout-hover-bg: #efdfbd;
+  --admin-logout-hover-fg: #3c2e18;
+  --admin-admin-button-bg: #9b6a22;
+  --admin-admin-button-fg: #ffffff;
+}
+
+.admin-shell.admin-theme-black .admin-sidebar {
+  background: #0a0a0a !important;
+  border-color: #262626 !important;
+}
+
+.admin-shell.admin-theme-black .admin-topbar {
+  background: rgba(10, 10, 10, 0.92) !important;
+  border-color: #262626 !important;
+  backdrop-filter: blur(8px);
+}
+
+.admin-shell.admin-theme-black [data-ui-card] {
+  background: #0a0a0a !important;
+  border-color: #262626 !important;
+  color: #fafafa !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+}
+
+.admin-shell.admin-theme-black [data-ui-input],
+.admin-shell.admin-theme-black [data-ui-textarea] {
+  background: #0a0a0a !important;
+  border-color: #262626 !important;
+  color: #fafafa !important;
+}
+
+.admin-shell.admin-theme-black [data-ui-input]::placeholder,
+.admin-shell.admin-theme-black [data-ui-textarea]::placeholder {
+  color: #a1a1a1 !important;
+}
+
+.admin-shell.admin-theme-dark {
+  background:
+    radial-gradient(circle at top right, rgba(212, 160, 23, 0.1), transparent 26%),
+    linear-gradient(180deg, #121212 0%, #111111 100%);
+}
+
+.admin-shell.admin-theme-dark [data-ui-button][data-variant="outline"] {
+  background: #171717 !important;
+  border-color: #323232 !important;
+  color: #ece7db !important;
+}
+
+.admin-shell.admin-theme-dark [data-ui-button][data-variant="admin"] {
+  background: #5b34ff !important;
+  color: #ffffff !important;
+  border-color: #5b34ff !important;
+}
+
+.admin-shell.admin-theme-dark [data-ui-badge][data-variant="admin"] {
+  background: #181818 !important;
+  border-color: #313131 !important;
+  color: #ece7db !important;
+}
+
+.admin-shell.admin-theme-light {
+  background: linear-gradient(180deg, #fafafa 0%, #f4f5f7 100%);
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-graphite {
+  background: linear-gradient(180deg, #2a2a2a 0%, #151515 100%);
+}
+
+.admin-shell.admin-theme-graphite .admin-sidebar {
+  background: #1a1a1a !important;
+  border-color: #383838 !important;
+}
+
+.admin-shell.admin-theme-graphite .admin-topbar {
+  background: rgba(26, 26, 26, 0.82);
+  border-color: #383838 !important;
+  backdrop-filter: blur(8px);
+}
+
+.admin-shell.admin-theme-graphite [data-ui-card] {
+  background: #1f1f1f !important;
+  border-color: #3c3c3c !important;
+  color: #f5f5f5 !important;
+}
+
+.admin-shell.admin-theme-graphite [data-ui-input],
+.admin-shell.admin-theme-graphite [data-ui-textarea] {
+  background: #171717 !important;
+  border-color: #454545 !important;
+  color: #f5f5f5 !important;
+}
+
+.admin-shell.admin-theme-graphite [data-ui-button][data-variant="outline"] {
+  background: #242424 !important;
+  border-color: #4a4a4a !important;
+  color: #f5f5f5 !important;
+}
+
+.admin-shell.admin-theme-graphite [data-ui-button][data-variant="admin"] {
+  background: #f5f5f5 !important;
+  color: #0f0f0f !important;
+  border-color: #f5f5f5 !important;
+}
+
+.admin-shell.admin-theme-graphite [data-ui-badge][data-variant="admin"] {
+  background: #242424 !important;
+  border-color: #4a4a4a !important;
+  color: #f5f5f5 !important;
+}
+
+.admin-shell.admin-theme-graphite .text-white {
+  color: #f5f5f5 !important;
+}
+
+.admin-shell.admin-theme-sand {
+  background: linear-gradient(180deg, #efe2c5 0%, #dcc08d 100%);
+  color: #2d2214;
+}
+
+.admin-shell.admin-theme-sand .admin-sidebar {
+  background: #f7eedf !important;
+  border-color: #d4bb8f !important;
+}
+
+.admin-shell.admin-theme-sand .admin-topbar {
+  background: rgba(247, 238, 223, 0.86);
+  border-color: #d4bb8f !important;
+  backdrop-filter: blur(8px);
+}
+
+.admin-shell.admin-theme-sand [data-ui-card] {
+  background: #fff7ea !important;
+  border-color: #d8bf92 !important;
+  color: #2d2214 !important;
+  box-shadow: 0 18px 40px rgba(94, 63, 11, 0.08);
+}
+
+.admin-shell.admin-theme-sand [data-ui-input],
+.admin-shell.admin-theme-sand [data-ui-textarea] {
+  background: #fffaf1 !important;
+  border-color: #d4bb8f !important;
+  color: #2d2214 !important;
+}
+
+.admin-shell.admin-theme-sand [data-ui-button][data-variant="outline"] {
+  background: #fff7ea !important;
+  border-color: #c9ab73 !important;
+  color: #3c2e18 !important;
+}
+
+.admin-shell.admin-theme-sand [data-ui-button][data-variant="admin"] {
+  background: #9b6a22 !important;
+  color: #ffffff !important;
+  border-color: #9b6a22 !important;
+}
+
+.admin-shell.admin-theme-sand [data-ui-badge][data-variant="admin"] {
+  background: #fff8ec !important;
+  border-color: #d4bb8f !important;
+  color: #3c2e18 !important;
+}
+
+.admin-shell.admin-theme-sand .text-white {
+  color: #2d2214 !important;
+}
+
+.admin-shell.admin-theme-sand .text-\[\#a49f92\],
+.admin-shell.admin-theme-sand .text-\[\#b8b0a4\],
+.admin-shell.admin-theme-sand .text-\[\#9f978b\],
+.admin-shell.admin-theme-sand .text-\[\#9c9689\],
+.admin-shell.admin-theme-sand .text-\[\#968f84\],
+.admin-shell.admin-theme-sand .text-\[\#aaa295\],
+.admin-shell.admin-theme-sand .text-\[\#d6d1c4\],
+.admin-shell.admin-theme-sand .text-\[\#c8c1b6\],
+.admin-shell.admin-theme-sand .text-\[\#bdb7ab\],
+.admin-shell.admin-theme-sand .text-\[\#ece7db\] {
+  color: #755a33 !important;
+}
+
+.admin-shell.admin-theme-light .admin-sidebar {
+  background: #ffffff !important;
+  border-color: #e6e8ec !important;
+}
+
+.admin-shell.admin-theme-light .admin-topbar {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #e6e8ec !important;
+  backdrop-filter: blur(8px);
+}
+
+.admin-shell.admin-theme-light [data-ui-card] {
+  background: #ffffff !important;
+  border-color: #e6e8ec !important;
+  color: #111111 !important;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
+}
+
+.admin-shell.admin-theme-light [data-ui-input],
+.admin-shell.admin-theme-light [data-ui-textarea] {
+  background: #ffffff !important;
+  border-color: #d7dce3 !important;
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light [data-ui-input]::placeholder,
+.admin-shell.admin-theme-light [data-ui-textarea]::placeholder {
+  color: #7a7a7a !important;
+}
+
+.admin-shell.admin-theme-light [data-ui-button][data-variant="outline"] {
+  background: #ffffff !important;
+  border-color: #d7dce3 !important;
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light [data-ui-button][data-variant="default"] {
+  background: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light [data-ui-button][data-variant="admin"] {
+  background: #111111 !important;
+  color: #ffffff !important;
+  border-color: #111111 !important;
+}
+
+.admin-shell.admin-theme-black [data-ui-button][data-variant="outline"] {
+  background: #0a0a0a !important;
+  border-color: #262626 !important;
+  color: #fafafa !important;
+}
+
+.admin-shell.admin-theme-black [data-ui-button][data-variant="admin"] {
+  background: #fafafa !important;
+  color: #0a0a0a !important;
+  border-color: #fafafa !important;
+}
+
+.admin-shell.admin-theme-light [data-ui-badge][data-variant="admin"] {
+  background: #ffffff !important;
+  border-color: #d7dce3 !important;
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light [data-ui-badge][data-variant="success"] {
+  background: #dcfce7 !important;
+  border-color: #bbf7d0 !important;
+  color: #166534 !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card [data-ui-badge][data-variant="success"] {
+  background: #d1fae5 !important;
+  border-color: #a7f3d0 !important;
+  color: #065f46 !important;
+  font-weight: 700 !important;
+}
+
+.admin-shell.admin-theme-black [data-ui-badge][data-variant="admin"] {
+  background: #0a0a0a !important;
+  border-color: #262626 !important;
+  color: #fafafa !important;
+}
+
+.admin-shell.admin-theme-black .bg-\[\#181412\],
+.admin-shell.admin-theme-black .bg-\[\#21170c\] {
+  background: #171717 !important;
+}
+
+.admin-shell.admin-theme-black .text-\[\#f6c866\],
+.admin-shell.admin-theme-black .text-\[\#f5c562\],
+.admin-shell.admin-theme-black .text-\[\#8f6d1e\],
+.admin-shell.admin-theme-black .text-\[\#c9a24d\],
+.admin-shell.admin-theme-black .text-\[\#e4bc64\],
+.admin-shell.admin-theme-black .text-\[\#d2a246\],
+.admin-shell.admin-theme-black .text-\[\#d9ad4f\] {
+  color: #fafafa !important;
+}
+
+.admin-shell.admin-theme-black .border-\[\#4a3410\],
+.admin-shell.admin-theme-black .border-\[\#43361f\],
+.admin-shell.admin-theme-black .border-\[\#5b4315\] {
+  border-color: #262626 !important;
+}
+
+.admin-shell.admin-theme-black .text-white {
+  color: #fafafa !important;
+}
+
+.admin-shell.admin-theme-black .text-\[\#a49f92\],
+.admin-shell.admin-theme-black .text-\[\#b8b0a4\],
+.admin-shell.admin-theme-black .text-\[\#9f978b\],
+.admin-shell.admin-theme-black .text-\[\#9c9689\],
+.admin-shell.admin-theme-black .text-\[\#968f84\],
+.admin-shell.admin-theme-black .text-\[\#aaa295\],
+.admin-shell.admin-theme-black .text-\[\#d6d1c4\],
+.admin-shell.admin-theme-black .text-\[\#c8c1b6\],
+.admin-shell.admin-theme-black .text-\[\#bdb7ab\],
+.admin-shell.admin-theme-black .text-\[\#ece7db\] {
+  color: #a1a1a1 !important;
+}
+
+.admin-online-badge {
+  background: #102519 !important;
+  border-color: #265b3d !important;
+  color: #87f0a9 !important;
+}
+
+.admin-online-badge svg {
+  color: #87f0a9 !important;
+  fill: currentColor !important;
+}
+
+.admin-shell.admin-theme-light .admin-online-badge {
+  background: #102519 !important;
+  border-color: #265b3d !important;
+  color: #87f0a9 !important;
+}
+
+.admin-shell.admin-theme-light .admin-alert-count {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .text-\[\#a49f92\],
+.admin-shell.admin-theme-light .text-\[\#b8b0a4\],
+.admin-shell.admin-theme-light .text-\[\#9f978b\],
+.admin-shell.admin-theme-light .text-\[\#9f988b\],
+.admin-shell.admin-theme-light .text-\[\#9c9689\],
+.admin-shell.admin-theme-light .text-\[\#968f84\],
+.admin-shell.admin-theme-light .text-\[\#aaa295\],
+.admin-shell.admin-theme-light .text-\[\#a79f92\],
+.admin-shell.admin-theme-light .text-\[\#a69f92\],
+.admin-shell.admin-theme-light .text-\[\#a8a396\],
+.admin-shell.admin-theme-light .text-\[\#9d978b\],
+.admin-shell.admin-theme-light .text-\[\#9c9587\],
+.admin-shell.admin-theme-light .text-\[\#999488\],
+.admin-shell.admin-theme-light .text-\[\#d6d1c4\],
+.admin-shell.admin-theme-light .text-\[\#c8c1b6\],
+.admin-shell.admin-theme-light .text-\[\#c8c2b6\],
+.admin-shell.admin-theme-light .text-\[\#bdb7ab\],
+.admin-shell.admin-theme-light .text-\[\#ece7db\],
+.admin-shell.admin-theme-light .text-\[\#ddd7cc\],
+.admin-shell.admin-theme-light .text-\[\#d7d0c5\],
+.admin-shell.admin-theme-light .text-\[\#d9d3c7\],
+.admin-shell.admin-theme-light .text-\[\#bcb5aa\],
+.admin-shell.admin-theme-light .text-\[\#8f8a82\],
+.admin-shell.admin-theme-light .text-\[\#8d877b\],
+.admin-shell.admin-theme-light .text-\[\#7f786d\] {
+  color: #6b7280 !important;
+}
+
+.admin-shell.admin-theme-light .bg-\[\#17112b\],
+.admin-shell.admin-theme-light .bg-\[\#1a1624\],
+.admin-shell.admin-theme-light .bg-\[\#21170c\],
+.admin-shell.admin-theme-light .bg-\[\#211b10\],
+.admin-shell.admin-theme-light .bg-\[\#2a210f\] {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .border-\[\#242424\],
+.admin-shell.admin-theme-light .border-\[\#262626\],
+.admin-shell.admin-theme-light .border-\[\#2c2c2c\],
+.admin-shell.admin-theme-light .border-\[\#323232\],
+.admin-shell.admin-theme-light .border-\[\#343434\],
+.admin-shell.admin-theme-light .border-\[\#2d2d2d\],
+.admin-shell.admin-theme-light .border-\[\#2f2f2f\],
+.admin-shell.admin-theme-light .border-\[\#313131\] {
+  border-color: #d7dce3 !important;
+}
+
+.admin-shell.admin-theme-light .border-\[\#5b34ff\],
+.admin-shell.admin-theme-light .border-\[\#4a3410\],
+.admin-shell.admin-theme-light .border-\[\#43361f\],
+.admin-shell.admin-theme-light .border-\[\#5b4315\] {
+  border-color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .text-\[\#f5c562\],
+.admin-shell.admin-theme-light .text-\[\#d2a246\],
+.admin-shell.admin-theme-light .text-\[\#8f6d1e\],
+.admin-shell.admin-theme-light .text-\[\#c9a24d\],
+.admin-shell.admin-theme-light .text-\[\#e4bc64\],
+.admin-shell.admin-theme-light .text-\[\#f4c35a\] {
+  color: #b7791f !important;
+}
+
+.admin-shell.admin-theme-light .text-\[\#8ce3b0\],
+.admin-shell.admin-theme-light .text-\[\#8fe3ab\],
+.admin-shell.admin-theme-light .text-\[\#8fd7a6\] {
+  color: #059669 !important;
+}
+
+/* Green status block (Aberto agora / Recebendo pedidos) */
+.admin-shell.admin-theme-light .bg-\[\#102519\] {
+  background: #dcfce7 !important;
+  color: #065f46 !important;
+}
+
+.admin-shell.admin-theme-light .bg-\[\#102519\] .text-white {
+  color: #065f46 !important;
+}
+
+.admin-shell.admin-theme-light .border-\[\#2d3d2d\] {
+  border-color: #a7f3d0 !important;
+}
+
+.admin-shell.admin-theme-light .text-\[\#8fd0ff\],
+.admin-shell.admin-theme-light .text-\[\#7eb5ff\] {
+  color: #2563eb !important;
+}
+
+.admin-shell.admin-theme-light .hover\:bg-\[\#1b1b1b\]:hover,
+.admin-shell.admin-theme-light .hover\:bg-\[\#1c1c1c\]:hover,
+.admin-shell.admin-theme-light .hover\:bg-\[\#212121\]:hover {
+  background: #f3f4f6 !important;
+}
+
+.admin-shell.admin-theme-light .hover\:border-\[\#5b34ff\]:hover,
+.admin-shell.admin-theme-light .hover\:border-\[\#4a4a4a\]:hover {
+  border-color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-sidebar .bg-\[\#181412\],
+.admin-shell.admin-theme-light .admin-sidebar .bg-\[\#21170c\],
+.admin-shell.admin-theme-light .admin-sidebar .bg-\[\#181818\],
+.admin-shell.admin-theme-light .admin-sidebar .bg-\[\#262626\] {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-sidebar .bg-\[\#141414\] {
+  background: #f8fafc !important;
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-sidebar .text-\[\#f6c866\],
+.admin-shell.admin-theme-light .admin-sidebar .text-\[\#f5c562\],
+.admin-shell.admin-theme-light .admin-sidebar .text-white {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-sidebar .text-\[\#d6d1c4\],
+.admin-shell.admin-theme-light .admin-sidebar .text-\[\#bdb7ab\],
+.admin-shell.admin-theme-light .admin-sidebar .text-\[\#c8c1b6\] {
+  color: #475569 !important;
+}
+
+.admin-shell.admin-theme-light .admin-sidebar .border-\[\#4a3410\],
+.admin-shell.admin-theme-light .admin-sidebar .border-\[\#343434\],
+.admin-shell.admin-theme-light .admin-sidebar .border-\[\#242424\] {
+  border-color: #000000 !important;
+}
+
+.admin-shell.admin-theme-light .admin-sidebar .bg-\[\#141414\].border-\[\#242424\],
+.admin-shell.admin-theme-light .admin-sidebar .bg-\[\#141414\] .border-\[\#242424\] {
+  border-color: #e2e8f0 !important;
+}
+
+.admin-shell.admin-theme-light .rounded-\[20px\].bg-\[\#17112b\],
+.admin-shell.admin-theme-light .rounded-\[20px\].bg-\[\#1a1624\] {
+  background: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 12px 26px rgba(0, 0, 0, 0.08);
+}
+
+.admin-shell.admin-theme-light .rounded-2xl.bg-\[\#181818\],
+.admin-shell.admin-theme-light .rounded-2xl.bg-\[\#141414\],
+.admin-shell.admin-theme-light .rounded-2xl.bg-\[\#111111\],
+.admin-shell.admin-theme-light .rounded-\[24px\].bg-\[\#111111\],
+.admin-shell.admin-theme-light .rounded-\[26px\].bg-\[\#111111\] {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-config-hero {
+  background:
+    radial-gradient(circle at top right, rgba(17, 24, 39, 0.04), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+  border-color: #e6e8ec !important;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.05);
+}
+
+.admin-shell.admin-theme-light .admin-config-hero .text-white,
+.admin-shell.admin-theme-light .admin-config-hero .text-white *,
+.admin-shell.admin-theme-light .admin-config-hero h1.text-white,
+.admin-shell.admin-theme-light .admin-config-hero h1,
+.admin-shell.admin-theme-light .admin-config-hero h2,
+.admin-shell.admin-theme-light .admin-config-hero h3,
+.admin-shell.admin-theme-light .admin-config-hero p,
+.admin-shell.admin-theme-light .admin-config-hero span {
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-config-hero .text-\[\#b8b0a4\],
+.admin-shell.admin-theme-light .admin-config-hero .text-\[\#a69f92\],
+.admin-shell.admin-theme-light .admin-config-hero .text-\[\#9f988b\] {
+  color: #6b7280 !important;
+}
+
+.admin-shell.admin-theme-light .admin-config-hero-card {
+  background: #ffffff !important;
+  border-color: #e6e8ec !important;
+}
+
+.admin-shell.admin-theme-light .admin-theme-choice {
+  border-color: #d7dce3 !important;
+  background: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-theme-choice:hover {
+  background: #f8fafc !important;
+}
+
+.admin-shell.admin-theme-light .admin-theme-choice.admin-theme-choice-active {
+  border-color: #111111 !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 1px rgba(17, 24, 39, 0.08), 0 10px 24px rgba(15, 23, 42, 0.06) !important;
+}
+
+.admin-shell.admin-theme-light .admin-theme-choice-preview {
+  border-color: #e6e8ec !important;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.02);
+}
+
+.admin-shell.admin-theme-light .admin-theme-choice .text-white {
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-theme-choice .text-\[\#a79f92\] {
+  color: #6b7280 !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-shell-card,
+.admin-shell.admin-theme-light .admin-settings-shell-card {
+  background: #ffffff !important;
+  border-color: #e6e8ec !important;
+  color: #111111 !important;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-shell-card .text-white,
+.admin-shell.admin-theme-light .admin-settings-shell-card .text-white {
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-history-shell-card,
+.admin-shell.admin-theme-light .admin-cash-shell-card,
+.admin-shell.admin-theme-light .admin-menu-shell-card,
+.admin-shell.admin-theme-light .admin-orders-shell-card,
+.admin-shell.admin-theme-light .admin-kitchen-shell-card,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card,
+.admin-shell.admin-theme-light .admin-printers-shell-card,
+.admin-shell.admin-theme-light .admin-tables-shell-card {
+  background: #ffffff !important;
+  border-color: #e6e8ec !important;
+  color: #111111 !important;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
+}
+
+.admin-shell.admin-theme-light .admin-history-shell-card .text-white,
+.admin-shell.admin-theme-light .admin-cash-shell-card .text-white,
+.admin-shell.admin-theme-light .admin-menu-shell-card > * .text-white,
+.admin-shell.admin-theme-light .admin-orders-shell-card > * .text-white,
+.admin-shell.admin-theme-light .admin-kitchen-shell-card > * .text-white,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card > * .text-white,
+.admin-shell.admin-theme-light .admin-printers-shell-card > * .text-white,
+.admin-shell.admin-theme-light .admin-tables-shell-card > * .text-white,
+.admin-shell.admin-theme-light .admin-settings-shell-card > * .text-white,
+.admin-shell.admin-theme-light .admin-printers-shell .text-white {
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-dark-block,
+.admin-shell.admin-theme-light .admin-settings-dark-block,
+.admin-shell.admin-theme-light .admin-dashboard-hero {
+  background: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-dark-block *,
+.admin-shell.admin-theme-light .admin-settings-dark-block *,
+.admin-shell.admin-theme-light .admin-dashboard-hero * {
+  color: inherit !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-white,
+.admin-shell.admin-theme-light .admin-dashboard-hero .text-white,
+.admin-shell.admin-theme-light .admin-settings-dark-block .text-white,
+.admin-shell.admin-theme-light .admin-dashboard-dark-block h1,
+.admin-shell.admin-theme-light .admin-dashboard-dark-block h2,
+.admin-shell.admin-theme-light .admin-dashboard-dark-block h3,
+.admin-shell.admin-theme-light .admin-dashboard-dark-block p,
+.admin-shell.admin-theme-light .admin-dashboard-dark-block span,
+.admin-shell.admin-theme-light .admin-dashboard-hero h1,
+.admin-shell.admin-theme-light .admin-dashboard-hero h2,
+.admin-shell.admin-theme-light .admin-dashboard-hero h3,
+.admin-shell.admin-theme-light .admin-dashboard-hero p,
+.admin-shell.admin-theme-light .admin-dashboard-hero span {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#8fd7a6\] {
+  color: #bbf7d0 !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#f4c35a\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#f4c35a\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#f5c562\] {
+  color: #facc15 !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#8f8a7d\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#8f8a82\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#918b80\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#9d978b\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#969183\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#9a9488\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#aaa396\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#c8c1b6\],
+.admin-shell.admin-theme-light .admin-dashboard-dark-block .text-\[\#cfc7bb\],
+.admin-shell.admin-theme-light .admin-dashboard-hero .text-white\/70,
+.admin-shell.admin-theme-light .admin-dashboard-hero .text-\[\#9f998e\],
+.admin-shell.admin-theme-light .admin-dashboard-hero .text-\[\#989284\] {
+  color: #d1d5db !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-hero {
+  background: #000000 !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#121212\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#17112b\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#1a1a1a\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#262626\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-black,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#111111\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#121212\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#141414\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#171717\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#181818\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#17112b\],
+.admin-shell.admin-theme-light .admin-print-settings-dark-block,
+.admin-shell.admin-theme-light .admin-printers-dark-block,
+.admin-shell.admin-theme-light .admin-kitchen-dark-block,
+.admin-shell.admin-theme-light .admin-tables-dark-card {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] *,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#121212\] *,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#17112b\] *,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] *,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#1a1a1a\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#262626\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-black *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#111111\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#121212\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#141414\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#171717\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#181818\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#17112b\] *,
+.admin-shell.admin-theme-light .admin-print-settings-dark-block *,
+.admin-shell.admin-theme-light .admin-printers-dark-block *,
+.admin-shell.admin-theme-light .admin-kitchen-dark-block *,
+.admin-shell.admin-theme-light .admin-tables-dark-card * {
+  color: inherit !important;
+}
+
+.admin-shell.admin-theme-light .admin-printers-dark-block,
+.admin-shell.admin-theme-light .admin-printers-dark-block p,
+.admin-shell.admin-theme-light .admin-printers-dark-block span,
+.admin-shell.admin-theme-light .admin-printers-dark-block .text-white,
+.admin-shell.admin-theme-light .admin-printers-dark-block .text-\[\#9e988c\],
+.admin-shell.admin-theme-light .admin-printers-dark-block .text-\[\#aca598\] {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card .border-\[\#2a2a2a\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .border-\[\#343434\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .border-dashed {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] [data-ui-input],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] [data-ui-textarea],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] [data-ui-input],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] [data-ui-textarea],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] [data-ui-input],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] [data-ui-textarea] {
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] [data-ui-input]::placeholder,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] [data-ui-textarea]::placeholder,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] [data-ui-input]::placeholder,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] [data-ui-textarea]::placeholder,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] [data-ui-input]::placeholder,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] [data-ui-textarea]::placeholder {
+  color: #d1d5db !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] .text-\[\#9c9689\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] .text-\[\#a49f92\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] .text-\[\#b8b0a4\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] .text-\[\#9c9689\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] .text-\[\#a49f92\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] .text-\[\#b8b0a4\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] .text-\[\#9c9689\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] .text-\[\#a49f92\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] .text-\[\#b8b0a4\] {
+  color: #d1d5db !important;
+}
+
+.admin-shell.admin-theme-light .admin-history-shell-card .bg-\[\#111111\],
+.admin-shell.admin-theme-light .admin-history-shell-card .bg-\[\#181818\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#181818\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#141414\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+.admin-shell.admin-theme-light .admin-history-shell-card .bg-\[\#111111\] *,
+.admin-shell.admin-theme-light .admin-history-shell-card .bg-\[\#181818\] *,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] *,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\] *,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#181818\] *,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#141414\] *,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\] *,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\] *,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\] *,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 * {
+  color: inherit !important;
+}
+
+.admin-shell.admin-theme-light .admin-printers-shell > section,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card > * > section:first-child {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: #e6e8ec !important;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05) !important;
+}
+
+.admin-shell.admin-theme-light .admin-printers-shell .bg-\[\#121212\],
+.admin-shell.admin-theme-light .admin-printers-shell .bg-\[\#111111\],
+.admin-shell.admin-theme-light .admin-printers-shell .bg-\[\#151515\],
+.admin-shell.admin-theme-light .admin-printers-shell .bg-\[\#161616\],
+.admin-shell.admin-theme-light .admin-printers-shell .bg-\[\#171717\],
+.admin-shell.admin-theme-light .admin-printers-shell .bg-\[\#19152a\],
+.admin-shell.admin-theme-light .admin-printers-shell .bg-\[\#19152b\],
+.admin-shell.admin-theme-light .admin-printers-shell .bg-\[\#101010\],
+.admin-shell.admin-theme-light .admin-shell .admin-printers-shell .bg-\[\#111111\]\/90,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#111111\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#121212\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#151515\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#171717\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#181327\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#171422\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#101010\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#121212\]\/80,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#121212\]\/90 {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: #e6e8ec !important;
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#2a2a2a\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#2c2c2c\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#2d2d2d\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#2f2f2f\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#303030\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#313131\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#333333\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#343434\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#3a3550\],
+.admin-shell.admin-theme-light .admin-printers-shell .border-\[\#3c3650\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#262626\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#2a2a2a\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#2b2b2b\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#2c2c2c\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#2d2d2d\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#2e2e2e\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#2f2f2f\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#303030\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#333333\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#343434\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#393939\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .border-\[\#3b3650\] {
+  border-color: #d7dce3 !important;
+}
+
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#ddd2ff\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#d8cdfc\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#f0e8da\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#efe6d8\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#ede7dc\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#b6b0a4\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#a39d90\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#a69f92\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#aba598\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#a9a396\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#a8a194\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#ddd5c8\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#ddd7cb\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#d9cffd\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#d9d3c7\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#d8d1c4\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#f2eadf\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#f2ede4\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#ece6db\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#e4ddd0\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#e2dcd2\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#b7b0a4\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#b2aca1\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#aaa396\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#a9a396\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#a69f92\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#9f988b\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#9d968a\] {
+  color: #6b7280 !important;
+}
+
+.admin-shell.admin-theme-light .admin-printers-shell h1,
+.admin-shell.admin-theme-light .admin-printers-shell h2,
+.admin-shell.admin-theme-light .admin-printers-shell h3,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card h1,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card h2,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card h3,
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#f0e8da\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#efe6d8\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#ede7dc\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#f2eadf\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#f2ede4\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#ece6db\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#e4ddd0\] {
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#22193f\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .bg-\[\#181327\] {
+  background: #f5f3ff !important;
+  color: #5b21b6 !important;
+  border-color: #c4b5fd !important;
+}
+
+.admin-shell.admin-theme-light .admin-print-settings-shell-card input[type="range"] {
+  background: linear-gradient(to right, #d1d5db, #9ca3af, #7c3aed) !important;
+}
+
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\] p,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\] span,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\] svg,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\] p,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\] span,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\] svg,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\] p,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\] span,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\] svg,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 p,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 span,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 svg {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-sidebar,
+.admin-shell.admin-theme-light .admin-topbar {
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#2d2209\] {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fcd34d !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#2d2209\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#3a2a0a\] *,
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#173122\] * {
+  color: inherit !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#3a2a0a\] {
+  background: #fef9ee !important;
+  color: #78350f !important;
+  border-color: #fcd34d !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#173122\] {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  border-color: #86efac !important;
+}
+
+.admin-shell.admin-theme-light .admin-tables-shell-card .bg-\[\#2d2209\] {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+.admin-shell.admin-theme-light .admin-tables-shell-card .bg-\[\#3a2a0a\] {
+  background: #fef9ee !important;
+  color: #78350f !important;
+}
+
+.admin-shell.admin-theme-light .admin-tables-shell-card .bg-\[\#351919\] {
+  background: #fef2f2 !important;
+  color: #991b1b !important;
+}
+
+.admin-shell.admin-theme-light .admin-tables-shell-card .bg-\[\#173122\] {
+  background: #f0fdf4 !important;
+  color: #166534 !important;
+}
+
+.admin-shell.admin-theme-light .admin-tables-shell-card .bg-\[\#2d2209\] *,
+.admin-shell.admin-theme-light .admin-tables-shell-card .bg-\[\#3a2a0a\] *,
+.admin-shell.admin-theme-light .admin-tables-shell-card .bg-\[\#351919\] *,
+.admin-shell.admin-theme-light .admin-tables-shell-card .bg-\[\#173122\] * {
+  color: inherit !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-white,
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#f0eadf\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#ebe4d8\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#e5dfd5\],
+.admin-shell.admin-theme-light .admin-kitchen-shell-card .text-white,
+.admin-shell.admin-theme-light .admin-kitchen-shell-card .text-\[\#ddd6ca\],
+.admin-shell.admin-theme-light .admin-kitchen-shell-card .text-\[\#aca699\],
+.admin-shell.admin-theme-light .admin-kitchen-shell-card .text-\[\#9d988b\],
+.admin-shell.admin-theme-light .admin-tables-dark-card .text-white,
+.admin-shell.admin-theme-light .admin-tables-dark-card .text-\[\#ebe4d8\],
+.admin-shell.admin-theme-light .admin-tables-dark-card .text-\[\#b8b0a4\] {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card button.text-white,
+.admin-shell.admin-theme-light .admin-orders-shell-card button.text-white,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card button.text-white,
+.admin-shell.admin-theme-light .admin-printers-shell-card button.text-white,
+.admin-shell.admin-theme-light .admin-history-shell-card a.text-white,
+.admin-shell.admin-theme-light .admin-cash-shell-card a.text-white {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card [data-ui-button][data-variant="admin"],
+.admin-shell.admin-theme-light .admin-orders-shell-card [data-ui-button][data-variant="admin"],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card [data-ui-button][data-variant="admin"],
+.admin-shell.admin-theme-light .admin-printers-shell-card [data-ui-button][data-variant="admin"] {
+  background: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-shell-card [data-ui-button][data-variant="outline"] {
+  background: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-shell-card [data-ui-button][data-variant="outline"]:hover {
+  background: #1f1f1f !important;
+  border-color: #1f1f1f !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#8f8a82\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#8d877b\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#bcb5aa\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#bfb7ac\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#a9a293\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#9d978b\],
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#9f998e\],
+.admin-shell.admin-theme-light .admin-kitchen-shell-card .text-\[\#938d80\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#b7b0a4\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#b2aca1\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#aaa396\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#a9a396\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#a69f92\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#9f988b\],
+.admin-shell.admin-theme-light .admin-print-settings-shell-card .text-\[\#9d968a\],
+.admin-shell.admin-theme-light .admin-history-shell-card .text-\[\#bcb5aa\],
+.admin-shell.admin-theme-light .admin-history-shell-card .text-\[\#9d978b\],
+.admin-shell.admin-theme-light .admin-history-shell-card .text-\[\#8f8a82\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .text-\[\#bcb5aa\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .text-\[\#9d978b\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .text-\[\#8f8a82\],
+.admin-shell.admin-theme-light .admin-printers-shell-card .text-\[\#9c9689\],
+.admin-shell.admin-theme-light .admin-printers-shell-card .text-\[\#9f998e\],
+.admin-shell.admin-theme-light .admin-printers-shell .text-\[\#a49f92\],
+.admin-shell.admin-theme-light .admin-tables-dark-card .text-\[\#8e877c\],
+.admin-shell.admin-theme-light .admin-tables-dark-card .text-\[\#978e82\],
+.admin-shell.admin-theme-light .admin-tables-dark-card .text-\[\#968f84\] {
+  color: #475569 !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-detail-label,
+.admin-shell.admin-theme-light .admin-orders-detail-title,
+.admin-shell.admin-theme-light .admin-orders-detail-meta,
+.admin-shell.admin-theme-light .admin-orders-card-title,
+.admin-shell.admin-theme-light .admin-orders-card-meta,
+.admin-shell.admin-theme-light .admin-orders-card-submeta {
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-workflow-chip[data-state="current"] {
+  background: #ede9fe !important;
+  border-color: #c4b5fd !important;
+  color: #5b21b6 !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-workflow-chip[data-state="completed"] {
+  background: #dcfce7 !important;
+  border-color: #bbf7d0 !important;
+  color: #166534 !important;
+}
+
+.admin-shell.admin-theme-light .admin-orders-workflow-chip[data-state="idle"] {
+  background: #ffffff !important;
+  border-color: #d7dce3 !important;
+  color: #6b7280 !important;
+}
+
+.admin-shell.admin-theme-light .admin-config-hero-card .text-\[\#9f988b\],
+.admin-shell.admin-theme-light .admin-config-hero-card .text-\[\#a69f92\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .text-\[\#999488\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .text-\[\#aaa295\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .text-\[\#a79f92\] {
+  color: #4b5563 !important;
+}
+
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\] .text-\[\#999488\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\] .text-\[\#aaa295\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\] .text-\[\#a79f92\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\] .text-\[\#999488\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\] .text-\[\#aaa295\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\] .text-\[\#a79f92\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\] .text-\[\#999488\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\] .text-\[\#aaa295\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\] .text-\[\#a79f92\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 .text-\[\#999488\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 .text-\[\#aaa295\],
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 .text-\[\#a79f92\] {
+  color: #d1d5db !important;
+}
+
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\] .text-white,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#171717\] .text-white,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#151515\] .text-white,
+.admin-shell.admin-theme-light .admin-settings-shell-card .bg-\[\#111111\]\/90 .text-white {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-config-hero-card .bg-\[\#171717\],
+.admin-shell.admin-theme-light .admin-config-hero-card .bg-\[\#111111\] {
+  background: #111111 !important;
+  border-color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-config-hero-card .bg-\[\#171717\] svg,
+.admin-shell.admin-theme-light .admin-config-hero-card .bg-\[\#111111\] svg,
+.admin-shell.admin-theme-light .admin-config-hero-card .bg-\[\#171717\] *,
+.admin-shell.admin-theme-light .admin-config-hero-card .bg-\[\#111111\] * {
+  color: #ffffff !important;
+  stroke: currentColor !important;
+}
+
+.admin-shell.admin-theme-light .admin-history-shell-card .bg-\[\#111111\] a,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] a,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] [data-ui-button][data-variant="outline"],
+.admin-shell.admin-theme-light .admin-printers-shell-card [data-ui-button][data-variant="outline"],
+.admin-shell.admin-theme-light .admin-tables-dark-card [data-ui-button][data-variant="outline"],
+.admin-shell.admin-theme-light .admin-history-shell-card a.inline-flex {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#141414\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#181818\] {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] p,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\] p,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#141414\] p,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#181818\] p,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] span,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\] span,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#141414\] span,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#181818\] span,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] .text-white,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\] .text-white,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#141414\] .text-white,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#181818\] .text-white {
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] .text-\[\#969183\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\] .text-\[\#969183\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] .text-\[\#8f8a82\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\] .text-\[\#8f8a82\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] .text-\[\#6f6a5f\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\] .text-\[\#6f6a5f\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#141414\] .text-\[\#8f8a82\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#181818\] .text-\[\#8f8a82\] {
+  color: #d9d9d9 !important;
+}
+
+.admin-shell.admin-theme-light .admin-history-shell-card .admin-history-details-cell,
+.admin-shell.admin-theme-light .admin-history-shell-card .admin-history-details-cell p:first-child {
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-chart {
+  background: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-chart svg text,
+.admin-shell.admin-theme-light .admin-dashboard-chart .recharts-text,
+.admin-shell.admin-theme-light .admin-dashboard-chart .text-\[\#777265\],
+.admin-shell.admin-theme-light .admin-dashboard-chart .text-\[\#7d776b\] {
+  fill: #d1d5db !important;
+  color: #d1d5db !important;
+}
+
+.admin-shell.admin-theme-light .admin-printers-shell-card [data-ui-input],
+.admin-shell.admin-theme-light .admin-printers-shell-card select,
+.admin-shell.admin-theme-light .admin-print-settings-shell-card select {
+  background: #ffffff !important;
+  border-color: #d7dce3 !important;
+  color: #111111 !important;
+}
+
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] .text-\[\#8fd7a6\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#121212\] .text-\[\#8fd7a6\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#17112b\] .text-\[\#8fd7a6\] {
+  color: #bbf7d0 !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-hero .bg-white\/10 {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.admin-shell.admin-theme-light .admin-dashboard-hero .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* ── Order board redesign — tema light ──────────────────────────────── */
+
+/* Tab container e aba ativa */
+.admin-shell.admin-theme-light .bg-\[\#0f0f0f\] {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+.admin-shell.admin-theme-light .bg-\[\#1e1e1e\] {
+  background: #ffffff !important;
+  color: #111111 !important;
+}
+
+/* Botão de som ativo (verde escuro → verde claro) */
+.admin-shell.admin-theme-light .bg-\[\#0e2318\] {
+  background: #d1fae5 !important;
+}
+.admin-shell.admin-theme-light .border-\[\#1e3a2a\] {
+  border-color: #6ee7b7 !important;
+}
+.admin-shell.admin-theme-light .text-\[\#91e0b2\] {
+  color: #065f46 !important;
+}
+
+/* Feedback de erro (vermelho escuro → vermelho claro) */
+.admin-shell.admin-theme-light .bg-\[\#1a0e0e\] {
+  background: #fee2e2 !important;
+}
+.admin-shell.admin-theme-light .border-\[\#3a1e1e\] {
+  border-color: #fca5a5 !important;
+}
+.admin-shell.admin-theme-light .text-\[\#f4b4b4\] {
+  color: #b91c1c !important;
+}
+
+/* Badge delivery (azul escuro → azul claro) */
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#10263c\] {
+  background: #dbeafe !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .border-\[\#22547b\] {
+  border-color: #93c5fd !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#8fd0ff\] {
+  color: #1d4ed8 !important;
+}
+
+/* Badge balcão (verde escuro → verde claro) */
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#11261d\] {
+  background: #d1fae5 !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .border-\[\#285f45\] {
+  border-color: #6ee7b7 !important;
+}
+
+/* Badge de status no detalhe (âmbar escuro → âmbar claro) */
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#3a2a0a\] {
+  background: #fef3c7 !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .border-\[\#7a5a12\] {
+  border-color: #fcd34d !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#f5c768\] {
+  color: #b45309 !important;
+}
+
+/* Print jobs — status pills */
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#351919\] {
+  background: #fee2e2 !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#9fe0b9\] {
+  color: #065f46 !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#292117\] {
+  background: #fef3c7 !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#efc36a\] {
+  color: #b45309 !important;
+}
+
+/* Botão cancelar pedido */
+.admin-shell.admin-theme-light .admin-orders-shell-card .text-\[\#f08a8a\] {
+  color: #dc2626 !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .hover\:bg-\[\#2a1717\]:hover {
+  background: #fee2e2 !important;
+}
+.admin-shell.admin-theme-light .admin-orders-shell-card .hover\:text-\[\#ffb1b1\]:hover {
+  color: #dc2626 !important;
+}
+
+/* Botão fechar mesa hover */
+.admin-shell.admin-theme-light .admin-orders-shell-card .hover\:bg-\[\#3a2a0a\]:hover {
+  background: #fde68a !important;
+}
+/* Botão fechar pedido hover */
+.admin-shell.admin-theme-light .admin-orders-shell-card .hover\:bg-\[\#153149\]:hover {
+  background: #bfdbfe !important;
+}
+
+/* Stepper conector completado */
+.admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#92d5a9\] {
+  background: #34d399 !important;
+}
+
+/* Empty state border dashed */
+.admin-shell.admin-theme-light .border-\[\#232323\] {
+  border-color: #e2e8f0 !important;
+}
+.admin-shell.admin-theme-light .text-\[\#5a5450\] {
+  color: #6b7280 !important;
+}
+.admin-shell.admin-theme-light .text-\[\#3a3632\] {
+  color: #9ca3af !important;
+}
+
+/* Online badge — sempre verde independente do tema */
+.admin-shell.admin-theme-light .admin-online-badge {
+  background: #d1fae5 !important;
+  border-color: #6ee7b7 !important;
+  color: #065f46 !important;
+}
+.admin-shell.admin-theme-light .admin-online-badge svg {
+  color: #065f46 !important;
+}
+
+.ticket-cut {
+  background-image:
+    radial-gradient(circle at 12px -8px, transparent 12px, #f7f3ec 13px),
+    radial-gradient(circle at calc(100% - 12px) -8px, transparent 12px, #f7f3ec 13px);
+  background-size: 51% 100%;
+  background-position: left top, right top;
+  background-repeat: no-repeat;
+}
+
+.wave-separator {
+  height: 22px;
+  background:
+    radial-gradient(circle at 10px -2px, transparent 12px, #d8c8a0 13px 14px, transparent 15px) repeat-x;
+  background-size: 24px 22px;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-40px) translateX(-5px);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translateY(-20px) translateX(15px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes pulse-slow {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pulse-slower {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.animate-float {
+  animation: float ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+.animate-pulse-slower {
+  animation: pulse-slower 8s ease-in-out infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 4mm;
+  }
+
+  body {
+    background: white !important;
+    font-family: monospace;
+    font-size: 12px;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-sheet,
+  .print-sheet * {
+    visibility: visible;
+  }
+
+  .print-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block !important;
+    width: 72mm;
+    color: black;
+  }
+}
