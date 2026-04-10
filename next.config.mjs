@@ -1,4 +1,7 @@
-const remotePatterns = [{ protocol: "https", hostname: "images.unsplash.com" }];
+const remotePatterns = [
+  { protocol: "https", hostname: "images.unsplash.com" },
+  { protocol: "https", hostname: "www.goomer.app" }
+];
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
   try {

@@ -24,7 +24,7 @@ values (
   'Culinaria Arabe',
   'Avenida Vinte de Agosto, 2190 - Setor Central, Catalao - GO',
   '(64) 99999-0000',
-  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+  '/logo.png',
   20,
   0,
   120,

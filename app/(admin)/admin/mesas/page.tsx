@@ -6,6 +6,10 @@ import { tableService } from "@/features/tables/services/table.service";
 import { Badge } from "@/components/ui/badge";
 
 function getBaseUrl() {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
+  }
+
   const headerStore = headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "localhost:3000";
   const protocol =
