@@ -47,8 +47,8 @@ export function FloatingParticles() {
         />
       ))}
 
-      <div className="animate-pulse-slow absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-amber-400/20 blur-3xl" />
-      <div className="animate-pulse-slower absolute bottom-1/3 right-1/4 h-48 w-48 rounded-full bg-orange-300/15 blur-3xl" />
+      <div className="animate-pulse-slow absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+      <div className="animate-pulse-slower absolute bottom-1/3 right-1/4 h-48 w-48 rounded-full bg-accent/25 blur-3xl" />
 
       <div className="animate-twinkle absolute right-1/3 top-1/5 h-2 w-2 rounded-full bg-white" style={{ animationDelay: "0s" }} />
       <div className="animate-twinkle absolute left-1/4 top-2/3 h-1.5 w-1.5 rounded-full bg-white" style={{ animationDelay: "1s" }} />

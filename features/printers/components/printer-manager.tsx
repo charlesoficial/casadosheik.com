@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -17,8 +17,7 @@ import {
 
 import { PrinterForm } from "@/features/printers/components/printer-form";
 import { PrinterList } from "@/features/printers/components/printer-list";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { DSBadge, DSButton, DSCard, DSFeedback } from "@/components/system";
 import { usePrinterBridge } from "@/features/printers/hooks/use-printer-bridge";
 import type { OrderSettingsRecord, PrintJobRecord, PrinterPayload, PrinterRecord } from "@/lib/types";
 
@@ -52,23 +51,23 @@ function statCard({
   eyebrow: string;
   value: string;
   hint: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   return (
-    <div className="admin-printers-dark-block rounded-[24px] border border-[#2c2c2c] bg-[linear-gradient(180deg,#161616_0%,#0f0f0f_100%)] p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-[0.16em] text-[#aca598]">{eyebrow}</span>
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#343434] bg-[#171717] text-[#f2eadf]">
+    <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4 shadow-soft">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <span className="text-xs font-medium uppercase tracking-[0.16em] text-admin-fg-faint">{eyebrow}</span>
+        <span className="flex h-9 w-9 items-center justify-center rounded-ds-md border border-admin-border-strong bg-admin-overlay text-brand-gold">
           {icon}
         </span>
       </div>
-      <p className="text-xl font-semibold text-white">{value}</p>
-      <p className="mt-2 text-sm leading-6 text-[#9e988c]">{hint}</p>
+      <p className="text-xl font-semibold tracking-tight text-admin-fg">{value}</p>
+      <p className="mt-2 text-sm leading-6 text-admin-fg-muted">{hint}</p>
     </div>
   );
 }
 
-function deploymentStep({
+function readinessStep({
   step,
   title,
   description
@@ -78,12 +77,12 @@ function deploymentStep({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-[#2f2f2f] bg-[#151515] p-4">
-      <div className="mb-3 inline-flex h-8 min-w-8 items-center justify-center rounded-full border border-[#3a3550] bg-[#19152a] px-2 text-xs font-semibold text-[#d8cdfc]">
+    <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
+      <div className="mb-3 inline-flex h-8 min-w-8 items-center justify-center rounded-ds-md border border-status-new-border bg-status-new-bg px-2 text-xs font-semibold text-status-new-fg">
         {step}
       </div>
-      <p className="text-sm font-semibold text-white">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-[#a39c90]">{description}</p>
+      <p className="text-sm font-semibold text-admin-fg">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-admin-fg-muted">{description}</p>
     </div>
   );
 }
@@ -276,194 +275,310 @@ export function PrinterManager({
     }
   }
 
+  const inactivePrinters = printers.filter((printer) => !printer.isActive);
+  const configuredDestinations = new Set(activePrinters.map((printer) => printer.destination)).size;
+  const latestFailedJobs = Object.values(latestJobs).filter((job) => job?.status === "failed").length;
+  const automationReady = initialSettings.autoPrintEnabled && activePrinters.length > 0;
+  const readinessLabel = bridge.automaticPrintingAvailable && activePrinters.length ? "Pronto" : "Revisar setup";
+  const readinessHint = bridge.automaticPrintingAvailable
+    ? activePrinters.length
+      ? "Bridge e impressoras ativas para operacao."
+      : "Bridge pronta, mas falta impressora ativa."
+    : "Conecte o QZ Tray para operar USB.";
+
   return (
-    <div className="admin-printers-shell space-y-6">
-      <section className="overflow-hidden rounded-[30px] border border-[#2a2a2a] bg-[radial-gradient(circle_at_top_left,rgba(91,52,255,0.18),transparent_32%),radial-gradient(circle_at_top_right,rgba(212,167,80,0.16),transparent_28%),linear-gradient(180deg,#171717_0%,#101010_100%)]">
-        <div className="grid gap-8 p-6 xl:grid-cols-[1.15fr_0.85fr] xl:p-7">
-          <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#3c3650] bg-[#19152b] px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-[#ddd2ff]">
-              <Printer className="h-3.5 w-3.5" />
-              Central de impressoras
-            </div>
-            <div className="max-w-3xl space-y-3">
-              <h1 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
-                Configure QZ Tray, impressoras e disparo automatico em um so lugar.
-              </h1>
-              <p className="text-sm leading-7 text-[#b6b0a4] sm:text-base">
-                Esta tela foi pensada para colocar a operacao em funcionamento hoje: conectar a bridge local, cadastrar impressoras USB ou rede, testar ticket real e definir quando o pedido imprime sozinho.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button type="button" variant="admin" onClick={() => void handleConnectQzTray()}>
-                <Cable className="h-4 w-4" />
-                {bridge.automaticPrintingAvailable ? "QZ Tray conectado" : "Conectar QZ Tray"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="border-[#313131] bg-transparent text-white hover:bg-[#1b1b1b]"
-                onClick={() => void bridge.refreshUsbPrinters().then(() => feedback("Lista USB atualizada."))}
-              >
-                <MonitorCog className="h-4 w-4" />
-                Atualizar impressoras USB
-              </Button>
-              <Button asChild type="button" variant="outline" className="border-[#313131] bg-transparent text-white hover:bg-[#1b1b1b]">
-                <a href="https://qz.io/download/" target="_blank" rel="noreferrer">
-                  Baixar QZ Tray
-                </a>
-              </Button>
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            {statCard({
-              eyebrow: "Bridge local",
-              value: bridge.automaticPrintingAvailable ? "QZ pronta" : bridge.qzAvailable ? "QZ detectado" : "Nao detectado",
-              hint: bridge.qzStatusMessage,
-              icon: <Cable className="h-4 w-4" />
-            })}
-            {statCard({
-              eyebrow: "Certificados",
-              value: qzStatus?.signingConfigured ? "Assinatura ativa" : qzStatus?.certificateConfigured ? "Certificado parcial" : "Modo rapido",
-              hint: qzStatus?.signingConfigured
-                ? "O navegador pode imprimir sem popup extra do QZ Tray."
-                : "Funciona hoje com confianca manual; para operacao silenciosa, finalize certificado + chave.",
-              icon: qzStatus?.signingConfigured ? <ShieldCheck className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />
-            })}
-            {statCard({
-              eyebrow: "Impressoras ativas",
-              value: `${activePrinters.length}`,
-              hint: activePrinters.length
-                ? "Ja prontas para uso manual e para as regras automaticas."
-                : "Cadastre ao menos uma impressora antes de ativar auto print.",
-              icon: <BadgeCheck className="h-4 w-4" />
-            })}
-            {statCard({
-              eyebrow: "Auto print",
-              value: initialSettings.autoPrintEnabled ? "Ligado" : "Desligado",
-              hint: initialSettings.autoPrintEnabled
-                ? `Disparo em ${initialSettings.autoPrintTriggerStatus}.`
-                : "Ative abaixo quando o cadastro de impressoras estiver validado.",
-              icon: <ClipboardCheck className="h-4 w-4" />
-            })}
+    <div className="space-y-6">
+      <header className="grid gap-4 rounded-ds-2xl border border-admin-border bg-admin-elevated p-5 shadow-panel xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+        <div className="space-y-3">
+          <DSBadge variant="admin" className="gap-2 uppercase tracking-[0.18em]">
+            <Printer className="h-3.5 w-3.5" />
+            Printer Operations
+          </DSBadge>
+          <div className="max-w-4xl space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight text-admin-fg 2xl:text-3xl">
+              Centro de operacao das impressoras
+            </h1>
+            <p className="text-sm leading-6 text-admin-fg-muted">
+              Conexao, roteamento, testes e prontidao da impressao automatica do restaurante.
+            </p>
           </div>
         </div>
-      </section>
-
-      {message ? (
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-          {message}
+        <div className="flex flex-col gap-2 sm:flex-row xl:justify-end">
+          <DSButton type="button" variant="admin" onClick={() => void handleConnectQzTray()}>
+            <Cable className="h-4 w-4" />
+            {bridge.automaticPrintingAvailable ? "QZ conectado" : "Conectar QZ"}
+          </DSButton>
+          <DSButton
+            type="button"
+            variant="outline"
+            onClick={() => void bridge.refreshUsbPrinters().then(() => feedback("Lista USB atualizada."))}
+          >
+            <MonitorCog className="h-4 w-4" />
+            Atualizar USB
+          </DSButton>
+          <DSButton asChild variant="outline">
+            <a href="https://qz.io/download/" target="_blank" rel="noreferrer">
+              Baixar QZ Tray
+            </a>
+          </DSButton>
         </div>
-      ) : null}
-      {error ? (
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>
-      ) : null}
+      </header>
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_420px]">
-        <Card className="admin-printers-shell-card border-[#2a2a2a] bg-[#171717]">
-          <CardContent className="space-y-5 p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#a39d90]">Fluxo de implantacao</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">Passos certos para colocar a impressao no ar hoje</h2>
-              </div>
-              <Link
-                href="/admin/pedidos"
-                className="inline-flex items-center gap-2 rounded-xl border border-[#313131] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a1a1a]"
-              >
-                Voltar para pedidos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
+      {message && <DSFeedback variant="success" title={message} onDismiss={() => setMessage(null)} />}
+      {error && <DSFeedback variant="error" title={error} onDismiss={() => setError(null)} />}
 
-            <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-              {deploymentStep({
-                step: "1",
-                title: "Abra o QZ Tray nesta maquina",
-                description: "A bridge USB so funciona quando o app do QZ Tray esta instalado e aberto no computador que vai imprimir."
-              })}
-              {deploymentStep({
-                step: "2",
-                title: "Conecte e valide a bridge",
-                description: "Use o botao Conectar QZ Tray. Se o modo estiver rapido, o operador ainda pode confiar manualmente na origem."
-              })}
-              {deploymentStep({
-                step: "3",
-                title: "Cadastre cada impressora",
-                description: "Defina destino operacional, nome exibido e o printer_name para USB ou IP/porta para impressoras de rede."
-              })}
-              {deploymentStep({
-                step: "4",
-                title: "Teste e so depois ligue o automatico",
-                description: "Rode um ticket de teste, confirme corte/saida e entao habilite as regras de auto print abaixo."
-              })}
-            </div>
-
-            <div className="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-              <div className="rounded-[24px] border border-[#2c2c2c] bg-[#121212] p-5">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#333333] bg-[#171717] text-[#efe6d8]">
-                    <KeyRound className="h-5 w-5" />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
+        <main className="space-y-6">
+          <DSCard variant="admin-panel" className="overflow-hidden shadow-panel" entering>
+            <div className="grid gap-6 border-b border-admin-border bg-admin-surface p-5 xl:grid-cols-[1.15fr_0.85fr] 2xl:p-6">
+              <div className="space-y-5">
+                <div className="flex items-start gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-ds-lg border border-brand-purple/30 bg-brand-purple-bg text-brand-purple shadow-soft">
+                    <Printer className="h-5 w-5" />
                   </span>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">QZ Tray e certificados</h3>
-                    <p className="text-sm text-[#a69f92]">Certificado e assinatura deixam a impressao USB mais confiavel e sem prompts extras.</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-admin-fg-faint">
+                      Readiness
+                    </p>
+                    <h2 className="mt-1 text-xl font-semibold tracking-tight text-admin-fg 2xl:text-2xl">
+                      {readinessLabel}
+                    </h2>
+                    <p className="mt-2 text-sm leading-6 text-admin-fg-muted">{readinessHint}</p>
                   </div>
                 </div>
 
-                <div className="grid gap-3">
-                  <div className="rounded-2xl border border-[#303030] bg-[#171717] p-4">
-                    <p className="text-sm font-medium text-white">Status atual</p>
-                    <p className="mt-2 text-sm leading-6 text-[#aba598]">{bridge.qzStatusMessage}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="rounded-full border border-[#343434] bg-[#111111] px-3 py-1 text-xs font-medium text-[#ede7dc]">
-                        {bridge.qzAvailable ? "Bridge detectada" : "Bridge ausente"}
-                      </span>
-                      <span className="rounded-full border border-[#343434] bg-[#111111] px-3 py-1 text-xs font-medium text-[#ede7dc]">
-                        {qzStatus?.signingConfigured ? "Assinatura automatica" : "Confianca manual ou parcial"}
-                      </span>
-                      <span className="rounded-full border border-[#343434] bg-[#111111] px-3 py-1 text-xs font-medium text-[#ede7dc]">
-                        Rede/IP via TCP bruto
-                      </span>
-                    </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
+                    <p className="text-xs uppercase tracking-[0.16em] text-admin-fg-faint">Bridge</p>
+                    <p className="mt-2 text-lg font-semibold text-admin-fg">
+                      {bridge.automaticPrintingAvailable ? "Online" : bridge.qzAvailable ? "Detectada" : "Offline"}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-admin-fg-muted">{bridge.qzStatusMessage}</p>
                   </div>
-
-                  <div className="rounded-2xl border border-[#303030] bg-[#171717] p-4">
-                    <p className="text-sm font-medium text-white">Como deixar pronto de forma profissional</p>
-                    <div className="mt-3 space-y-2 text-sm leading-6 text-[#a9a396]">
-                      <p>1. Salve o certificado publico em <span className="font-medium text-[#f0e8da]">public/qz/digital-certificate.txt</span> ou use <span className="font-medium text-[#f0e8da]">QZ_TRAY_CERTIFICATE</span>.</p>
-                      <p>2. Guarde a chave privada somente no servidor com <span className="font-medium text-[#f0e8da]">QZ_TRAY_PRIVATE_KEY</span> ou <span className="font-medium text-[#f0e8da]">QZ_TRAY_PRIVATE_KEY_PATH</span>.</p>
-                      <p>3. Reabra esta tela e conecte a bridge. Quando a assinatura estiver pronta, o status muda automaticamente.</p>
-                    </div>
+                  <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
+                    <p className="text-xs uppercase tracking-[0.16em] text-admin-fg-faint">Ativas</p>
+                    <p className="mt-2 text-lg font-semibold tabular-nums text-admin-fg">{activePrinters.length}</p>
+                    <p className="mt-1 text-xs leading-5 text-admin-fg-muted">
+                      {inactivePrinters.length} inativas ou pausadas.
+                    </p>
+                  </div>
+                  <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
+                    <p className="text-xs uppercase tracking-[0.16em] text-admin-fg-faint">Automacao</p>
+                    <p className="mt-2 text-lg font-semibold text-admin-fg">
+                      {automationReady ? "Pronta" : initialSettings.autoPrintEnabled ? "Sem ativa" : "Manual"}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-admin-fg-muted">
+                      Disparo em {initialSettings.autoPrintTriggerStatus}.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[24px] border border-[#2c2c2c] bg-[#121212] p-5">
-                <h3 className="text-lg font-semibold text-white">USB detectadas agora</h3>
-                <p className="mt-2 text-sm leading-6 text-[#a69f92]">
-                  Use estes nomes no cadastro USB. Eles sao lidos direto do QZ Tray e ajudam a evitar erro de mapeamento.
+              <div className="rounded-ds-xl border border-admin-border bg-admin-elevated p-4 shadow-soft">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-admin-fg-faint">
+                  Proxima acao
                 </p>
-
-                <div className="mt-4 space-y-2">
-                  {bridge.availableUsbPrinters.length ? (
-                    bridge.availableUsbPrinters.map((printerName) => (
-                      <div key={printerName} className="rounded-2xl border border-[#303030] bg-[#171717] px-4 py-3 text-sm text-white">
-                        {printerName}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-[#343434] bg-[#161616] px-4 py-4 text-sm leading-6 text-[#a8a194]">
-                      Nenhuma impressora USB listada ainda. Conecte o QZ Tray e clique em atualizar para buscar os nomes disponiveis.
-                    </div>
-                  )}
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3 rounded-ds-md bg-admin-surface px-3 py-2.5">
+                    <span className="text-sm text-admin-fg-secondary">Conectar QZ</span>
+                    <DSBadge variant={bridge.automaticPrintingAvailable ? "success" : "warning"}>
+                      {bridge.automaticPrintingAvailable ? "Ok" : "Pendente"}
+                    </DSBadge>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 rounded-ds-md bg-admin-surface px-3 py-2.5">
+                    <span className="text-sm text-admin-fg-secondary">Testar impressora</span>
+                    <DSBadge variant={printers.length ? "info" : "secondary"}>
+                      {printers.length ? "Disponivel" : "Cadastre"}
+                    </DSBadge>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 rounded-ds-md bg-admin-surface px-3 py-2.5">
+                    <span className="text-sm text-admin-fg-secondary">Jobs com falha</span>
+                    <DSBadge variant={latestFailedJobs ? "danger" : "success"}>{latestFailedJobs}</DSBadge>
+                  </div>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <div className="space-y-4">
+            <div className="grid gap-3 bg-admin-elevated p-4 sm:grid-cols-2 2xl:grid-cols-4">
+              {statCard({
+                eyebrow: "Ativas",
+                value: `${activePrinters.length}`,
+                hint: "Prontas para uso manual e automacao.",
+                icon: <BadgeCheck className="h-4 w-4" />
+              })}
+              {statCard({
+                eyebrow: "Inativas",
+                value: `${inactivePrinters.length}`,
+                hint: "Pausadas ou aguardando revisao.",
+                icon: <ShieldOff className="h-4 w-4" />
+              })}
+              {statCard({
+                eyebrow: "Destinos",
+                value: `${configuredDestinations}`,
+                hint: "Areas cobertas por impressoras ativas.",
+                icon: <ClipboardCheck className="h-4 w-4" />
+              })}
+              {statCard({
+                eyebrow: "Certificado",
+                value: qzStatus?.signingConfigured ? "Assinado" : qzStatus?.certificateConfigured ? "Parcial" : "Rapido",
+                hint: qzStatus?.signingConfigured ? "Sem popup extra do QZ Tray." : "Pode pedir confianca manual.",
+                icon: qzStatus?.signingConfigured ? <ShieldCheck className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />
+              })}
+            </div>
+          </DSCard>
+
+          <PrinterList
+            printers={printers}
+            latestJobs={latestJobs}
+            onEdit={setEditingPrinter}
+            onDelete={(printer) => void handleDelete(printer)}
+            onToggleActive={(printer) => void handleToggleActive(printer)}
+            onToggleAutoPrint={(printer) => void handleToggleAutoPrint(printer)}
+            onFeedback={feedback}
+            onRefreshLogs={() => void refreshLogs()}
+          />
+
+          <DSCard variant="admin-panel" className="overflow-hidden shadow-soft">
+            <div className="border-b border-admin-border bg-admin-surface p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-admin-fg-faint">
+                Automacao e roteamento
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-admin-fg">Impressao automatica</h2>
+              <p className="mt-2 text-sm leading-6 text-admin-fg-muted">
+                Estado salvo do fluxo de pedidos e cobertura por destino operacional.
+              </p>
+            </div>
+            <div className="grid gap-4 p-5 lg:grid-cols-3">
+              <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-admin-fg-faint">Auto print</p>
+                <p className="mt-2 text-lg font-semibold text-admin-fg">
+                  {initialSettings.autoPrintEnabled ? "Ligado" : "Desligado"}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-admin-fg-muted">
+                  {initialSettings.autoPrintEnabled ? "Fluxo automatico habilitado." : "Operacao segue manual."}
+                </p>
+              </div>
+              <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-admin-fg-faint">Disparo</p>
+                <p className="mt-2 text-lg font-semibold text-admin-fg">{initialSettings.autoPrintTriggerStatus}</p>
+                <p className="mt-1 text-sm leading-6 text-admin-fg-muted">Momento em que o sistema tenta imprimir.</p>
+              </div>
+              <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-admin-fg-faint">Modo</p>
+                <p className="mt-2 text-lg font-semibold text-admin-fg">
+                  {initialSettings.autoPrintMode === "single_printer" ? "Unica" : "Por destino"}
+                </p>
+                <p className="mt-1 text-sm leading-6 text-admin-fg-muted">
+                  {configuredDestinations} destinos cobertos por impressoras ativas.
+                </p>
+              </div>
+            </div>
+          </DSCard>
+
+          <DSCard variant="admin-panel" className="overflow-hidden shadow-soft">
+            <div className="border-b border-admin-border bg-admin-surface p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-admin-fg-faint">
+                Diagnostico
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-admin-fg">Bridge, certificados e USB</h2>
+            </div>
+            <div className="grid gap-4 p-5 xl:grid-cols-[1.1fr_0.9fr]">
+              <div className="space-y-4">
+                {readinessStep({
+                  step: "1",
+                  title: "Abra o QZ Tray",
+                  description: "Instale e deixe o app aberto na maquina que imprime."
+                })}
+                {readinessStep({
+                  step: "2",
+                  title: "Conecte a bridge",
+                  description: "Clique em conectar e confirme confianca no popup."
+                })}
+                {readinessStep({
+                  step: "3",
+                  title: "Teste antes de automatizar",
+                  description: "Rode um ticket de teste e valide corte, acento e via."
+                })}
+              </div>
+
+              <div className="space-y-4">
+                <div className="rounded-ds-xl border border-admin-border bg-admin-elevated p-4">
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-ds-md border border-admin-border-strong bg-admin-surface text-brand-gold">
+                      <KeyRound className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-admin-fg">Certificados QZ</p>
+                      <p className="text-xs text-admin-fg-muted">
+                        {qzStatus?.signingConfigured ? "Assinatura ativa." : "Modo rapido ou parcial."}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm leading-6 text-admin-fg-muted">
+                    Para operar sem prompts, configure certificado publico e chave privada no servidor.
+                  </p>
+                </div>
+
+                <div className="rounded-ds-xl border border-admin-border bg-admin-elevated p-4">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-admin-fg">USB detectadas</p>
+                    <DSBadge variant={bridge.availableUsbPrinters.length ? "success" : "secondary"}>
+                      {bridge.availableUsbPrinters.length}
+                    </DSBadge>
+                  </div>
+                  <div className="space-y-2">
+                    {bridge.availableUsbPrinters.length ? (
+                      bridge.availableUsbPrinters.map((printerName) => (
+                        <div key={printerName} className="rounded-ds-md border border-admin-border bg-admin-surface px-3 py-2 text-sm text-admin-fg-secondary">
+                          {printerName}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="rounded-ds-md border border-dashed border-admin-border-strong bg-admin-surface px-3 py-3 text-sm leading-6 text-admin-fg-muted">
+                        Conecte o QZ Tray e atualize para listar impressoras USB.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DSCard>
+        </main>
+
+        <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
+          <DSCard variant="admin-panel" className="overflow-hidden shadow-panel">
+            <div className="border-b border-admin-border bg-admin-surface p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-admin-fg-faint">
+                Health rail
+              </p>
+              <h2 className="mt-2 text-lg font-semibold text-admin-fg">Leitura rapida</h2>
+            </div>
+            <div className="space-y-3 p-5">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-admin-fg-muted">QZ Tray</span>
+                <DSBadge variant={bridge.automaticPrintingAvailable ? "success" : "warning"}>
+                  {bridge.automaticPrintingAvailable ? "Online" : "Revisar"}
+                </DSBadge>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-admin-fg-muted">Impressoras</span>
+                <DSBadge variant={activePrinters.length ? "success" : "warning"}>
+                  {activePrinters.length ? `${activePrinters.length} ativas` : "Nenhuma"}
+                </DSBadge>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-admin-fg-muted">Automacao</span>
+                <DSBadge variant={automationReady ? "success" : "secondary"}>
+                  {automationReady ? "Pronta" : "Manual"}
+                </DSBadge>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-admin-fg-muted">Falhas recentes</span>
+                <DSBadge variant={latestFailedJobs ? "danger" : "success"}>{latestFailedJobs}</DSBadge>
+              </div>
+            </div>
+          </DSCard>
+
           <PrinterForm
             key={editingPrinter?.id || "new"}
             initialValue={editingPrinter}
@@ -471,37 +586,23 @@ export function PrinterManager({
             onSubmit={editingPrinter ? handleUpdate : handleCreate}
             onCancel={editingPrinter ? () => setEditingPrinter(null) : undefined}
           />
-          <div className="rounded-[24px] border border-[#2a2a2a] bg-[#111111] p-5">
-            <p className="text-sm font-semibold text-white">O que fica pronto hoje</p>
-            <div className="mt-3 space-y-2 text-sm leading-6 text-[#a49e92]">
-              <p>• USB via QZ Tray com teste real de ticket.</p>
-              <p>• Separacao por destino operacional (caixa, cozinha, bar e delivery).</p>
-              <p>• Regras automaticas de disparo no aceite ou no novo pedido.</p>
-              <p>• Historico do ultimo job para descobrir rapidamente onde falhou.</p>
-            </div>
-            {!qzStatus?.signingConfigured ? (
-              <div className="mt-4 flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-100">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                <p>
-                  Mesmo sem certificado completo, voce ja consegue operar hoje em modo rapido, aceitando a confianca do QZ Tray neste computador.
-                </p>
-              </div>
-            ) : null}
-          </div>
-        </div>
+
+          {!qzStatus?.signingConfigured && (
+            <DSFeedback
+              variant="warning"
+              title="Modo rapido ativo"
+              description="Aceite a confianca do QZ Tray neste computador para operar sem certificado completo."
+            />
+          )}
+
+          <DSButton asChild variant="outline" className="w-full">
+            <Link href="/admin/pedidos">
+              Voltar para pedidos
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </DSButton>
+        </aside>
       </div>
-
-      <PrinterList
-        printers={printers}
-        latestJobs={latestJobs}
-        onEdit={setEditingPrinter}
-        onDelete={(printer) => void handleDelete(printer)}
-        onToggleActive={(printer) => void handleToggleActive(printer)}
-        onToggleAutoPrint={(printer) => void handleToggleAutoPrint(printer)}
-        onFeedback={feedback}
-        onRefreshLogs={() => void refreshLogs()}
-      />
-
     </div>
   );
 }

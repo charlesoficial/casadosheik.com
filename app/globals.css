@@ -19,6 +19,36 @@
   --input: 34 18% 87%;
   --ring: 43 73% 46%;
   --radius: 1rem;
+  --menu-bg: 41 61% 91%;
+  --menu-surface: 38 100% 97%;
+  --menu-surface-raised: 40 100% 99%;
+  --menu-surface-soft: 39 46% 89%;
+  --menu-input: 40 100% 99%;
+  --menu-text: 26 29% 11%;
+  --menu-text-muted: 32 11% 39%;
+  --menu-text-subtle: 33 10% 52%;
+  --menu-border: 37 33% 81%;
+  --menu-border-strong: 38 34% 69%;
+  --menu-accent: 39 76% 41%;
+  --menu-accent-strong: 38 85% 29%;
+  --menu-accent-bg: 42 70% 85%;
+  --menu-accent-border: 42 62% 69%;
+  --menu-cta-bg: 26 29% 11%;
+  --menu-cta-hover: 27 31% 15%;
+  --menu-cta-fg: 42 100% 96%;
+  --menu-cta-soft: 42 100% 96%;
+  --menu-cta-muted: 42 100% 90%;
+  --menu-success: 142 50% 32%;
+  --menu-success-bg: 136 45% 93%;
+  --menu-danger: 8 59% 44%;
+  --menu-danger-bg: 9 71% 94%;
+  --menu-overlay: 26 29% 11%;
+  --menu-overlay-fg: 42 100% 96%;
+  --menu-overlay-border: 42 100% 96%;
+  --menu-bg-gradient: hsl(var(--menu-bg));
+  --menu-bg-gradient-soft: hsl(var(--menu-bg));
+  --menu-header-pattern: radial-gradient(circle at 15% 15%, hsl(var(--menu-accent) / 0.1), transparent 24%), radial-gradient(circle at 80% 20%, hsl(var(--menu-accent) / 0.08), transparent 20%), radial-gradient(circle at 50% 100%, hsl(var(--menu-accent-strong) / 0.07), transparent 32%);
+  --menu-header-glow: radial-gradient(circle, hsl(var(--menu-accent) / 0.16) 0%, hsl(var(--menu-accent) / 0) 72%);
   --ui-input-bg: #ffffff;
   --ui-input-border: hsl(var(--input));
   --ui-input-fg: hsl(var(--foreground));
@@ -28,58 +58,59 @@
   --ui-badge-secondary-bg: hsl(var(--background));
   --ui-badge-secondary-border: hsl(var(--border));
   --ui-badge-secondary-fg: hsl(var(--muted-foreground));
-  --ui-badge-admin-bg: #1b1b1b;
-  --ui-badge-admin-border: #343434;
-  --ui-badge-admin-fg: #ffffff;
+  --ui-badge-admin-bg: #171717;
+  --ui-badge-admin-border: #15151f;
+  --ui-badge-admin-fg: #fafafa;
+  --admin-hero-bg: linear-gradient(135deg, #1c2533 0%, #27415e 35%, #4d89cf 100%);
   --admin-foreground: #ece7db;
-  --admin-shell-bg: linear-gradient(180deg, #0d0d0d 0%, #070707 100%);
-  --admin-sidebar-bg: #101010;
-  --admin-sidebar-border: #262626;
-  --admin-topbar-bg: rgba(16, 16, 16, 0.92);
-  --admin-topbar-border: #242424;
+  --admin-shell-bg: #000000;
+  --admin-sidebar-bg: #000000;
+  --admin-sidebar-border: #15151f;
+  --admin-topbar-bg: rgba(0, 0, 0, 0.92);
+  --admin-topbar-border: #15151f;
   --admin-nav-fg: #bdb7ab;
   --admin-nav-hover-bg: #181818;
   --admin-nav-hover-fg: #ffffff;
   --admin-nav-active-bg: #181818;
-  --admin-nav-active-border: #2f2f2f;
+  --admin-nav-active-border: #5b34ff;
   --admin-nav-active-fg: #ffffff;
-  --admin-control-bg: #121212;
-  --admin-control-border: #2f2f2f;
+  --admin-control-bg: #000000;
+  --admin-control-border: #15151f;
   --admin-control-fg: #ffffff;
-  --admin-control-hover-bg: #181818;
-  --admin-panel-bg: #111111;
-  --admin-panel-border: #2d2d2d;
+  --admin-control-hover-bg: #111111;
+  --admin-panel-bg: #050505;
+  --admin-panel-border: #15151f;
   --admin-panel-shadow: 0 22px 54px rgba(0, 0, 0, 0.46);
-  --admin-panel-header-bg: #151515;
-  --admin-panel-header-border: #232323;
+  --admin-panel-header-bg: #090909;
+  --admin-panel-header-border: #101018;
   --admin-title: #ffffff;
   --admin-subtle: #8f8f8f;
   --admin-alert-description: #aaa295;
-  --admin-icon-wrap-bg: #101010;
-  --admin-icon-wrap-border: #2d2d2d;
+  --admin-icon-wrap-bg: #111111;
+  --admin-icon-wrap-border: #15151f;
   --admin-icon-wrap-fg: #ffffff;
   --admin-counter-bg: #ffffff;
   --admin-counter-fg: #000000;
-  --admin-status-chip-bg: #151515;
-  --admin-status-chip-border: #303030;
+  --admin-status-chip-bg: #111111;
+  --admin-status-chip-border: #15151f;
   --admin-status-chip-fg: #ffffff;
-  --admin-loading-bg: #111111;
-  --admin-loading-border: #2c2c2c;
+  --admin-loading-bg: #050505;
+  --admin-loading-border: #15151f;
   --admin-loading-fg: #b8b8b8;
-  --admin-alert-card-bg: #121212;
-  --admin-alert-card-border: #2c2c2c;
+  --admin-alert-card-bg: #050505;
+  --admin-alert-card-border: #15151f;
   --admin-alert-card-hover-bg: #171717;
-  --admin-alert-card-hover-border: #404040;
+  --admin-alert-card-hover-border: #FFFFFF2E;
   --admin-chip-cta-bg: #ffffff;
   --admin-chip-cta-border: #ffffff;
   --admin-chip-cta-fg: #000000;
   --admin-chevron: #8e8679;
-  --admin-empty-bg: #111111;
-  --admin-empty-border: #2f2d29;
-  --admin-footer-bg: #141414;
-  --admin-footer-border: #232323;
-  --admin-footer-inner-bg: #111111;
-  --admin-footer-inner-border: #302d29;
+  --admin-empty-bg: #050505;
+  --admin-empty-border: #15151f;
+  --admin-footer-bg: #090909;
+  --admin-footer-border: #101018;
+  --admin-footer-inner-bg: #050505;
+  --admin-footer-inner-border: #15151f;
   --admin-footer-fg: #d6cfbf;
   --admin-footer-link: #ffffff;
   --admin-footer-link-hover: #cccccc;
@@ -91,6 +122,49 @@
   --admin-logout-hover-fg: #ffffff;
   --admin-admin-button-bg: #5b34ff;
   --admin-admin-button-fg: #ffffff;
+
+  /* ── Semantic tokens (Tailwind dynamic mapping) — default = black theme ─ */
+  --admin-bg: #000000;
+  --admin-surface: #050505;
+  --admin-surface-deep: #000000;
+  --admin-elevated: #090909;
+  --admin-overlay: #111111;
+  --admin-border-faint: #101018;
+  --admin-border: #15151f;
+  --admin-border-strong: #FFFFFF2E;
+  --admin-fg: #fafafa;
+  --admin-fg-secondary: #d4d4d4;
+  --admin-fg-muted: #a1a1a1;
+  --admin-fg-faint: #737373;
+  --admin-primary-bg: #fafafa;
+  --admin-primary-fg: #000000;
+  --admin-secondary-bg: #171717;
+  --admin-secondary-fg: #fafafa;
+  --admin-secondary-border: #15151f;
+  --admin-accent-bg: #231534;
+  --admin-accent-fg: #d8c8ff;
+  --admin-accent-strong: #5b34ff;
+  --status-success-bg: #112016;
+  --status-success-border: #2d3f30;
+  --status-success-fg: #8ce3b0;
+  --status-success-text: #cfe8d6;
+  --status-warning-bg: #1d170d;
+  --status-warning-border: #3f3522;
+  --status-warning-fg: #f4c35a;
+  --status-warning-text: #eadfc9;
+  --status-info-bg: #0b2634;
+  --status-info-border: #1e526f;
+  --status-info-fg: #89d3f8;
+  --status-info-text: #b8e7fb;
+  --status-danger-bg: #2a1010;
+  --status-danger-border: #5c2020;
+  --status-danger-fg: #f87171;
+  --status-danger-text: #fca5a5;
+  --status-new-bg: #231534;
+  --status-new-border: #6b46c1;
+  --status-new-fg: #d8c8ff;
+  --admin-bar-inactive: rgba(255, 255, 255, 0.19);
+  --admin-bar-empty: rgba(255, 255, 255, 0.04);
 }
 
 * {
@@ -99,10 +173,38 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: hsl(var(--menu-bg));
 }
 
 body {
-  @apply bg-[#f7f3ec] text-foreground antialiased;
+  @apply bg-background text-foreground antialiased;
+}
+
+.menu-theme {
+  --background: var(--menu-bg);
+  --foreground: var(--menu-text);
+  --card: var(--menu-surface-raised);
+  --card-foreground: var(--menu-text);
+  --primary: var(--menu-accent-strong);
+  --primary-foreground: var(--menu-cta-fg);
+  --secondary: var(--menu-surface-soft);
+  --secondary-foreground: var(--menu-text);
+  --muted: var(--menu-surface-soft);
+  --muted-foreground: var(--menu-text-muted);
+  --accent: var(--menu-accent-bg);
+  --accent-foreground: var(--menu-accent-strong);
+  --border: var(--menu-border);
+  --input: var(--menu-border);
+  --ring: var(--menu-accent);
+  --ui-input-bg: hsl(var(--menu-input));
+  --ui-input-border: hsl(var(--menu-border));
+  --ui-input-fg: hsl(var(--menu-text));
+  --ui-input-placeholder: hsl(var(--menu-text-subtle));
+  --ui-badge-default-bg: hsl(var(--menu-accent-bg));
+  --ui-badge-default-fg: hsl(var(--menu-accent-strong));
+  --ui-badge-secondary-bg: hsl(var(--menu-surface));
+  --ui-badge-secondary-border: hsl(var(--menu-border));
+  --ui-badge-secondary-fg: hsl(var(--menu-text-muted));
 }
 
 .admin-shell {
@@ -133,7 +235,7 @@ body {
 }
 
 .admin-shell.admin-theme-black {
-  background: linear-gradient(180deg, #0a0a0a 0%, #171717 100%);
+  background: #000000;
   color: #fafafa !important;
 }
 
@@ -261,58 +363,106 @@ body {
   --admin-logout-hover-fg: #111111;
   --admin-admin-button-bg: #111111;
   --admin-admin-button-fg: #ffffff;
+
+  --ui-badge-admin-bg: #f0f0f0;
+  --ui-badge-admin-border: #d7dce3;
+  --ui-badge-admin-fg: #111111;
+  --admin-hero-bg: linear-gradient(135deg, #e8f0fe 0%, #dbeafe 50%, #bfdbfe 100%);
+
+  /* ── Semantic tokens para Tailwind — tema light ─────────────────────── */
+  --admin-bg: #fafafa;
+  --admin-surface: #ffffff;
+  --admin-surface-deep: #f8fafc;
+  --admin-elevated: #ffffff;
+  --admin-overlay: #f3f4f6;
+  --admin-border-faint: #edf0f4;
+  --admin-border: #e6e8ec;
+  --admin-border-strong: #c9ced8;
+  --admin-fg: #111111;
+  --admin-fg-secondary: #343a46;
+  --admin-fg-muted: #60646c;
+  --admin-fg-faint: #7a7f89;
+  --admin-primary-bg: #111111;
+  --admin-primary-fg: #ffffff;
+  --admin-secondary-bg: #ffffff;
+  --admin-secondary-fg: #111111;
+  --admin-secondary-border: #d7dce3;
+  --admin-accent-bg: #f1edff;
+  --admin-accent-fg: #4422cc;
+  --admin-accent-strong: #5b34ff;
+  --status-success-bg: #ecfdf3;
+  --status-success-border: #b7ebc8;
+  --status-success-fg: #146c3a;
+  --status-success-text: #0f5132;
+  --status-warning-bg: #fff8e1;
+  --status-warning-border: #f3d37a;
+  --status-warning-fg: #8a5a00;
+  --status-warning-text: #6d4b00;
+  --status-info-bg: #eef7ff;
+  --status-info-border: #bddfff;
+  --status-info-fg: #0b63ce;
+  --status-info-text: #084f9d;
+  --status-danger-bg: #fff1f1;
+  --status-danger-border: #ffcaca;
+  --status-danger-fg: #c1272d;
+  --status-danger-text: #8f1f24;
+  --status-new-bg: #f1edff;
+  --status-new-border: #c7b8ff;
+  --status-new-fg: #4422cc;
+  --admin-bar-inactive: rgba(0, 0, 0, 0.12);
+  --admin-bar-empty: rgba(0, 0, 0, 0.04);
 }
 
 .admin-shell.admin-theme-black {
   --admin-foreground: #fafafa;
-  --admin-shell-bg: linear-gradient(180deg, #0a0a0a 0%, #171717 100%);
-  --admin-sidebar-bg: #0a0a0a;
-  --admin-sidebar-border: #262626;
-  --admin-topbar-bg: rgba(10, 10, 10, 0.92);
-  --admin-topbar-border: #262626;
+  --admin-shell-bg: #000000;
+  --admin-sidebar-bg: #000000;
+  --admin-sidebar-border: #15151f;
+  --admin-topbar-bg: rgba(0, 0, 0, 0.92);
+  --admin-topbar-border: #15151f;
   --admin-nav-fg: #a1a1a1;
   --admin-nav-hover-bg: #171717;
   --admin-nav-hover-fg: #fafafa;
   --admin-nav-active-bg: #171717;
-  --admin-nav-active-border: #262626;
+  --admin-nav-active-border: #5b34ff;
   --admin-nav-active-fg: #fafafa;
-  --admin-control-bg: #0a0a0a;
-  --admin-control-border: #262626;
+  --admin-control-bg: #000000;
+  --admin-control-border: #15151f;
   --admin-control-fg: #fafafa;
   --admin-control-hover-bg: #171717;
-  --admin-panel-bg: #0a0a0a;
-  --admin-panel-border: #262626;
+  --admin-panel-bg: #050505;
+  --admin-panel-border: #15151f;
   --admin-panel-shadow: 0 22px 54px rgba(0, 0, 0, 0.46);
-  --admin-panel-header-bg: #0a0a0a;
-  --admin-panel-header-border: #262626;
+  --admin-panel-header-bg: #090909;
+  --admin-panel-header-border: #101018;
   --admin-title: #fafafa;
   --admin-subtle: #a1a1a1;
   --admin-alert-description: #a1a1a1;
-  --admin-icon-wrap-bg: #171717;
-  --admin-icon-wrap-border: #262626;
+  --admin-icon-wrap-bg: #111111;
+  --admin-icon-wrap-border: #15151f;
   --admin-icon-wrap-fg: #fafafa;
   --admin-counter-bg: #fafafa;
-  --admin-counter-fg: #0a0a0a;
-  --admin-status-chip-bg: #171717;
-  --admin-status-chip-border: #262626;
+  --admin-counter-fg: #000000;
+  --admin-status-chip-bg: #111111;
+  --admin-status-chip-border: #15151f;
   --admin-status-chip-fg: #fafafa;
-  --admin-loading-bg: #0a0a0a;
-  --admin-loading-border: #262626;
+  --admin-loading-bg: #050505;
+  --admin-loading-border: #15151f;
   --admin-loading-fg: #a1a1a1;
-  --admin-alert-card-bg: #0a0a0a;
-  --admin-alert-card-border: #262626;
+  --admin-alert-card-bg: #050505;
+  --admin-alert-card-border: #15151f;
   --admin-alert-card-hover-bg: #171717;
-  --admin-alert-card-hover-border: #404040;
+  --admin-alert-card-hover-border: #FFFFFF2E;
   --admin-chip-cta-bg: #fafafa;
   --admin-chip-cta-border: #fafafa;
-  --admin-chip-cta-fg: #0a0a0a;
+  --admin-chip-cta-fg: #000000;
   --admin-chevron: #a1a1a1;
-  --admin-empty-bg: #0a0a0a;
-  --admin-empty-border: #262626;
-  --admin-footer-bg: #141414;
-  --admin-footer-border: #262626;
-  --admin-footer-inner-bg: #0a0a0a;
-  --admin-footer-inner-border: #262626;
+  --admin-empty-bg: #050505;
+  --admin-empty-border: #15151f;
+  --admin-footer-bg: #090909;
+  --admin-footer-border: #101018;
+  --admin-footer-inner-bg: #050505;
+  --admin-footer-inner-border: #15151f;
   --admin-footer-fg: #fafafa;
   --admin-footer-link: #fafafa;
   --admin-footer-link-hover: #d4d4d4;
@@ -323,7 +473,55 @@ body {
   --admin-logout-hover-bg: #171717;
   --admin-logout-hover-fg: #fafafa;
   --admin-admin-button-bg: #fafafa;
-  --admin-admin-button-fg: #0a0a0a;
+  --admin-admin-button-fg: #000000;
+
+  --ui-badge-admin-bg: #171717;
+  --ui-badge-admin-border: #15151f;
+  --ui-badge-admin-fg: #fafafa;
+  --admin-hero-bg: linear-gradient(135deg, #1c2533 0%, #27415e 35%, #4d89cf 100%);
+
+  /* ── Semantic tokens para Tailwind — tema black ──────────────────────── */
+  --admin-bg: #000000;
+  --admin-surface: #050505;
+  --admin-surface-deep: #000000;
+  --admin-elevated: #090909;
+  --admin-overlay: #111111;
+  --admin-border-faint: #101018;
+  --admin-border: #15151f;
+  --admin-border-strong: #FFFFFF2E;
+  --admin-fg: #fafafa;
+  --admin-fg-secondary: #d4d4d4;
+  --admin-fg-muted: #a1a1a1;
+  --admin-fg-faint: #737373;
+  --admin-primary-bg: #fafafa;
+  --admin-primary-fg: #000000;
+  --admin-secondary-bg: #171717;
+  --admin-secondary-fg: #fafafa;
+  --admin-secondary-border: #15151f;
+  --admin-accent-bg: #231534;
+  --admin-accent-fg: #d8c8ff;
+  --admin-accent-strong: #5b34ff;
+  --status-success-bg: #112016;
+  --status-success-border: #2d3f30;
+  --status-success-fg: #8ce3b0;
+  --status-success-text: #cfe8d6;
+  --status-warning-bg: #1d170d;
+  --status-warning-border: #3f3522;
+  --status-warning-fg: #f4c35a;
+  --status-warning-text: #eadfc9;
+  --status-info-bg: #0b2634;
+  --status-info-border: #1e526f;
+  --status-info-fg: #89d3f8;
+  --status-info-text: #b8e7fb;
+  --status-danger-bg: #2a1010;
+  --status-danger-border: #5c2020;
+  --status-danger-fg: #f87171;
+  --status-danger-text: #fca5a5;
+  --status-new-bg: #231534;
+  --status-new-border: #6b46c1;
+  --status-new-fg: #d8c8ff;
+  --admin-bar-inactive: rgba(255, 255, 255, 0.19);
+  --admin-bar-empty: rgba(255, 255, 255, 0.04);
 }
 
 .admin-shell.admin-theme-graphite {
@@ -453,28 +651,60 @@ body {
 }
 
 .admin-shell.admin-theme-black .admin-sidebar {
-  background: #0a0a0a !important;
-  border-color: #262626 !important;
+  background: #000000 !important;
+  border-color: #15151f !important;
 }
 
 .admin-shell.admin-theme-black .admin-topbar {
-  background: rgba(10, 10, 10, 0.92) !important;
-  border-color: #262626 !important;
+  background: rgba(0, 0, 0, 0.92) !important;
+  border-color: #15151f !important;
   backdrop-filter: blur(8px);
 }
 
 .admin-shell.admin-theme-black [data-ui-card] {
-  background: #0a0a0a !important;
-  border-color: #262626 !important;
+  background: #050505 !important;
+  border-color: #15151f !important;
   color: #fafafa !important;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+  box-shadow: none;
+}
+
+.admin-shell.admin-theme-black [data-ui-card],
+.admin-shell.admin-theme-black [data-ds-card],
+.admin-shell.admin-theme-black .shadow-card,
+.admin-shell.admin-theme-black .shadow-panel,
+.admin-shell.admin-theme-black .shadow-soft {
+  box-shadow: none !important;
+}
+
+.admin-shell.admin-theme-black [data-ui-card]:hover,
+.admin-shell.admin-theme-black [data-ds-card]:hover,
+.admin-shell.admin-theme-black .shadow-card:hover,
+.admin-shell.admin-theme-black .shadow-panel:hover,
+.admin-shell.admin-theme-black .shadow-soft:hover {
+  border-color: #FFFFFF2E !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 18px 50px rgba(255, 255, 255, 0.08) !important;
 }
 
 .admin-shell.admin-theme-black [data-ui-input],
 .admin-shell.admin-theme-black [data-ui-textarea] {
-  background: #0a0a0a !important;
-  border-color: #262626 !important;
+  background: #000000 !important;
+  border-color: #15151f !important;
   color: #fafafa !important;
+}
+
+.admin-shell.admin-theme-black [data-ui-input]:hover,
+.admin-shell.admin-theme-black [data-ui-textarea]:hover,
+.admin-shell.admin-theme-black [data-ui-input]:focus,
+.admin-shell.admin-theme-black [data-ui-textarea]:focus,
+.admin-shell.admin-theme-black [data-ui-input]:focus-visible,
+.admin-shell.admin-theme-black [data-ui-textarea]:focus-visible {
+  border-color: #FFFFFF2E !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 0 24px rgba(255, 255, 255, 0.04) !important;
 }
 
 .admin-shell.admin-theme-black [data-ui-input]::placeholder,
@@ -675,14 +905,14 @@ body {
 }
 
 .admin-shell.admin-theme-black [data-ui-button][data-variant="outline"] {
-  background: #0a0a0a !important;
-  border-color: #262626 !important;
+  background: #000000 !important;
+  border-color: #15151f !important;
   color: #fafafa !important;
 }
 
 .admin-shell.admin-theme-black [data-ui-button][data-variant="admin"] {
   background: #fafafa !important;
-  color: #0a0a0a !important;
+  color: #000000 !important;
   border-color: #fafafa !important;
 }
 
@@ -706,8 +936,8 @@ body {
 }
 
 .admin-shell.admin-theme-black [data-ui-badge][data-variant="admin"] {
-  background: #0a0a0a !important;
-  border-color: #262626 !important;
+  background: #000000 !important;
+  border-color: #15151f !important;
   color: #fafafa !important;
 }
 
@@ -729,7 +959,7 @@ body {
 .admin-shell.admin-theme-black .border-\[\#4a3410\],
 .admin-shell.admin-theme-black .border-\[\#43361f\],
 .admin-shell.admin-theme-black .border-\[\#5b4315\] {
-  border-color: #262626 !important;
+  border-color: #15151f !important;
 }
 
 .admin-shell.admin-theme-black .text-white {
@@ -1085,7 +1315,7 @@ body {
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#121212\],
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#17112b\],
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\],
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\],
 .admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#1a1a1a\],
 .admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#262626\],
 .admin-shell.admin-theme-light .admin-orders-shell-card .bg-black,
@@ -1109,7 +1339,7 @@ body {
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#121212\] *,
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#17112b\] *,
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] *,
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] *,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\] *,
 .admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#1a1a1a\] *,
 .admin-shell.admin-theme-light .admin-orders-shell-card .bg-\[\#262626\] *,
 .admin-shell.admin-theme-light .admin-orders-shell-card .bg-black *,
@@ -1145,8 +1375,8 @@ body {
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] [data-ui-textarea],
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] [data-ui-input],
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] [data-ui-textarea],
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] [data-ui-input],
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] [data-ui-textarea] {
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\] [data-ui-input],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\] [data-ui-textarea] {
   border-color: rgba(255, 255, 255, 0.55) !important;
   color: #ffffff !important;
 }
@@ -1155,8 +1385,8 @@ body {
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#111111\] [data-ui-textarea]::placeholder,
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] [data-ui-input]::placeholder,
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] [data-ui-textarea]::placeholder,
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] [data-ui-input]::placeholder,
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] [data-ui-textarea]::placeholder {
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\] [data-ui-input]::placeholder,
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\] [data-ui-textarea]::placeholder {
   color: #d1d5db !important;
 }
 
@@ -1166,9 +1396,9 @@ body {
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] .text-\[\#9c9689\],
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] .text-\[\#a49f92\],
 .admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0d0d0d\] .text-\[\#b8b0a4\],
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] .text-\[\#9c9689\],
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] .text-\[\#a49f92\],
-.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#0a0a0a\] .text-\[\#b8b0a4\] {
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\] .text-\[\#9c9689\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\] .text-\[\#a49f92\],
+.admin-shell.admin-theme-light .admin-menu-shell-card .bg-\[\#000000\] .text-\[\#b8b0a4\] {
   color: #d1d5db !important;
 }
 
@@ -1517,6 +1747,49 @@ body {
   color: #ffffff !important;
 }
 
+/* ── Light theme: dashboard shell card — badge text + donut fixes ─────────── */
+
+/* "Ultimos 30 dias" near-white badge text */
+.admin-shell.admin-theme-light .admin-dashboard-shell-card .text-\[\#ddd6ca\],
+.admin-shell.admin-theme-light .admin-dashboard-shell-card .text-\[\#d8d2c6\] {
+  color: #6b7280 !important;
+}
+
+/* Badge outline border (#313131) → light */
+.admin-shell.admin-theme-light .admin-dashboard-shell-card .border-\[\#313131\] {
+  border-color: #d7dce3 !important;
+}
+
+/* Donut outer ring: border acts as gap ring — blend with white card bg */
+.admin-shell.admin-theme-light .admin-dashboard-shell-card .border-\[\#2a2a2a\]:not(.admin-dashboard-dark-block) {
+  border-color: #ffffff !important;
+}
+
+/* Donut inner circle: match white card background */
+.admin-shell.admin-theme-light .admin-dashboard-shell-card .bg-\[\#171717\] {
+  background: #ffffff !important;
+}
+.admin-shell.admin-theme-light .admin-dashboard-shell-card .bg-\[\#171717\] .text-white {
+  color: #111111 !important;
+}
+.admin-shell.admin-theme-light .admin-dashboard-shell-card .bg-\[\#171717\] .text-\[\#8f8a7d\] {
+  color: #6b7280 !important;
+}
+
+/* ── Light theme: cash shell card — button borders + hover inside dark blocks ─ */
+
+/* Outline buttons inside dark blocks (#111111, #121212) get white-ish border */
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] .border-\[\#313131\],
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#121212\] .border-\[\#313131\] {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Hover states inside dark blocks */
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] .hover\:bg-\[\#212121\]:hover,
+.admin-shell.admin-theme-light .admin-cash-shell-card .bg-\[\#111111\] .hover\:bg-\[\#1c1c1c\]:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
 .admin-shell.admin-theme-light .admin-config-hero-card .bg-\[\#171717\],
 .admin-shell.admin-theme-light .admin-config-hero-card .bg-\[\#111111\] {
   background: #111111 !important;
@@ -1828,33 +2101,189 @@ body {
   animation: twinkle 3s ease-in-out infinite;
 }
 
-@media print {
-  @page {
-    size: 80mm auto;
-    margin: 4mm;
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MOTION SYSTEM
+   Fonte da verdade de tokens: lib/motion.ts
+   Classes Tailwind geradas:   tailwind.config.ts → keyframes + animation
+   Regra: animar apenas transform, opacity, box-shadow (GPU-compositable).
+          Nunca animar width, height, top, left, padding — causam reflow.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Base de transição do shell admin ─────────────────────────────────────
+   Já existia, movido aqui para documentação centralizada.
+   180ms = tier "default" (200ms arredondado para compat. com o sistema legado).  */
+.admin-shell,
+.admin-sidebar,
+.admin-topbar,
+.admin-shell [data-ui-card],
+.admin-shell [data-ui-button],
+.admin-shell [data-ui-input],
+.admin-shell [data-ui-textarea],
+.admin-shell [data-ui-badge],
+.admin-shell [data-ds-card],
+.admin-shell [data-ds-button],
+.admin-shell [data-ds-input],
+.admin-shell [data-ds-badge] {
+  transition:
+    background-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color     200ms cubic-bezier(0.4, 0, 0.2, 1),
+    color            200ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow       200ms cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+/* ── 2. Hover lift — card interativo ─────────────────────────────────────────
+   Uso: adicione .motion-lift ao card.
+   Anima apenas transform + shadow (sem reflow).                               */
+.motion-lift {
+  transition:
+    transform  200ms cubic-bezier(0.0, 0.0, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.0, 0.0, 0.2, 1),
+    border-color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.motion-lift:hover {
+  transform:   translateY(-2px);
+  box-shadow:  0 8px 32px -8px rgba(0, 0, 0, 0.5);
+  border-color: #3f3f3f; /* admin-border-strong */
+}
+.motion-lift:active {
+  transform:   translateY(0px);
+  box-shadow:  none;
+  transition-duration: 100ms;
+}
+
+/* ── 3. Button press — feedback tátil ────────────────────────────────────────
+   Uso: adicione .motion-press ao botão.
+   Scale pra baixo em active simula resistência física.                        */
+.motion-press {
+  transition:
+    transform 100ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.motion-press:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ── 4. Focus ring — acessibilidade ─────────────────────────────────────────
+   Ring que aparece instantaneamente mas desaparece suavemente.                */
+.motion-focus {
+  transition:
+    outline-color 150ms ease,
+    outline-offset 150ms ease;
+}
+
+/* ── 5. Skeleton loading ────────────────────────────────────────────────────
+   Uso: <div className="motion-skeleton rounded-ds-md h-4" />
+   Shimmer sobre fundo escuro — não usa background-color pois animá-la é caro. */
+.motion-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--admin-border-faint);
+  animation: motion-skeleton 1.5s ease-in-out infinite;
+}
+.motion-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent        0%,
+    color-mix(in srgb, var(--admin-fg) 4%, transparent) 40%,
+    color-mix(in srgb, var(--admin-fg) 7%, transparent) 50%,
+    color-mix(in srgb, var(--admin-fg) 4%, transparent) 60%,
+    transparent       100%
+  );
+  background-size: 200% 100%;
+  animation: motion-shimmer 2s linear infinite;
+}
+
+/* ── 6. Backdrop de modal ───────────────────────────────────────────────────
+   Uso: aplique motion-backdrop ao overlay.                                    */
+.motion-backdrop {
+  animation: motion-fade-in 200ms cubic-bezier(0.0, 0.0, 0.2, 1) both;
+  backdrop-filter: blur(2px);
+}
+.motion-backdrop[data-closing="true"] {
+  animation: motion-fade-out 150ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+/* ── 7. Modal panel ─────────────────────────────────────────────────────────
+   Uso: aplique motion-modal ao painel interno.                               */
+.motion-modal {
+  animation: motion-zoom-in 300ms cubic-bezier(0.0, 0.0, 0.2, 1) both;
+}
+.motion-modal[data-closing="true"] {
+  animation: motion-zoom-out 150ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+/* ── 8. Entrada de card/seção na página ─────────────────────────────────────
+   Uso: className="motion-enter" + animationDelay via stagger()              */
+.motion-enter {
+  animation: motion-slide-up 250ms cubic-bezier(0.0, 0.0, 0.2, 1) both;
+}
+
+/* ── 9. Spinner unificado ───────────────────────────────────────────────────
+   Uso: <span className="motion-spinner" /> ou via DSSpinner.                 */
+.motion-spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border-width: 2px;
+  border-style: solid;
+  border-color: currentColor;
+  border-top-color: transparent;
+  animation: spin 700ms linear infinite;
+  will-change: transform;
+}
+
+/* ── 10. Nav link highlight ─────────────────────────────────────────────────
+   Barra ativa na sidebar — anima width do indicador.                         */
+.motion-nav-indicator {
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   PREFERS-REDUCED-MOTION
+   Usuários com sensibilidade a movimento têm todas as animações desativadas.
+   Transições de cor/opacidade simples são mantidas pois não causam náusea.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  /* Desativa animações complexas */
+  .motion-lift,
+  .motion-lift:hover,
+  .motion-lift:active,
+  .motion-press,
+  .motion-press:active,
+  .motion-enter,
+  .motion-modal,
+  .motion-backdrop {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
   }
 
-  body {
-    background: white !important;
-    font-family: monospace;
-    font-size: 12px;
+  /* Simplifica skeleton — mantém cor mas sem movimento */
+  .motion-skeleton {
+    animation: none !important;
+  }
+  .motion-skeleton::after {
+    display: none;
   }
 
-  body * {
-    visibility: hidden;
+  /* Mantém spinner (funcional, não decorativo) mas desacelera */
+  .motion-spinner {
+    animation-duration: 1200ms !important;
   }
 
-  .print-sheet,
-  .print-sheet * {
-    visibility: visible;
-  }
-
-  .print-sheet {
-    position: absolute;
-    left: 0;
-    top: 0;
-    display: block !important;
-    width: 72mm;
-    color: black;
+  /* Garante que keyframes do Tailwind também sejam respeitados */
+  .animate-motion-slide-up,
+  .animate-motion-zoom-in,
+  .animate-motion-zoom-out,
+  .animate-motion-fade-in,
+  .animate-motion-fade-out,
+  .animate-motion-pop {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

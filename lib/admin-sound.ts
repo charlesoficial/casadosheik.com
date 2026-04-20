@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { alertAudio } from "@/lib/audio/alert-audio";
+
 const ADMIN_SOUND_STORAGE_KEY = "admin-sound-enabled";
 const ADMIN_SOUND_EVENT = "admin-sound-setting";
 
@@ -14,6 +16,7 @@ function readAdminSoundEnabled() {
 export function setAdminSoundEnabled(enabled: boolean) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(ADMIN_SOUND_STORAGE_KEY, String(enabled));
+  alertAudio.setSettings({ enabled });
   window.dispatchEvent(new CustomEvent(ADMIN_SOUND_EVENT, { detail: enabled }));
 }
 

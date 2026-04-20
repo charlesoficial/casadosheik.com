@@ -1,16 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock3, CreditCard, Palette, Phone, Printer, Settings2, Sparkles, Store } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  Loader2,
+  Palette,
+  Phone,
+  Printer,
+  Settings2,
+  ShieldCheck,
+  ShoppingBag,
+  SlidersHorizontal,
+  Store,
+  Zap,
+} from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import {
+  AdminGrid,
+  AdminPage,
+  AdminHeader,
+  AdminHeaderContent,
+  AdminHeaderTitle,
+  AdminHeaderDescription,
+  AdminHeaderActions,
+  AdminLivePulse,
+  AdminSectionIconHeader,
+  AdminFieldGroup,
+  AdminDivider,
+} from "@/components/layout";
+import { DSBadge, DSButton, DSCard, DSInput } from "@/components/system";
 import { adminThemeMeta, adminThemes, type AdminTheme } from "@/lib/constants/admin-themes";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+
+// ─── Theme helpers ────────────────────────────────────────────────────────────
 
 function applyAdminTheme(theme: AdminTheme) {
   const shell = document.querySelector(".admin-shell");
@@ -20,224 +46,435 @@ function applyAdminTheme(theme: AdminTheme) {
   window.localStorage.setItem("admin-theme", theme);
 }
 
+// ─── Sidebar cards ────────────────────────────────────────────────────────────
+
+function StatusCard({ theme, saveState }: { theme: AdminTheme; saveState: SaveState }) {
+  const rows = [
+    { icon: Phone, label: "Contato", value: "(64) 99955-9916" },
+    { icon: CreditCard, label: "Pagamentos", value: "Dinheiro, crédito, débito e Pix" },
+    { icon: Clock3, label: "Horário", value: "Todos os dias, 11:00 - 23:00" },
+  ];
+
+  return (
+    <DSCard padding="lg" className="shadow-card">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <DSBadge variant="success">Operacional</DSBadge>
+          <h3 className="mt-3 text-base font-semibold text-admin-fg">Saúde do sistema</h3>
+          <p className="mt-1 text-sm text-admin-fg-muted">
+            Leitura rápida dos pontos que sustentam a operação.
+          </p>
+        </div>
+        <ShieldCheck className="h-5 w-5 text-status-success-fg" />
+      </div>
+
+      <div className="mt-5 space-y-3">
+        <div className="rounded-ds-lg border border-admin-border bg-admin-surface p-4">
+          <p className="text-xs text-admin-fg-faint">Tema atual</p>
+          <p className="mt-1 text-sm font-medium text-admin-fg">{adminThemeMeta[theme].label}</p>
+        </div>
+        <div className="rounded-ds-lg border border-admin-border bg-admin-surface p-4">
+          <p className="text-xs text-admin-fg-faint">Estado de salvamento</p>
+          <p className="mt-1 text-sm font-medium text-admin-fg">
+            {saveState === "saving" ? "Salvando" : saveState === "saved" ? "Salvo" : "Pronto"}
+          </p>
+        </div>
+        {rows.map(({ icon: Icon, label, value }) => (
+          <div key={label} className="rounded-ds-lg border border-admin-border-faint bg-admin-surface p-4">
+            <div className="flex items-center gap-2 text-admin-fg-faint">
+              <Icon className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-admin-fg-secondary">{value}</p>
+          </div>
+        ))}
+      </div>
+    </DSCard>
+  );
+}
+
+const SHORTCUTS = [
+  {
+    href: "/admin/configuracoes/impressoras",
+    icon: Printer,
+    label: "Impressoras",
+    description: "Setup, testes e diagnóstico de impressão",
+  },
+  {
+    href: "/admin/pedidos/configuracoes",
+    icon: Settings2,
+    label: "Pedidos",
+    description: "Fluxo, alertas e automações operacionais",
+  },
+  {
+    href: "/admin/mesas",
+    icon: ShoppingBag,
+    label: "Mesas",
+    description: "Organização de mesas e QR Codes",
+  },
+];
+
+function ShortcutsCard() {
+  return (
+    <DSCard padding="lg" className="shadow-card">
+      <div className="flex items-center gap-2">
+        <Zap className="h-4 w-4 text-status-warning-fg" />
+        <h3 className="text-base font-semibold text-admin-fg">Próximos controles</h3>
+      </div>
+      <p className="mt-1 text-sm text-admin-fg-muted">
+        Atalhos para áreas que afetam diretamente a operação.
+      </p>
+
+      <div className="mt-5 space-y-2">
+        {SHORTCUTS.map(({ href, icon: Icon, label, description }) => (
+          <Link
+            key={href}
+            href={href}
+            className="group flex items-center gap-3 rounded-ds-lg border border-admin-border-faint bg-admin-surface px-4 py-3 transition-all duration-motion-default ease-motion-in-out hover:border-admin-border-strong hover:bg-admin-elevated"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-ds-sm border border-admin-border bg-admin-elevated text-admin-fg-muted transition-colors duration-motion-default ease-motion-in-out group-hover:border-admin-border-strong group-hover:text-admin-fg">
+              <Icon className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-admin-fg">{label}</p>
+              <p className="mt-0.5 truncate text-xs text-admin-fg-faint">{description}</p>
+            </div>
+            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-admin-fg-faint transition-colors duration-motion-default ease-motion-in-out group-hover:text-admin-fg-muted" />
+          </Link>
+        ))}
+      </div>
+    </DSCard>
+  );
+}
+
+// ─── Theme picker ─────────────────────────────────────────────────────────────
+
+function ThemePicker({
+  theme,
+  themeCards,
+  onThemeChange,
+}: {
+  theme: AdminTheme;
+  themeCards: Array<{ id: AdminTheme; label: string; description: string; preview: string }>;
+  onThemeChange: (t: AdminTheme) => void;
+}) {
+  return (
+    <DSCard padding="lg" className="shadow-card">
+      <AdminSectionIconHeader
+        icon={Palette}
+        title="Aparência do painel"
+        description="Escolha o tema visual. A mudança é aplicada na hora e sincronizada entre dispositivos."
+      />
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {themeCards.map((item) => {
+          const active = theme === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onThemeChange(item.id)}
+              className={[
+                "group rounded-ds-xl border p-4 text-left transition-all duration-motion-default ease-motion-in-out",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold/30",
+                active
+                  ? "border-brand-purple bg-brand-purple-bg shadow-card"
+                  : "border-admin-border bg-admin-surface hover:border-admin-border-strong hover:bg-admin-elevated",
+              ].join(" ")}
+            >
+              <div
+                className={`h-24 w-full rounded-ds-lg border border-admin-border bg-gradient-to-br ${item.preview} transition-transform duration-motion-default ease-motion-in-out group-hover:scale-[0.99]`}
+              />
+
+              <div className="mt-4 flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-admin-fg">{item.label}</p>
+                  <p className="mt-0.5 text-xs text-admin-fg-muted">{item.description}</p>
+                </div>
+                {active ? (
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-ds-sm bg-brand-purple text-admin-fg">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  </span>
+                ) : (
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-ds-sm border border-admin-border" />
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </DSCard>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+type SaveState = "idle" | "saving" | "saved" | "error";
+
+interface ConfigForm {
+  id: string | null;
+  nome: string;
+  telefone: string;
+  endereco: string;
+  pedidoMinimo: string;
+  taxaEntrega: string;
+  mensagemBoasVindas: string;
+}
+
+const DEFAULT_FORM: ConfigForm = {
+  id: null,
+  nome: "",
+  telefone: "",
+  endereco: "",
+  pedidoMinimo: "",
+  taxaEntrega: "",
+  mensagemBoasVindas: "",
+};
+
 export default function AdminSettingsPage() {
   const [theme, setTheme] = useState<AdminTheme>("black");
+  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [form, setForm] = useState<ConfigForm>(DEFAULT_FORM);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const storedTheme = window.localStorage.getItem("admin-theme");
-    if (storedTheme && adminThemes.includes(storedTheme as AdminTheme)) {
-      setTheme(storedTheme as AdminTheme);
-      applyAdminTheme(storedTheme as AdminTheme);
-      return;
+    const stored = window.localStorage.getItem("admin-theme");
+    if (stored && adminThemes.includes(stored as AdminTheme)) {
+      setTheme(stored as AdminTheme);
+      applyAdminTheme(stored as AdminTheme);
+    } else {
+      applyAdminTheme("black");
     }
-    applyAdminTheme("black");
+
+    void fetch("/api/admin/restaurante-config")
+      .then((res) => res.json())
+      .then((data) => {
+        setForm({
+          id: data.id ?? null,
+          nome: data.nome ?? "",
+          telefone: data.telefone ?? "",
+          endereco: data.endereco ?? "",
+          pedidoMinimo: data.pedidoMinimo != null ? String(data.pedidoMinimo) : "",
+          taxaEntrega: data.taxaEntrega != null ? String(data.taxaEntrega) : "",
+          mensagemBoasVindas: data.mensagemBoasVindas ?? "",
+        });
+      })
+      .catch(() => null);
+
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
   }, []);
 
   const themeCards = useMemo(
-    () =>
-      adminThemes.map((item) => ({
-        id: item,
-        ...adminThemeMeta[item]
-      })),
+    () => adminThemes.map((id) => ({ id, ...adminThemeMeta[id] })),
     []
   );
 
-  function handleThemeChange(nextTheme: AdminTheme) {
-    setTheme(nextTheme);
-    applyAdminTheme(nextTheme);
-    // Persiste no banco para que o tema seja restaurado em qualquer dispositivo no login.
-    getSupabaseBrowserClient().auth.updateUser({ data: { admin_theme: nextTheme } });
+  function handleThemeChange(next: AdminTheme) {
+    setTheme(next);
+    applyAdminTheme(next);
+    getSupabaseBrowserClient().auth.updateUser({ data: { admin_theme: next } });
+  }
+
+  function setField(key: keyof ConfigForm, value: string) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function handleSave() {
+    if (saveState === "saving") return;
+    setSaveState("saving");
+    setSaveError(null);
+    try {
+      const response = await fetch("/api/admin/restaurante-config", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: form.id,
+          nome: form.nome,
+          telefone: form.telefone,
+          endereco: form.endereco,
+          pedidoMinimo: parseFloat(form.pedidoMinimo.replace(",", ".")) || 0,
+          taxaEntrega: parseFloat(form.taxaEntrega.replace(",", ".")) || 0,
+          mensagemBoasVindas: form.mensagemBoasVindas,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Erro ao salvar.");
+      }
+      setSaveState("saved");
+      saveTimer.current = setTimeout(() => setSaveState("idle"), 2500);
+    } catch (saveErr) {
+      setSaveError(saveErr instanceof Error ? saveErr.message : "Erro ao salvar configuracoes.");
+      setSaveState("error");
+      saveTimer.current = setTimeout(() => setSaveState("idle"), 3000);
+    }
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_380px]">
-      <div className="space-y-6">
-        <section className="admin-config-hero overflow-hidden rounded-[30px] border border-[#2b2b2b] bg-[radial-gradient(circle_at_top_right,rgba(91,52,255,0.12),transparent_26%),radial-gradient(circle_at_top_left,rgba(212,160,23,0.12),transparent_28%),linear-gradient(180deg,#1b1b1b_0%,#131313_100%)]">
-          <div className="grid gap-6 p-6 xl:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-4">
-              <Badge variant="admin" className="w-fit rounded-full px-3 py-1 text-xs uppercase tracking-[0.2em]">
-                Central do restaurante
-              </Badge>
-              <div className="space-y-3">
-                <h1 className="text-3xl font-semibold tracking-[-0.03em] text-white sm:text-4xl">
-                  Aparencia, identidade e operacao em um so lugar.
-                </h1>
-                <p className="max-w-2xl text-sm leading-7 text-[#b8b0a4] sm:text-base">
-                  Ajuste as informacoes principais do restaurante, acompanhe o estado atual da operacao e experimente novos temas para o painel sem sair do fluxo.
-                </p>
-              </div>
-            </div>
+    <AdminPage gap="relaxed">
+      <AdminHeader>
+        <AdminHeaderContent>
+          <AdminHeaderTitle>Configurações</AdminHeaderTitle>
+          <AdminHeaderDescription>
+            Controle identidade, operação, aparência e conexões críticas do restaurante.
+          </AdminHeaderDescription>
+        </AdminHeaderContent>
+        <AdminHeaderActions>
+          <AdminLivePulse label="Sistema ativo" status="active" />
+          <DSButton
+            type="button"
+            variant="admin"
+            size="sm"
+            onClick={() => void handleSave()}
+            disabled={saveState === "saving"}
+            className="min-w-[120px]"
+          >
+            {saveState === "saving" ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Salvando
+              </>
+            ) : saveState === "saved" ? (
+              <>
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Salvo
+              </>
+            ) : saveState === "error" ? (
+              "Erro — tentar novamente"
+            ) : (
+              "Salvar"
+            )}
+          </DSButton>
+        </AdminHeaderActions>
+      </AdminHeader>
 
-            <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-              {[
-                {
-                  icon: <Store className="h-4 w-4" />,
-                  eyebrow: "Loja",
-                  value: "Casa do Sheik",
-                  hint: "Identidade ativa"
-                },
-                {
-                  icon: <Clock3 className="h-4 w-4" />,
-                  eyebrow: "Operacao",
-                  value: "11:00 - 23:00",
-                  hint: "Todos os dias"
-                },
-                {
-                  icon: <CreditCard className="h-4 w-4" />,
-                  eyebrow: "Pagamento",
-                  value: "4 meios",
-                  hint: "Dinheiro, credito, debito e pix"
-                }
-              ].map((item) => (
-                <div key={item.eyebrow} className="admin-config-hero-card rounded-[24px] border border-[#2d2d2d] bg-[#111111]/90 p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs uppercase tracking-[0.18em] text-[#9f988b]">{item.eyebrow}</span>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#343434] bg-[#171717] text-[#f2eadf]">
-                      {item.icon}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-lg font-semibold text-white">{item.value}</p>
-                  <p className="mt-1 text-sm text-[#a69f92]">{item.hint}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      {saveError && (
+        <div className="mx-auto w-full max-w-[1640px] px-4 lg:px-8">
+          <p className="rounded-ds-md border border-status-danger-text/30 bg-status-danger-text/10 px-4 py-3 text-sm text-status-danger-text">
+            {saveError}
+          </p>
+        </div>
+      )}
 
-        <Card className="border-[#2a2a2a] bg-[#171717] admin-settings-shell-card">
-          <CardHeader className="space-y-3 border-b border-[#262626] pb-5">
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#2f2f2f] bg-[#111111] text-[#f3eee6]">
-                <Palette className="h-5 w-5" />
-              </span>
-              <div>
-                <CardTitle className="text-white">Temas do painel</CardTitle>
-                <p className="mt-1 text-sm text-[#aaa295]">
-                  Escolha a atmosfera visual do admin. A mudanca e aplicada na hora.
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-3">
-            {themeCards.map((item) => {
-              const active = theme === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleThemeChange(item.id)}
-                  className={[
-                    "admin-theme-choice",
-                    "rounded-[26px] border p-4 text-left transition-all",
-                    active
-                      ? "admin-theme-choice-active border-[#5b34ff] bg-[#1a1624] shadow-[0_0_0_1px_rgba(91,52,255,0.18)]"
-                      : "border-[#2f2f2f] bg-[#111111] hover:border-[#4a4a4a] hover:bg-[#151515]"
-                  ].join(" ")}
-                >
-                  <div className={`admin-theme-choice-preview h-28 rounded-[22px] border border-white/10 bg-gradient-to-br ${item.preview}`} />
-                  <div className="mt-4 flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-base font-semibold text-white">{item.label}</p>
-                      <p className="mt-1 text-sm leading-6 text-[#a79f92]">{item.description}</p>
-                    </div>
-                    {active ? (
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#5b34ff] text-white">
-                        <CheckCircle2 className="h-4.5 w-4.5" />
-                      </span>
-                    ) : null}
-                  </div>
-                </button>
-              );
-            })}
-          </CardContent>
-        </Card>
-
-        <Card className="border-[#2a2a2a] bg-[#171717] admin-settings-shell-card">
-          <CardHeader className="space-y-3 border-b border-[#262626] pb-5">
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#2f2f2f] bg-[#111111] text-[#f3eee6]">
-                <Sparkles className="h-5 w-5" />
-              </span>
-              <div>
-                <CardTitle className="text-white">Configuracoes gerais</CardTitle>
-                <p className="mt-1 text-sm text-[#aaa295]">
-                  Bloco principal de identidade comercial e informacoes operacionais.
-                </p>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
-            <Input className="border-[#343434] bg-[#111111] text-white" placeholder="Nome do restaurante" defaultValue="Casa do Sheik" />
-            <Input className="border-[#343434] bg-[#111111] text-white" placeholder="Telefone / WhatsApp" defaultValue="(64) 99955-9916" />
-            <Input className="border-[#343434] bg-[#111111] text-white sm:col-span-2" placeholder="Endereco" defaultValue="Avenida Vinte de Agosto, 2190 - Setor Central, Catalao - GO" />
-            <Input className="border-[#343434] bg-[#111111] text-white" placeholder="Pedido minimo delivery" defaultValue="R$ 20,00" />
-            <Input className="border-[#343434] bg-[#111111] text-white" placeholder="Taxa de entrega" defaultValue="R$ 0,00" />
-            <Textarea
-              className="min-h-[140px] border-[#343434] bg-[#111111] text-white sm:col-span-2"
-              placeholder="Mensagem de boas-vindas"
-              defaultValue="Bem-vindo ao Casa do Sheik! Autentica culinaria arabe."
+      <AdminGrid cols="sidebar-sm" gap="xl">
+        <div className="space-y-6 2xl:space-y-8">
+          <DSCard padding="lg" className="shadow-card">
+            <AdminSectionIconHeader
+              icon={Store}
+              title="Identidade e atendimento"
+              description="Dados exibidos no menu público, comprovantes e comunicações com o cliente."
             />
-            <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[#2c2c2c] bg-[#111111] p-4 admin-settings-dark-block">
-              <div>
-                <p className="text-sm font-medium text-white">Pronto para salvar?</p>
-                <p className="mt-1 text-sm text-[#a69f92]">Esses dados impactam o cardapio do cliente e a apresentacao da operacao.</p>
+
+            <div className="mt-6 space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <AdminFieldGroup label="Nome do restaurante" hint="Exibido no cardápio e nos recibos" htmlFor="restaurant-name">
+                  <DSInput
+                    id="restaurant-name"
+                    placeholder="Nome do restaurante"
+                    value={form.nome}
+                    onChange={(e) => setField("nome", e.target.value)}
+                  />
+                </AdminFieldGroup>
+
+                <AdminFieldGroup label="Telefone / WhatsApp" hint="Para contato e pedidos por mensagem" htmlFor="phone">
+                  <DSInput
+                    id="phone"
+                    placeholder="(00) 00000-0000"
+                    value={form.telefone}
+                    onChange={(e) => setField("telefone", e.target.value)}
+                  />
+                </AdminFieldGroup>
+
+                <AdminFieldGroup label="Endereço completo" className="sm:col-span-2" htmlFor="address">
+                  <DSInput
+                    id="address"
+                    placeholder="Rua, número, bairro, cidade - UF"
+                    value={form.endereco}
+                    onChange={(e) => setField("endereco", e.target.value)}
+                  />
+                </AdminFieldGroup>
               </div>
-              <Button variant="admin">Salvar configuracoes</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      <div className="space-y-6">
-        <Card className="border-[#2a2a2a] bg-[#171717] admin-settings-shell-card">
-          <CardHeader>
-            <CardTitle className="text-white">Status da operacao</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-[#c8c2b6]">
-            <div className="rounded-[24px] border border-[#2d3d2d] bg-[#102519] p-4">
-              <p className="text-sm text-[#8fe3ab]">Aberto agora</p>
-              <p className="mt-1 text-2xl font-semibold text-white">Recebendo pedidos</p>
-            </div>
-            <div className="grid gap-3">
-              {[
-                { icon: <Phone className="h-4 w-4" />, label: "Contato", value: "(64) 99955-9916" },
-                { icon: <CreditCard className="h-4 w-4" />, label: "Pagamentos", value: "Dinheiro, Credito, Debito e Pix" },
-                { icon: <Clock3 className="h-4 w-4" />, label: "Horario", value: "Todos os dias - 11:00 as 23:00" }
-              ].map((item) => (
-                <div key={item.label} className="rounded-[24px] border border-[#2a2a2a] bg-[#111111] p-4">
-                  <p className="flex items-center gap-2 text-sm text-[#999488]">
-                    {item.icon}
-                    {item.label}
-                  </p>
-                  <p className="mt-2 text-white">{item.value}</p>
+              <AdminDivider />
+
+              <div>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-admin-fg-faint">
+                      Delivery
+                    </p>
+                    <p className="mt-1 text-sm text-admin-fg-muted">
+                      Regras básicas que afetam pedidos de entrega.
+                    </p>
+                  </div>
+                  <DSBadge variant="secondary">Operação</DSBadge>
                 </div>
-              ))}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <AdminFieldGroup label="Pedido mínimo" hint="Valor mínimo para aceitar delivery" htmlFor="min-order">
+                    <DSInput
+                      id="min-order"
+                      placeholder="0.00"
+                      value={form.pedidoMinimo}
+                      onChange={(e) => setField("pedidoMinimo", e.target.value)}
+                    />
+                  </AdminFieldGroup>
+                  <AdminFieldGroup label="Taxa de entrega" hint="Cobrada por pedido de delivery" htmlFor="delivery-fee">
+                    <DSInput
+                      id="delivery-fee"
+                      placeholder="0.00"
+                      value={form.taxaEntrega}
+                      onChange={(e) => setField("taxaEntrega", e.target.value)}
+                    />
+                  </AdminFieldGroup>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </DSCard>
 
-        <Card className="border-[#2a2a2a] bg-[#171717] admin-settings-shell-card">
-          <CardHeader>
-            <CardTitle className="text-white">Atalhos da operacao</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Link href="/admin/configuracoes/impressoras" className="block rounded-[24px] border border-[#2a2a2a] bg-[#111111] p-4 transition-colors hover:border-[#5b34ff]">
-              <p className="flex items-center gap-2 text-sm text-[#999488]">
-                <Printer className="h-4 w-4" />
-                Impressoras
-              </p>
-              <p className="mt-2 text-white">Cadastrar, testar e ativar impressoras termicas</p>
-            </Link>
-            <Link href="/admin/pedidos/configuracoes" className="block rounded-[24px] border border-[#2a2a2a] bg-[#111111] p-4 transition-colors hover:border-[#5b34ff]">
-              <p className="flex items-center gap-2 text-sm text-[#999488]">
-                <Settings2 className="h-4 w-4" />
-                Gestor de pedidos
-              </p>
-              <p className="mt-2 text-white">Ajustar alertas, etapas do fluxo e impressao automatica</p>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          <DSCard padding="lg" className="shadow-card">
+            <AdminSectionIconHeader
+              icon={SlidersHorizontal}
+              title="Conteúdo e mensagem"
+              description="Texto de abertura do cardápio digital e pontos de contato com o cliente."
+            />
+
+            <div className="mt-6">
+              <AdminFieldGroup label="Mensagem de boas-vindas" hint="Exibida no topo do cardápio digital" htmlFor="welcome-msg">
+                <textarea
+                  id="welcome-msg"
+                  className="min-h-[118px] w-full resize-none rounded-ds-md border border-admin-border bg-admin-surface px-4 py-3 text-sm leading-relaxed text-admin-fg placeholder:text-admin-fg-faint outline-none transition-[background-color,border-color,box-shadow] duration-motion-default ease-motion-in-out hover:border-admin-border-strong focus-visible:border-brand-gold focus-visible:ring-2 focus-visible:ring-brand-gold/20"
+                  placeholder="Escreva uma mensagem de boas-vindas..."
+                  value={form.mensagemBoasVindas}
+                  onChange={(e) => setField("mensagemBoasVindas", e.target.value)}
+                />
+              </AdminFieldGroup>
+            </div>
+          </DSCard>
+
+          <ThemePicker
+            theme={theme}
+            themeCards={themeCards}
+            onThemeChange={handleThemeChange}
+          />
+        </div>
+
+        <aside className="space-y-5">
+          <StatusCard theme={theme} saveState={saveState} />
+          <ShortcutsCard />
+          <DSCard padding="lg" className="border-status-warning-border bg-status-warning-bg shadow-card">
+            <DSBadge variant="warning">Avançado</DSBadge>
+            <h3 className="mt-3 text-base font-semibold text-status-warning-text">
+              Controles sensíveis separados
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-status-warning-text">
+              Impressoras, fluxo de pedidos e mesas ficam em áreas dedicadas para reduzir risco operacional.
+            </p>
+          </DSCard>
+        </aside>
+      </AdminGrid>
+    </AdminPage>
   );
 }

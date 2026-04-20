@@ -35,10 +35,25 @@ next-env.d.ts
 
 # logs de desenvolvimento
 next-dev.log
+next-dev.local.log
+next-dev.local.err.log
 next-start.log
 build.log
 codex-dev.log
 .codex-server.log
+
+# artefatos de teste
+/test-results/
+/.playwright-cli/
+
+# arquivos gerados / temporários
+itens.txt
+prompt.txt
+application-SKILL.md
+/output/
+
+# rascunhos locais
+/projeto/
 
 # configuracoes locais de ferramentas
 .claude/

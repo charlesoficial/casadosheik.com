@@ -1,0 +1,429 @@
+{
+  "schema": "theme-system-correction-plan",
+  "version": "1.0.0",
+  "project": "Casa do Sheik",
+  "objective": "Corrigir o tema preto e o tema branco do admin usando tokens semanticos reais.",
+  "summary": {
+    "problem": "O tema branco fica errado porque o admin mistura CSS variables dinamicas com tokens Tailwind fixos do tema escuro.",
+    "rootCause": "Classes como bg-admin-surface, bg-admin-elevated, text-admin-fg e border-admin-border parecem semanticas, mas hoje apontam para hex fixo escuro em tailwind.config.ts.",
+    "correctEndState": "As mesmas classes devem funcionar nos dois temas. No tema preto elas devem resolver para cores escuras com texto claro. No tema branco elas devem resolver para superficies claras com texto escuro."
+  },
+  "themeMechanism": {
+    "type": "class on .admin-shell",
+    "validThemes": ["black", "light"],
+    "notPrimaryMechanism": {
+      "dataTheme": false,
+      "ThemeProvider": false,
+      "context": false,
+      "store": false,
+      "tailwindDarkMode": "configured but not used as the admin theme switch"
+    },
+    "files": {
+      "themeConstants": {
+        "path": "lib/constants/admin-themes.ts",
+        "line": 1,
+        "detail": "AdminTheme = \"black\" | \"light\""
+      },
+      "adminLayout": {
+        "path": "app/(admin)/layout.tsx",
+        "line": 23,
+        "detail": "Aplica admin-shell admin-theme-${serverTheme}"
+      },
+      "blackCss": {
+        "path": "app/globals.css",
+        "line": 266,
+        "detail": "Define .admin-shell.admin-theme-black"
+      },
+      "lightCss": {
+        "path": "app/globals.css",
+        "line": 203,
+        "detail": "Define .admin-shell.admin-theme-light"
+      }
+    }
+  },
+  "currentSourcesOfTruth": {
+    "designTokensJson": {
+      "path": "lib/design-tokens.json",
+      "line": 4,
+      "claimsSourceOfTruth": true,
+      "problem": "E fonte conceitual, mas nao gera automaticamente Tailwind nem globals.css."
+    },
+    "tailwindConfig": {
+      "path": "tailwind.config.ts",
+      "line": 50,
+      "role": "Mapeia classes Tailwind.",
+      "problem": "Duplica tokens em hex fixo."
+    },
+    "globalsCss": {
+      "path": "app/globals.css",
+      "line": 5,
+      "role": "Define CSS variables publicas e admin.",
+      "problem": "Tambem possui hexes e overrides proprios."
+    },
+    "designSystemLinter": {
+      "path": "tools/lint-ds.mjs",
+      "line": 45,
+      "role": "Fiscaliza violacoes visuais.",
+      "limitation": "Ignora tailwind.config.ts e globals.css, entao muitos hexes estruturais nao entram no lint."
+    }
+  },
+  "currentThemeValues": {
+    "black": {
+      "source": "app/globals.css:266",
+      "shellBg": "linear-gradient(180deg, #0a0a0a 0%, #171717 100%)",
+      "foreground": "#fafafa",
+      "sidebarBg": "#0a0a0a",
+      "topbarBg": "rgba(10, 10, 10, 0.92)",
+      "navFg": "#a1a1a1",
+      "controlBg": "#0a0a0a",
+      "controlFg": "#fafafa",
+      "panelBg": "#0a0a0a",
+      "panelBorder": "#262626",
+      "panelShadow": "0 22px 54px rgba(0, 0, 0, 0.46)",
+      "adminButtonBg": "#fafafa",
+      "adminButtonFg": "#0a0a0a"
+    },
+    "light": {
+      "source": "app/globals.css:203",
+      "shellBg": "linear-gradient(180deg, #fafafa 0%, #f4f5f7 100%)",
+      "foreground": "#111111",
+      "sidebarBg": "#ffffff",
+      "topbarBg": "rgba(255, 255, 255, 0.92)",
+      "navFg": "#475569",
+      "controlBg": "#ffffff",
+      "controlFg": "#111111",
+      "panelBg": "#ffffff",
+      "panelBorder": "#e6e8ec",
+      "panelShadow": "0 22px 54px rgba(0, 0, 0, 0.12)",
+      "adminButtonBg": "#111111",
+      "adminButtonFg": "#ffffff"
+    }
+  },
+  "mainColorConflicts": [
+    {
+      "token": "bg-admin-surface",
+      "currentFixedValue": "#111111",
+      "source": "tailwind.config.ts:64",
+      "correctBlackValue": "#0f0f0f",
+      "correctLightValue": "#ffffff",
+      "error": "No tema branco, superficies continuam pretas.",
+      "affected": [
+        "components/system/ds-card.tsx:38",
+        "components/system/ds-input.tsx:27",
+        "components/layout/admin-section.tsx:136"
+      ]
+    },
+    {
+      "token": "bg-admin-elevated",
+      "currentFixedValue": "#171717",
+      "source": "tailwind.config.ts:65",
+      "correctBlackValue": "#171717",
+      "correctLightValue": "#ffffff",
+      "error": "No tema branco, cards elevados continuam escuros.",
+      "affected": [
+        "components/system/ds-card.tsx:33",
+        "components/layout/admin-section.tsx:34",
+        "components/system/ds-button.tsx:45"
+      ]
+    },
+    {
+      "token": "text-admin-fg",
+      "currentFixedValue": "#ffffff",
+      "source": "tailwind.config.ts:70",
+      "correctBlackValue": "#fafafa",
+      "correctLightValue": "#111111",
+      "error": "No tema branco, textos podem ficar brancos sobre cards brancos.",
+      "affected": [
+        "components/system/ds-input.tsx:28",
+        "components/layout/admin-header.tsx:90",
+        "components/layout/admin-section.tsx:95"
+      ]
+    },
+    {
+      "token": "text-admin-fg-secondary",
+      "currentFixedValue": "#c8c1b5",
+      "source": "tailwind.config.ts:71",
+      "correctBlackValue": "#d4d4d4",
+      "correctLightValue": "#343a46",
+      "error": "No tema branco, texto secundario fica com tom bege/cinza pensado para dark.",
+      "affected": [
+        "components/system/ds-button.tsx:44",
+        "components/layout/admin-section.tsx:136"
+      ]
+    },
+    {
+      "token": "text-admin-fg-muted",
+      "currentFixedValue": "#8f8a7e",
+      "source": "tailwind.config.ts:72",
+      "correctBlackValue": "#a1a1a1",
+      "correctLightValue": "#60646c",
+      "error": "No tema branco, textos muted ficam inconsistentes e as vezes pouco legiveis.",
+      "affected": [
+        "components/layout/admin-header.tsx:80",
+        "components/layout/admin-section.tsx:97",
+        "components/system/ds-badge.tsx:53"
+      ]
+    },
+    {
+      "token": "border-admin-border",
+      "currentFixedValue": "#2a2a2a",
+      "source": "tailwind.config.ts:68",
+      "correctBlackValue": "#262626",
+      "correctLightValue": "#e6e8ec",
+      "error": "No tema branco, bordas ficam escuras e pesadas demais.",
+      "affected": [
+        "components/system/ds-card.tsx:33",
+        "components/system/ds-input.tsx:27",
+        "components/system/ds-badge.tsx:56"
+      ]
+    },
+    {
+      "token": "border-admin-border-strong",
+      "currentFixedValue": "#3f3f3f",
+      "source": "tailwind.config.ts:69",
+      "correctBlackValue": "#404040",
+      "correctLightValue": "#c9ced8",
+      "error": "Hover/foco no tema branco usa borda escura demais.",
+      "affected": [
+        "components/system/ds-button.tsx:45",
+        "components/system/ds-input.tsx:29",
+        "app/(admin)/admin/configuracoes/page.tsx:203"
+      ]
+    },
+    {
+      "token": "bg-admin-overlay",
+      "currentFixedValue": "#1d1d1d",
+      "source": "tailwind.config.ts:66",
+      "correctBlackValue": "#1d1d1d",
+      "correctLightValue": "#f3f4f6",
+      "error": "No tema branco, hovers e botoes secundarios ficam escuros indevidamente.",
+      "affected": [
+        "components/system/ds-button.tsx:44",
+        "components/system/ds-button.tsx:50",
+        "components/system/ds-button.tsx:55"
+      ]
+    },
+    {
+      "token": "--admin-admin-button-bg",
+      "currentBlackValue": "#fafafa",
+      "currentLightValue": "#111111",
+      "source": "app/globals.css:262 and app/globals.css:325",
+      "isConflict": false,
+      "explanation": "Esta inversao esta correta. No tema preto, algumas acoes fortes devem ser brancas com texto preto. No tema branco, algumas acoes fortes devem ser pretas com texto branco."
+    },
+    {
+      "token": "DSCard admin-hero gradient",
+      "currentFixedValue": "linear-gradient(135deg,#1c2533,#27415e,#4d89cf)",
+      "source": "components/system/ds-card.tsx:43",
+      "correctValue": "var(--admin-hero-bg)",
+      "error": "Gradiente hardcoded dentro do DS nao acompanha tema nem tokens."
+    },
+    {
+      "token": "body background",
+      "currentFixedValue": "#f7f3ec",
+      "source": "app/globals.css:104",
+      "correctValue": "hsl(var(--background))",
+      "error": "Fundo publico usa hex hardcoded fora da cadeia de tokens."
+    },
+    {
+      "token": "DSInput public bg-white",
+      "currentFixedValue": "white",
+      "source": "components/system/ds-input.tsx:34",
+      "correctValue": "bg-card or bg-background",
+      "error": "Uso de branco bruto dificulta tema e consistencia."
+    }
+  ],
+  "correctThemePalette": {
+    "black": {
+      "adminBg": "#0a0a0a",
+      "adminShellBg": "linear-gradient(180deg, #0a0a0a 0%, #171717 100%)",
+      "adminSurface": "#0f0f0f",
+      "adminSurfaceDeep": "#0a0a0a",
+      "adminElevated": "#171717",
+      "adminOverlay": "#1d1d1d",
+      "adminBorderFaint": "#1e1e1e",
+      "adminBorder": "#262626",
+      "adminBorderStrong": "#404040",
+      "adminFg": "#fafafa",
+      "adminFgSecondary": "#d4d4d4",
+      "adminFgMuted": "#a1a1a1",
+      "adminFgFaint": "#737373",
+      "adminPrimaryBg": "#fafafa",
+      "adminPrimaryFg": "#0a0a0a",
+      "adminSecondaryBg": "#171717",
+      "adminSecondaryFg": "#fafafa",
+      "adminSecondaryBorder": "#262626",
+      "adminAccentBg": "#231534",
+      "adminAccentFg": "#d8c8ff",
+      "adminAccentStrong": "#5b34ff"
+    },
+    "light": {
+      "adminBg": "#fafafa",
+      "adminShellBg": "linear-gradient(180deg, #fafafa 0%, #f4f5f7 100%)",
+      "adminSurface": "#ffffff",
+      "adminSurfaceDeep": "#f8fafc",
+      "adminElevated": "#ffffff",
+      "adminOverlay": "#f3f4f6",
+      "adminBorderFaint": "#edf0f4",
+      "adminBorder": "#e6e8ec",
+      "adminBorderStrong": "#c9ced8",
+      "adminFg": "#111111",
+      "adminFgSecondary": "#343a46",
+      "adminFgMuted": "#60646c",
+      "adminFgFaint": "#7a7f89",
+      "adminPrimaryBg": "#111111",
+      "adminPrimaryFg": "#ffffff",
+      "adminSecondaryBg": "#ffffff",
+      "adminSecondaryFg": "#111111",
+      "adminSecondaryBorder": "#d7dce3",
+      "adminAccentBg": "#f1edff",
+      "adminAccentFg": "#4422cc",
+      "adminAccentStrong": "#5b34ff"
+    }
+  },
+  "correctStatusPalette": {
+    "black": {
+      "success": { "bg": "#112016", "border": "#2d3f30", "fg": "#8ce3b0", "text": "#cfe8d6" },
+      "warning": { "bg": "#1d170d", "border": "#3f3522", "fg": "#f4c35a", "text": "#eadfc9" },
+      "info": { "bg": "#0b2634", "border": "#1e526f", "fg": "#89d3f8", "text": "#b8e7fb" },
+      "danger": { "bg": "#2a1010", "border": "#5c2020", "fg": "#f87171", "text": "#fca5a5" },
+      "new": { "bg": "#231534", "border": "#6b46c1", "fg": "#d8c8ff" }
+    },
+    "light": {
+      "success": { "bg": "#ecfdf3", "border": "#b7ebc8", "fg": "#146c3a", "text": "#0f5132" },
+      "warning": { "bg": "#fff8e1", "border": "#f3d37a", "fg": "#8a5a00", "text": "#6d4b00" },
+      "info": { "bg": "#eef7ff", "border": "#bddfff", "fg": "#0b63ce", "text": "#084f9d" },
+      "danger": { "bg": "#fff1f1", "border": "#ffcaca", "fg": "#c1272d", "text": "#8f1f24" },
+      "new": { "bg": "#f1edff", "border": "#c7b8ff", "fg": "#4422cc" }
+    }
+  },
+  "targetTailwindMap": {
+    "admin": {
+      "base": "var(--admin-bg)",
+      "shell": "var(--admin-bg)",
+      "surface": "var(--admin-surface)",
+      "surface-deep": "var(--admin-surface-deep)",
+      "elevated": "var(--admin-elevated)",
+      "overlay": "var(--admin-overlay)",
+      "border-faint": "var(--admin-border-faint)",
+      "border": "var(--admin-border)",
+      "border-strong": "var(--admin-border-strong)",
+      "fg": "var(--admin-fg)",
+      "fg-secondary": "var(--admin-fg-secondary)",
+      "fg-muted": "var(--admin-fg-muted)",
+      "fg-faint": "var(--admin-fg-faint)",
+      "primary-bg": "var(--admin-primary-bg)",
+      "primary-fg": "var(--admin-primary-fg)",
+      "secondary-bg": "var(--admin-secondary-bg)",
+      "secondary-fg": "var(--admin-secondary-fg)",
+      "secondary-border": "var(--admin-secondary-border)",
+      "accent-bg": "var(--admin-accent-bg)",
+      "accent-fg": "var(--admin-accent-fg)",
+      "accent-strong": "var(--admin-accent-strong)"
+    },
+    "status": {
+      "success-bg": "var(--status-success-bg)",
+      "success-border": "var(--status-success-border)",
+      "success-fg": "var(--status-success-fg)",
+      "success-text": "var(--status-success-text)",
+      "warning-bg": "var(--status-warning-bg)",
+      "warning-border": "var(--status-warning-border)",
+      "warning-fg": "var(--status-warning-fg)",
+      "warning-text": "var(--status-warning-text)",
+      "info-bg": "var(--status-info-bg)",
+      "info-border": "var(--status-info-border)",
+      "info-fg": "var(--status-info-fg)",
+      "info-text": "var(--status-info-text)",
+      "danger-bg": "var(--status-danger-bg)",
+      "danger-border": "var(--status-danger-border)",
+      "danger-fg": "var(--status-danger-fg)",
+      "danger-text": "var(--status-danger-text)",
+      "new-bg": "var(--status-new-bg)",
+      "new-border": "var(--status-new-border)",
+      "new-fg": "var(--status-new-fg)"
+    }
+  },
+  "componentFixes": [
+    {
+      "component": "DSCard",
+      "file": "components/system/ds-card.tsx",
+      "errors": [
+        "admin-panel usa bg-admin-elevated fixo escuro",
+        "admin-deep usa bg-admin-surface fixo escuro",
+        "admin-hero tem gradiente hex hardcoded"
+      ],
+      "fix": "Depois do Tailwind dinamico, manter classes semanticas. Mover gradient para --admin-hero-bg."
+    },
+    {
+      "component": "DSButton",
+      "file": "components/system/ds-button.tsx",
+      "errors": [
+        "secondary, ghost e outline usam admin overlay/border/fg fixos",
+        "admin usa text-admin-fg fixo branco"
+      ],
+      "fix": "Usar admin-primary-bg/fg e admin-secondary-bg/fg/border para permitir inversao correta por tema."
+    },
+    {
+      "component": "DSInput",
+      "file": "components/system/ds-input.tsx",
+      "errors": [
+        "admin input usa surface/fg/border fixos do dark",
+        "public usa bg-white",
+        "motion usa duration-[180ms] ease-[ease]"
+      ],
+      "fix": "Usar tokens admin dinamicos, bg-card no public e motion tokens."
+    },
+    {
+      "component": "DSBadge",
+      "file": "components/system/ds-badge.tsx",
+      "errors": [
+        "admin e secondary usam admin tokens fixos",
+        "overlay usa white/10 e text-white",
+        "motion usa duration hardcoded"
+      ],
+      "fix": "Mapear admin/status para CSS variables e criar overlay tokens."
+    },
+    {
+      "component": "AdminHeader and AdminSection",
+      "file": "components/layout",
+      "errors": [
+        "Titulos e descricoes usam text-admin-fg e text-admin-fg-muted fixos",
+        "Cards de secao usam bg-admin-elevated fixo"
+      ],
+      "fix": "Resolver automaticamente quando Tailwind admin-* apontar para var(--admin-*)."
+    }
+  ],
+  "semanticRules": {
+    "blackThemeMustUse": {
+      "darkSurfaces": ["#0a0a0a", "#0f0f0f", "#171717"],
+      "lightText": ["#fafafa", "#d4d4d4", "#a1a1a1"],
+      "strongCta": "white background with black text is allowed and desired",
+      "avoid": ["black text on black surface", "very dark border on black with no separation"]
+    },
+    "lightThemeMustUse": {
+      "lightSurfaces": ["#ffffff", "#fafafa", "#f8fafc", "#f3f4f6"],
+      "darkText": ["#111111", "#343a46", "#60646c"],
+      "strongCta": "black background with white text is allowed and desired",
+      "avoid": ["white text on white surface", "dark card surfaces unless intentionally previewing dark mode"]
+    }
+  },
+  "implementationOrder": [
+    "Add complete --admin-* and --status-* variables inside .admin-theme-black and .admin-theme-light in app/globals.css.",
+    "Change tailwind.config.ts admin/status colors from hex values to var(--admin-*) and var(--status-*).",
+    "Update DS components to remove hardcoded gradient, bg-white and duration-[180ms] where present.",
+    "Replace DSButton primary/secondary/admin variants with tokens that invert correctly in black and light themes.",
+    "Reduce globals.css compatibility overrides after DS tokens become dynamic.",
+    "Unify theme persistence between AdminTopbar and /admin/configuracoes.",
+    "Remove or officially restore legacy themes dark, graphite and sand."
+  ],
+  "validation": [
+    "npm run lint:ds",
+    "npx tsc --noEmit",
+    "npm run build",
+    "git diff --check",
+    "Visual check: admin-theme-black must not show black text on dark surfaces.",
+    "Visual check: admin-theme-light must not show white text on white surfaces.",
+    "Visual check: DSCard, DSButton, DSInput and DSBadge must look correct in both themes.",
+    "Visual check: Dashboard, Pedidos, Configuracoes, Impressoras, Cardapio and Historico."
+  ]
+}

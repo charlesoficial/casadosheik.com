@@ -9,8 +9,8 @@ const badgeVariants = cva(
       variant: {
         default: "border-transparent bg-[var(--ui-badge-default-bg)] text-[var(--ui-badge-default-fg)]",
         secondary: "border-[var(--ui-badge-secondary-border)] bg-[var(--ui-badge-secondary-bg)] text-[var(--ui-badge-secondary-fg)]",
-        success: "border-transparent bg-emerald-100 text-emerald-700",
-        info: "border-transparent bg-sky-100 text-sky-700",
+        success: "border-status-success-border bg-status-success-bg text-status-success-fg",
+        info: "border-status-info-border bg-status-info-bg text-status-info-fg",
         admin: "border-[var(--ui-badge-admin-border)] bg-[var(--ui-badge-admin-bg)] text-[var(--ui-badge-admin-fg)]"
       }
     },

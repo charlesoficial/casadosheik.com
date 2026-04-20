@@ -20,14 +20,14 @@ export const ADMIN_THEMES: AdminThemeConfig[] = [
     label: "Preto",
     description: "Monocromatico forte, focado em contraste maximo.",
     cssClass: "admin-theme-black",
-    previewGradient: "from-[#0a0a0a] via-[#171717] to-[#262626]"
+    previewGradient: "from-admin-base via-admin-elevated to-admin-border"
   },
   {
     id: "light",
     label: "Branco",
     description: "Leve, limpo e claro para operacao diurna.",
     cssClass: "admin-theme-light",
-    previewGradient: "from-[#ffffff] via-[#fafafa] to-[#ececec]"
+    previewGradient: "from-background via-card to-secondary"
   }
 ];
 

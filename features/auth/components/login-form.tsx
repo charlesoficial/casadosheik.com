@@ -56,11 +56,11 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-[#17130f]">Email</label>
-        <div className="group flex h-14 items-center gap-3 rounded-[14px] border border-[#e3d8c7] bg-white px-4 transition-colors focus-within:border-[#7f5b19] focus-within:ring-2 focus-within:ring-[#f4c35a]/20">
-          <Mail className="h-4 w-4 text-[#8d8578] transition-colors group-focus-within:text-[#8f6d1e]" />
+        <label className="block text-sm font-medium text-foreground">Email</label>
+        <div className="group flex h-14 items-center gap-3 rounded-ds-sm border border-border bg-card px-4 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+          <Mail className="h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
-            className="h-auto border-0 bg-transparent px-0 py-0 text-base text-[#1a1610] placeholder:text-[#9d9587] focus-visible:ring-0"
+            className="h-auto border-0 bg-transparent px-0 py-0 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
             placeholder="Digite seu e-mail"
             type="email"
             value={email}
@@ -70,11 +70,11 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-[#17130f]">Password</label>
-        <div className="group flex h-14 items-center gap-3 rounded-[14px] border border-[#e3d8c7] bg-white px-4 transition-colors focus-within:border-[#7f5b19] focus-within:ring-2 focus-within:ring-[#f4c35a]/20">
-          <LockKeyhole className="h-4 w-4 text-[#8d8578] transition-colors group-focus-within:text-[#8f6d1e]" />
+        <label className="block text-sm font-medium text-foreground">Senha</label>
+        <div className="group flex h-14 items-center gap-3 rounded-ds-sm border border-border bg-card px-4 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+          <LockKeyhole className="h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
-            className="h-auto border-0 bg-transparent px-0 py-0 text-base text-[#1a1610] placeholder:text-[#9d9587] focus-visible:ring-0"
+            className="h-auto border-0 bg-transparent px-0 py-0 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
             placeholder="Digite sua senha"
             type={showPassword ? "text" : "password"}
             value={password}
@@ -83,7 +83,7 @@ export function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword((current) => !current)}
-            className="text-[#8d8578] transition-colors hover:text-[#1a1610]"
+            className="text-muted-foreground transition-colors hover:text-foreground"
             tabIndex={-1}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -91,25 +91,15 @@ export function LoginForm() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 text-sm">
-        <label className="flex items-center gap-2 text-[#6e665a]">
-          <input type="checkbox" className="h-4 w-4 rounded border-[#d7cab5] text-[#0e0e10] focus:ring-[#f4c35a]" />
-          Manter-me conectado
-        </label>
-        <button type="button" className="font-medium text-[#17130f] transition-colors hover:text-[#8f6d1e]">
-          Esqueceu a senha?
-        </button>
-      </div>
-
       {error ? (
-        <div className="rounded-[14px] border border-[#efc3c3] bg-[#fff1f1] px-4 py-3 text-sm leading-6 text-[#a23b3b]">
+        <div className="rounded-ds-sm border border-status-danger-text/50 bg-status-danger-text/15 px-4 py-3 text-sm leading-6 text-status-danger-text">
           {error}
         </div>
       ) : null}
 
       <Button
         variant="admin"
-        className="h-14 w-full rounded-[14px] bg-[#0e0e10] text-base font-semibold text-white shadow-[0_16px_35px_-24px_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-0.5 hover:bg-[#0e0e10]"
+        className="h-14 w-full rounded-ds-sm bg-foreground text-base font-semibold text-background shadow-soft transition-transform hover:-translate-y-0.5 hover:bg-foreground"
         disabled={loading}
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}

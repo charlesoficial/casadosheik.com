@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { usePrinterBridge } from "@/features/printers/hooks/use-printer-bridge";
-import { Button } from "@/components/ui/button";
+import { DSButton } from "@/components/system";
 import type { PrinterRecord } from "@/lib/types";
 
 export function PrinterTestButton({
@@ -50,16 +50,15 @@ export function PrinterTestButton({
   }
 
   return (
-    <Button
+    <DSButton
       type="button"
       variant="outline"
       size="sm"
-      className="border-[#313131] bg-transparent text-white hover:bg-[#1b1b1b]"
       onClick={handleTest}
       disabled={loading}
       title="Enviar ticket de teste"
     >
-      Testar
-    </Button>
+      {loading ? "Testando..." : "Testar"}
+    </DSButton>
   );
 }

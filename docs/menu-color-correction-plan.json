@@ -1,0 +1,540 @@
+{
+  "metadata": {
+    "name": "menu_color_correction_plan",
+    "target": "cardapio_publico_e_fluxo_cliente",
+    "created_from_audit": true,
+    "objective": "Corrigir a mistura estranha entre dourado, branco puro e bege no cardapio sem alterar regra de negocio.",
+    "business_logic_policy": {
+      "change_business_logic": false,
+      "change_state": false,
+      "change_handlers": false,
+      "change_api_calls": false,
+      "change_queries_or_mutations": false,
+      "change_data_flow": false,
+      "visual_layer_only": true
+    },
+    "files_analyzed": [
+      "features/menu/components/menu-shell.tsx",
+      "features/menu/components/product-detail-shell.tsx",
+      "features/menu/components/checkout-shell.tsx",
+      "components/customer/customer-flow-header.tsx",
+      "app/globals.css",
+      "tailwind.config.ts"
+    ]
+  },
+  "diagnosis": {
+    "short_answer": "O cardapio esta misturando um fundo grande dourado/bege hardcoded com cards brancos, superficies off-white, chips dourados e o token global primary tambem dourado. O dourado aparece como fundo, texto, badge, botao, preco e glow, enquanto o branco aparece como card e overlay. Falta uma paleta semantica dedicada para o cardapio.",
+    "root_causes": [
+      "Nao existe familia de tokens menu-* para o fluxo publico do cardapio.",
+      "O tema global claro ja usa primary dourado e accent dourado claro.",
+      "A tela principal adiciona um gradiente dourado/bege hardcoded por cima do tema global.",
+      "Cards e botoes usam bg-white, bg-white/80, bg-white/90 e bg-white/96 em cima do fundo dourado.",
+      "bg-accent e text-primary sao usados em muitos pontos, entao tudo fica dourado ao mesmo tempo.",
+      "O header do fluxo do cliente adiciona bg-arabesque e radial-gradient dourado hardcoded.",
+      "Os componentes do fluxo usam background global, card global e primary global de forma diferente entre lista, detalhe e checkout."
+    ],
+    "desired_direction": "Criar uma paleta dedicada menu-* com base neutra quente, superficies marfim, texto escuro, bordas discretas e dourado apenas como acento. O CTA principal deve usar uma cor escura premium para parar de competir com preco e badges."
+  },
+  "current_color_sources": [
+    {
+      "file": "app/globals.css",
+      "lines": "5-21",
+      "source": "root theme variables",
+      "problem": "O tema claro global define background, card, primary, secondary e accent. Esses tokens sao usados no cardapio, mas nao foram desenhados especificamente para o fluxo publico.",
+      "important_values": {
+        "--background": {
+          "value": "40 25% 98%",
+          "meaning": "fundo claro quente",
+          "conflict": "fica perto demais dos fundos bege do cardapio"
+        },
+        "--card": {
+          "value": "0 0% 100%",
+          "meaning": "branco puro",
+          "conflict": "cria contraste estranho sobre fundo dourado/bege"
+        },
+        "--primary": {
+          "value": "43 73% 46%",
+          "approx_hex": "#cb941f",
+          "meaning": "dourado global",
+          "conflict": "usado como preco, CTA, badge, link, foco e destaque"
+        },
+        "--secondary": {
+          "value": "35 22% 94%",
+          "meaning": "off-white quente",
+          "conflict": "muito parecido com background e muted"
+        },
+        "--accent": {
+          "value": "42 72% 92%",
+          "approx_hex": "#faedc8",
+          "meaning": "dourado claro",
+          "conflict": "fica parecido com o fundo dourado da pagina"
+        },
+        "--border": {
+          "value": "34 20% 87%",
+          "meaning": "borda clara quente",
+          "conflict": "pouca separacao sobre fundos bege"
+        }
+      }
+    },
+    {
+      "file": "app/globals.css",
+      "lines": "104-105",
+      "source": "body background",
+      "current": "body { @apply bg-[#f7f3ec] text-foreground antialiased; }",
+      "problem": "Existe hex hardcoded no fundo global. Ele reforca a familia bege, mas nao passa por token semantico."
+    },
+    {
+      "file": "tailwind.config.ts",
+      "lines": "21-46",
+      "source": "Tailwind token mapping",
+      "problem": "background, foreground, card, primary, secondary, muted, accent, border, input e ring sao mapeados para CSS variables globais. O cardapio nao tem mapeamento proprio."
+    },
+    {
+      "file": "tailwind.config.ts",
+      "lines": "50-56",
+      "source": "brand tokens",
+      "problem": "Existem brand.gold, brand.goldSoft, brand.purple e brand.purpleSoft, mas o cardapio usa primary/accent globais e hardcodes. Isso cria varias fontes de verdade para cor."
+    },
+    {
+      "file": "tailwind.config.ts",
+      "lines": "129-131",
+      "source": "bg-arabesque",
+      "problem": "backgroundImage.arabesque usa radial gradients dourados com rgba(198,141,28,...) e rgba(244,195,90,...). E uma camada decorativa fora de tokens menu-*."
+    }
+  ],
+  "conflicting_colors": [
+    {
+      "name": "page_gold_gradient_start",
+      "value": "#f8f1e2",
+      "location": "features/menu/components/menu-shell.tsx:88",
+      "why_wrong": "Parece quase branco quente, mas com fundo dourado; cria mistura lavada com cards brancos."
+    },
+    {
+      "name": "page_gold_gradient_middle",
+      "value": "#f1e2c2",
+      "location": "features/menu/components/menu-shell.tsx:88",
+      "why_wrong": "Dourado/bege em area grande compete com badges e chips dourados."
+    },
+    {
+      "name": "page_gold_gradient_end",
+      "value": "#ead4a7",
+      "location": "features/menu/components/menu-shell.tsx:88",
+      "why_wrong": "Saturado demais para fundo de pagina inteira."
+    },
+    {
+      "name": "global_primary_gold",
+      "value": "hsl(43 73% 46%)",
+      "approx_hex": "#cb941f",
+      "location": "app/globals.css:10",
+      "why_wrong": "Usado em muitas funcoes visuais ao mesmo tempo."
+    },
+    {
+      "name": "global_accent_gold_soft",
+      "value": "hsl(42 72% 92%)",
+      "approx_hex": "#faedc8",
+      "location": "app/globals.css:17",
+      "why_wrong": "Muito parecido com o fundo dourado da pagina."
+    },
+    {
+      "name": "pure_white_card",
+      "value": "#ffffff",
+      "location": "app/globals.css:7 and multiple bg-white classes",
+      "why_wrong": "Branco puro fica solto sobre base quente/dourada."
+    },
+    {
+      "name": "body_hardcoded_warm_bg",
+      "value": "#f7f3ec",
+      "location": "app/globals.css:104",
+      "why_wrong": "Hex global fora do token system."
+    },
+    {
+      "name": "arabesque_gold",
+      "value": "rgba(198,141,28,0.08), rgba(244,195,90,0.12)",
+      "location": "tailwind.config.ts:129-131",
+      "why_wrong": "Adiciona dourado decorativo alem do primary/accent."
+    },
+    {
+      "name": "header_gold_glow",
+      "value": "rgba(244,195,90,0.24)",
+      "location": "components/customer/customer-flow-header.tsx:38",
+      "why_wrong": "Glow dourado hardcoded deixa o header mais quente que o restante."
+    }
+  ],
+  "file_findings": [
+    {
+      "file": "features/menu/components/menu-shell.tsx",
+      "impact": "highest",
+      "issues": [
+        {
+          "lines": "88",
+          "current": "bg-[linear-gradient(180deg,#f8f1e2_0%,#f1e2c2_38%,#ead4a7_100%)]",
+          "problem": "Fundo inteiro dourado/bege hardcoded.",
+          "replace_with": "[background:var(--menu-bg-gradient)]"
+        },
+        {
+          "lines": "94",
+          "current": "bg-white",
+          "problem": "Logo em branco puro sobre fundo dourado.",
+          "replace_with": "bg-menu-surface-raised border-menu-border"
+        },
+        {
+          "lines": "117-118",
+          "current": "bg-white/80, bg-accent, text-primary, border-primary",
+          "problem": "Badges misturam branco translucido com dourado em excesso.",
+          "replace_with": "bg-menu-surface, bg-menu-accent-bg, text-menu-accent-strong, border-menu-accent-border"
+        },
+        {
+          "lines": "126-147",
+          "current": "bg-secondary/95, bg-card, bg-accent, text-primary",
+          "problem": "Barra de busca e categorias usam branco/off-white/dourado sem hierarquia.",
+          "replace_with": "bg-menu-surface, bg-menu-input, bg-menu-cta, text-menu-cta-fg"
+        },
+        {
+          "lines": "185-201",
+          "current": "bg-card, border-border, hover:border-primary/40, bg-accent, text-primary",
+          "problem": "Cards de produto brancos com badges e preco dourados demais.",
+          "replace_with": "bg-menu-surface-raised, border-menu-border, hover:border-menu-accent-border, text-menu-accent-strong"
+        },
+        {
+          "lines": "234-244",
+          "current": "Button default primary, bg-white/20, text-white/80",
+          "problem": "CTA depende do primary dourado global e compete com preco/badges.",
+          "replace_with": "bg-menu-cta text-menu-cta-fg hover:bg-menu-cta-hover"
+        }
+      ]
+    },
+    {
+      "file": "features/menu/components/product-detail-shell.tsx",
+      "impact": "high",
+      "issues": [
+        {
+          "lines": "34",
+          "current": "bg-background",
+          "problem": "Usa fundo global em vez de fundo dedicado do cardapio.",
+          "replace_with": "bg-menu-bg or [background:var(--menu-bg-gradient-soft)]"
+        },
+        {
+          "lines": "49,54",
+          "current": "border-white/35 bg-foreground/45 text-white",
+          "problem": "Overlay sobre imagem usa branco/preto hardcoded via classes globais.",
+          "replace_with": "bg-menu-overlayControl text-menu-overlayFg border-menu-overlayBorder"
+        },
+        {
+          "lines": "63",
+          "current": "border-border bg-white/96",
+          "problem": "Card principal usa branco quase puro.",
+          "replace_with": "border-menu-border bg-menu-surface-raised/95"
+        },
+        {
+          "lines": "68,73-75,106,114,127",
+          "current": "bg-accent, text-primary, bg-white, bg-primary",
+          "problem": "Detalhe repete dourado em chip, preco, quantidade e CTA.",
+          "replace_with": "bg-menu-accent-bg, text-menu-accent-strong, bg-menu-surface, bg-menu-cta"
+        }
+      ]
+    },
+    {
+      "file": "features/menu/components/checkout-shell.tsx",
+      "impact": "high",
+      "issues": [
+        {
+          "lines": "126",
+          "current": "bg-background",
+          "problem": "Checkout usa fundo global e nao acompanha a tela de cardapio.",
+          "replace_with": "bg-menu-bg or [background:var(--menu-bg-gradient-soft)]"
+        },
+        {
+          "lines": "135,142,152,167,234,247",
+          "current": "bg-white/90, bg-white/80, bg-white",
+          "problem": "Superficies brancas puras ou translucidas demais.",
+          "replace_with": "bg-menu-surface or bg-menu-surface-raised"
+        },
+        {
+          "lines": "143,153,160,179,194,204,212,217,223,227,240,255",
+          "current": "bg-accent, text-primary, bg-secondary, hover:bg-accent",
+          "problem": "Dourado e off-white aparecem em controles, total, links e estados.",
+          "replace_with": "bg-menu-accent-bg, text-menu-accent-strong, bg-menu-surface-soft"
+        }
+      ]
+    },
+    {
+      "file": "components/customer/customer-flow-header.tsx",
+      "impact": "medium",
+      "issues": [
+        {
+          "lines": "33",
+          "current": "bg-secondary",
+          "problem": "Header usa secondary global quente.",
+          "replace_with": "bg-menu-surface-soft or bg-menu-header"
+        },
+        {
+          "lines": "37",
+          "current": "bg-arabesque opacity-70",
+          "problem": "Padrao dourado muito presente.",
+          "replace_with": "bg-menu-pattern opacity-30 or remove"
+        },
+        {
+          "lines": "38",
+          "current": "bg-[radial-gradient(circle,rgba(244,195,90,0.24)_0%,rgba(244,195,90,0)_72%)]",
+          "problem": "Glow dourado hardcoded.",
+          "replace_with": "[background:var(--menu-header-glow)]"
+        },
+        {
+          "lines": "46",
+          "current": "text-primary",
+          "problem": "Eyebrow usa primary dourado global.",
+          "replace_with": "text-menu-accent-strong"
+        }
+      ]
+    }
+  ],
+  "target_palette": {
+    "principle": "Base neutra quente, superficies marfim, texto escuro, borda taupe, dourado controlado e CTA escuro.",
+    "tokens": {
+      "menu_bg": {
+        "hex": "#f6f1e8",
+        "usage": "Fundo principal."
+      },
+      "menu_bg_gradient_top": {
+        "hex": "#fbf8f1",
+        "usage": "Topo do gradiente."
+      },
+      "menu_bg_gradient_middle": {
+        "hex": "#f5eee2",
+        "usage": "Meio do gradiente."
+      },
+      "menu_bg_gradient_bottom": {
+        "hex": "#efe3d2",
+        "usage": "Base do gradiente."
+      },
+      "menu_surface": {
+        "hex": "#fffaf2",
+        "usage": "Cards e paineis."
+      },
+      "menu_surface_raised": {
+        "hex": "#fffdf8",
+        "usage": "Cards principais."
+      },
+      "menu_surface_soft": {
+        "hex": "#f1e8d7",
+        "usage": "Faixas internas e estados suaves."
+      },
+      "menu_input": {
+        "hex": "#fffdf8",
+        "usage": "Inputs e textareas."
+      },
+      "menu_text": {
+        "hex": "#241b14",
+        "usage": "Texto principal."
+      },
+      "menu_text_muted": {
+        "hex": "#6f6559",
+        "usage": "Texto secundario."
+      },
+      "menu_text_subtle": {
+        "hex": "#928678",
+        "usage": "Placeholder e apoio."
+      },
+      "menu_border": {
+        "hex": "#dfd2bc",
+        "usage": "Borda padrao."
+      },
+      "menu_border_strong": {
+        "hex": "#cbb894",
+        "usage": "Borda com enfase."
+      },
+      "menu_accent": {
+        "hex": "#b78218",
+        "usage": "Dourado de marca controlado."
+      },
+      "menu_accent_strong": {
+        "hex": "#8a5b0b",
+        "usage": "Preco e texto destacado."
+      },
+      "menu_accent_bg": {
+        "hex": "#f6e6bd",
+        "usage": "Badge e chip."
+      },
+      "menu_accent_border": {
+        "hex": "#e3c77f",
+        "usage": "Borda de chip ativo."
+      },
+      "menu_cta_bg": {
+        "hex": "#241b14",
+        "usage": "Botao principal."
+      },
+      "menu_cta_hover": {
+        "hex": "#33261b",
+        "usage": "Hover do botao principal."
+      },
+      "menu_cta_fg": {
+        "hex": "#fff8ea",
+        "usage": "Texto do botao principal."
+      },
+      "menu_success": {
+        "hex": "#287a45",
+        "usage": "Aberto/disponivel."
+      },
+      "menu_success_bg": {
+        "hex": "#e7f5eb",
+        "usage": "Fundo success."
+      },
+      "menu_danger": {
+        "hex": "#b33d2e",
+        "usage": "Fechado/indisponivel."
+      },
+      "menu_danger_bg": {
+        "hex": "#fae9e6",
+        "usage": "Fundo danger."
+      }
+    }
+  },
+  "css_variables_to_add": {
+    "file": "app/globals.css",
+    "recommended_scope": ":root or .menu-theme",
+    "variables": {
+      "--menu-bg": "38 42% 94%",
+      "--menu-bg-gradient": "linear-gradient(180deg, #fbf8f1 0%, #f5eee2 44%, #efe3d2 100%)",
+      "--menu-bg-gradient-soft": "linear-gradient(180deg, #fbf8f1 0%, #f6f1e8 100%)",
+      "--menu-surface": "38 100% 97%",
+      "--menu-surface-raised": "40 100% 99%",
+      "--menu-surface-soft": "39 46% 89%",
+      "--menu-input": "40 100% 99%",
+      "--menu-text": "26 29% 11%",
+      "--menu-text-muted": "32 11% 39%",
+      "--menu-text-subtle": "33 10% 52%",
+      "--menu-border": "37 33% 81%",
+      "--menu-border-strong": "38 34% 69%",
+      "--menu-accent": "39 76% 41%",
+      "--menu-accent-strong": "38 85% 29%",
+      "--menu-accent-bg": "42 70% 85%",
+      "--menu-accent-border": "42 62% 69%",
+      "--menu-cta-bg": "26 29% 11%",
+      "--menu-cta-hover": "27 31% 15%",
+      "--menu-cta-fg": "42 100% 96%",
+      "--menu-success": "142 50% 32%",
+      "--menu-success-bg": "136 45% 93%",
+      "--menu-danger": "8 59% 44%",
+      "--menu-danger-bg": "9 71% 94%",
+      "--menu-header-glow": "radial-gradient(circle, rgba(183, 130, 24, 0.16) 0%, rgba(183, 130, 24, 0) 72%)"
+    }
+  },
+  "tailwind_mapping_to_add": {
+    "file": "tailwind.config.ts",
+    "path": "theme.extend.colors.menu",
+    "colors": {
+      "bg": "hsl(var(--menu-bg))",
+      "surface": "hsl(var(--menu-surface))",
+      "surface-raised": "hsl(var(--menu-surface-raised))",
+      "surface-soft": "hsl(var(--menu-surface-soft))",
+      "input": "hsl(var(--menu-input))",
+      "text": "hsl(var(--menu-text))",
+      "text-muted": "hsl(var(--menu-text-muted))",
+      "text-subtle": "hsl(var(--menu-text-subtle))",
+      "border": "hsl(var(--menu-border))",
+      "borderStrong": "hsl(var(--menu-border-strong))",
+      "accent": "hsl(var(--menu-accent))",
+      "accent-strong": "hsl(var(--menu-accent-strong))",
+      "accent-bg": "hsl(var(--menu-accent-bg))",
+      "accent-border": "hsl(var(--menu-accent-border))",
+      "cta": "hsl(var(--menu-cta-bg))",
+      "cta-hover": "hsl(var(--menu-cta-hover))",
+      "cta-fg": "hsl(var(--menu-cta-fg))",
+      "success": "hsl(var(--menu-success))",
+      "successBg": "hsl(var(--menu-success-bg))",
+      "danger": "hsl(var(--menu-danger))",
+      "dangerBg": "hsl(var(--menu-danger-bg))"
+    },
+    "background_images_optional": {
+      "menu-gradient": "var(--menu-bg-gradient)",
+      "menu-gradient-soft": "var(--menu-bg-gradient-soft)",
+      "menu-header-glow": "var(--menu-header-glow)"
+    }
+  },
+  "replacement_rules": [
+    {
+      "from": "bg-[linear-gradient(180deg,#f8f1e2_0%,#f1e2c2_38%,#ead4a7_100%)]",
+      "to": "[background:var(--menu-bg-gradient)]",
+      "reason": "Remove o fundo dourado saturado hardcoded."
+    },
+    {
+      "from": "bg-white, bg-white/80, bg-white/90, bg-white/96",
+      "to": "bg-menu-surface or bg-menu-surface-raised",
+      "reason": "Evita branco puro solto sobre fundo quente."
+    },
+    {
+      "from": "bg-card in menu flow",
+      "to": "bg-menu-surface-raised",
+      "reason": "Cards passam a usar superficie do cardapio."
+    },
+    {
+      "from": "bg-secondary in menu flow",
+      "to": "bg-menu-surface-soft",
+      "reason": "Troca off-white global por token do cardapio."
+    },
+    {
+      "from": "bg-accent text-primary",
+      "to": "bg-menu-accent-bg text-menu-accent-strong",
+      "reason": "Mantem dourado como acento com contraste melhor."
+    },
+    {
+      "from": "text-primary for prices",
+      "to": "text-menu-accent-strong",
+      "reason": "Preco continua destacado sem depender do primary global."
+    },
+    {
+      "from": "Button default primary in menu CTA",
+      "to": "bg-menu-cta text-menu-cta-fg hover:bg-menu-cta-hover",
+      "reason": "CTA fica dominante e o dourado deixa de competir com tudo."
+    },
+    {
+      "from": "border-border in menu flow",
+      "to": "border-menu-border",
+      "reason": "Bordas ganham separacao correta sobre base quente."
+    },
+    {
+      "from": "bg-arabesque opacity-70",
+      "to": "menu pattern com opacidade menor ou remover",
+      "reason": "Reduz decoracao dourada redundante."
+    },
+    {
+      "from": "radial-gradient rgba(244,195,90,0.24)",
+      "to": "var(--menu-header-glow)",
+      "reason": "Tokeniza o glow e reduz intensidade."
+    }
+  ],
+  "implementation_order": [
+    "Adicionar CSS variables menu-* em app/globals.css.",
+    "Adicionar mapeamento theme.extend.colors.menu em tailwind.config.ts.",
+    "Migrar features/menu/components/menu-shell.tsx primeiro, pois concentra o conflito visual principal.",
+    "Migrar features/menu/components/product-detail-shell.tsx para alinhar detalhe do produto.",
+    "Migrar features/menu/components/checkout-shell.tsx para alinhar checkout.",
+    "Migrar components/customer/customer-flow-header.tsx para remover dourado decorativo hardcoded.",
+    "Rodar npm run lint:ds.",
+    "Rodar npx tsc --noEmit.",
+    "Rodar npm run build.",
+    "Rodar git diff --check.",
+    "Fazer check visual em /menu, detalhe do produto e checkout."
+  ],
+  "acceptance_criteria": [
+    "O fundo do cardapio nao pode mais parecer dourado saturado.",
+    "Cards nao devem usar branco puro solto sobre fundo dourado.",
+    "Dourado deve aparecer principalmente em preco, badges pequenos e detalhes de foco.",
+    "CTA principal deve ter hierarquia propria e nao depender do primary dourado global.",
+    "Lista, detalhe e checkout devem parecer partes do mesmo fluxo visual.",
+    "Nenhum hex hardcoded novo deve ser introduzido.",
+    "Nenhuma logica de negocio deve ser alterada."
+  ],
+  "validation": {
+    "commands": [
+      "npm run lint:ds",
+      "npx tsc --noEmit",
+      "npm run build",
+      "git diff --check"
+    ],
+    "visual_urls": [
+      "http://localhost:3000/menu",
+      "http://localhost:3000/checkout"
+    ]
+  }
+}

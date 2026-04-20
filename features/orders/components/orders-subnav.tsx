@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { href: "/admin/pedidos", label: "Gestor de Pedidos" },
-  { href: "/admin/pedidos/configuracoes", label: "Configuracoes" }
+  { href: "/admin/pedidos/configuracoes", label: "Configurações de pedidos" }
 ];
 
 export function OrdersSubnav({ pathname }: { pathname: string }) {
@@ -17,8 +17,8 @@ export function OrdersSubnav({ pathname }: { pathname: string }) {
           className={cn(
             "rounded-2xl border px-4 py-2.5 text-sm font-medium transition-colors",
             pathname === item.href
-              ? "border-[#6a45ff] bg-[#21153d] text-[#ccbaff]"
-              : "border-[#2b2b2b] bg-[#171717] text-[#c5bfb3] hover:bg-[#1f1f1f]"
+              ? "border-status-new-border bg-status-new-bg text-status-new-fg"
+              : "border-admin-border bg-admin-elevated text-admin-fg-secondary hover:bg-admin-overlay"
           )}
         >
           {item.label}

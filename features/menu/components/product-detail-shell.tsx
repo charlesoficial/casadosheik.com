@@ -3,18 +3,81 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, Minus, Plus, Sparkles, UtensilsCrossed } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingBag, UtensilsCrossed } from "lucide-react";
 
 import { useCart } from "@/components/cart-provider";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { buildCheckoutHref, buildMenuHref } from "@/lib/utils/customer-navigation";
 import { formatCurrency } from "@/lib/utils";
 import type { MenuProduct } from "@/lib/types";
 
-// Detalhe do produto no fluxo publico.
-// Aqui o cliente ajusta quantidade e observacoes antes de cair no checkout.
+function ProductHero({
+  product,
+  heroFailed,
+  setHeroFailed,
+  sizes,
+}: {
+  product: MenuProduct;
+  heroFailed: boolean;
+  setHeroFailed: (failed: boolean) => void;
+  sizes: string;
+}) {
+  if (heroFailed || !product.image) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-menu-accent-bg">
+        <UtensilsCrossed className="h-16 w-16 text-menu-accent" strokeWidth={1.5} />
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={product.image}
+      alt={product.name}
+      fill
+      priority
+      sizes={sizes}
+      className="object-cover object-center"
+      onError={() => setHeroFailed(true)}
+    />
+  );
+}
+
+function QuantityControl({
+  quantity,
+  setQuantity,
+  compact = false,
+}: {
+  quantity: number;
+  setQuantity: (updater: (current: number) => number) => void;
+  compact?: boolean;
+}) {
+  const buttonSize = compact ? "h-9 w-9" : "h-10 w-10";
+
+  return (
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        aria-label="Diminuir quantidade"
+        onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+        disabled={quantity <= 1}
+        className={`${buttonSize} flex items-center justify-center rounded-full border border-menu-border bg-menu-surface text-menu-text transition-colors hover:bg-menu-surface-soft disabled:opacity-40`}
+      >
+        <Minus className="h-4 w-4" strokeWidth={1.5} />
+      </button>
+      <span className="w-7 text-center text-lg font-bold text-menu-text">{quantity}</span>
+      <button
+        type="button"
+        aria-label="Aumentar quantidade"
+        onClick={() => setQuantity((current) => current + 1)}
+        className={`${buttonSize} flex items-center justify-center rounded-full border border-menu-border bg-menu-surface text-menu-text transition-colors hover:bg-menu-surface-soft`}
+      >
+        <Plus className="h-4 w-4" strokeWidth={1.5} />
+      </button>
+    </div>
+  );
+}
+
 export function ProductDetailShell({ product, mesa }: { product: MenuProduct; mesa?: string }) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -23,114 +86,188 @@ export function ProductDetailShell({ product, mesa }: { product: MenuProduct; me
   const [heroFailed, setHeroFailed] = useState(false);
   const menuHref = buildMenuHref(mesa);
   const checkoutHref = buildCheckoutHref(mesa, product.id);
+  const total = product.price * quantity;
 
   function handleAdd() {
-    // Ao adicionar, o fluxo segue direto para o checkout para reduzir friccao no celular.
     addItem(product, quantity, note);
     router.push(checkoutHref);
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-[480px] bg-[#fbf7f0]">
-      <Card className="min-h-screen w-full rounded-none border-0 bg-transparent shadow-none">
-        <div className="relative aspect-[16/10] overflow-hidden">
-          {!heroFailed && product.image ? (
-            <Image src={product.image} alt={product.name} fill className="object-cover" onError={() => setHeroFailed(true)} />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[#f1e2c2]">
-              <UtensilsCrossed className="h-16 w-16 text-[#c4a97a]" />
+    <main className="menu-theme min-h-screen bg-menu-bg text-menu-text lg:[background:var(--menu-bg-gradient-soft)]">
+      <section className="mx-auto min-h-screen max-w-[480px] bg-menu-bg lg:hidden">
+        <div className="relative aspect-square w-full overflow-hidden bg-menu-accent-bg">
+          <ProductHero
+            product={product}
+            heroFailed={heroFailed}
+            setHeroFailed={setHeroFailed}
+            sizes="100vw"
+          />
+          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-menu-overlay/45 to-transparent" />
+          <button
+            type="button"
+            aria-label="Voltar ao cardápio"
+            onClick={() => router.push(menuHref)}
+            className="absolute left-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-menu-overlay-border/35 bg-menu-overlay/45 text-menu-overlay-fg backdrop-blur-sm transition-colors hover:bg-menu-overlay/65"
+          >
+            <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
+          </button>
+        </div>
+
+        <div className="bg-menu-bg px-4 pb-6 pt-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="text-[2rem] font-black leading-[1.04] text-menu-text">
+                {product.name}
+              </h1>
             </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1f140c]/60 via-[#1f140c]/10 to-transparent" />
-          <div className="absolute left-4 top-4 right-4 flex items-start justify-between">
+            <div className="shrink-0 rounded-2xl bg-menu-cta px-4 py-2 text-right shadow-soft">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-menu-accent-border">Preço</p>
+              <p className="text-lg font-black leading-none text-menu-cta-fg">{formatCurrency(product.price)}</p>
+            </div>
+          </div>
+
+          {product.description ? (
+            <p className="mt-3 text-[15px] leading-6 text-menu-text-muted">{product.description}</p>
+          ) : null}
+
+          <div className="mt-5 rounded-3xl border border-menu-border bg-menu-surface-raised p-4 shadow-soft">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-bold text-menu-text">Quantidade</p>
+                <p className="mt-1 text-xs leading-5 text-menu-text-subtle">Ajuste antes de adicionar.</p>
+              </div>
+              <QuantityControl quantity={quantity} setQuantity={setQuantity} compact />
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-3xl border border-menu-border bg-menu-surface-raised p-4 shadow-soft">
+            <label className="font-bold text-menu-text">Observações</label>
+            <Textarea
+              placeholder="Alguma observação? Ex: sem cebola"
+              maxLength={180}
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              className="mt-3 min-h-[108px] rounded-2xl border-menu-border bg-menu-surface text-menu-text placeholder:text-menu-text-subtle focus:border-menu-accent focus:ring-1 focus:ring-menu-accent-border"
+            />
+          </div>
+
+          <div className="mt-3 rounded-3xl border border-menu-border bg-menu-surface-raised p-2 shadow-card">
+            <div className="mb-2 flex items-center justify-between px-3 pt-1 text-sm">
+              <span className="text-menu-text-muted">
+                {quantity} {quantity === 1 ? "item" : "itens"}
+              </span>
+              <span className="font-black text-menu-accent-strong">{formatCurrency(total)}</span>
+            </div>
             <button
               type="button"
-              onClick={() => router.push(menuHref)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-[#2b1705]/45 text-white backdrop-blur"
+              onClick={handleAdd}
+              className="flex h-14 w-full items-center justify-center gap-3 rounded-2xl bg-menu-cta px-5 text-base font-black text-menu-cta-fg shadow-soft transition-colors hover:bg-menu-cta-hover active:scale-[0.99]"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
+              Adicionar ao pedido
             </button>
-            {product.highlight ? (
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-[#2b1705]/45 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5" />
-                Destaque da casa
-              </div>
-            ) : null}
           </div>
         </div>
+      </section>
 
-        <div className="-mt-7 px-4">
-          <div className="rounded-[30px] border border-[#f0e4d2] bg-white/96 p-5 shadow-[0_20px_60px_rgba(74,45,6,0.12)] backdrop-blur">
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-2">
-                    <div className="inline-flex items-center rounded-full bg-[#faf3e1] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#8f6d1e]">
-                      {product.category}
-                    </div>
-                    <h1 className="text-[2rem] font-bold leading-none text-[#22180d]">{product.name}</h1>
-                  </div>
-                  <div className="rounded-[22px] bg-[#f7eed8] px-4 py-3 text-right shadow-sm">
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#8f6d1e]">Preco</p>
-                    <span className="text-xl font-bold text-[#8f6d1e]">{formatCurrency(product.price)}</span>
-                  </div>
-                </div>
-                <p className="text-sm leading-7 text-[#695b48]">{product.description}</p>
-              </div>
+      <section className="hidden min-h-screen px-6 py-6 lg:flex lg:items-center lg:justify-center xl:px-8">
+        <div className="grid w-full max-w-[1280px] overflow-hidden rounded-[34px] border border-menu-border bg-menu-surface-raised shadow-card lg:grid-cols-[minmax(340px,42%)_minmax(0,1fr)] xl:grid-cols-[minmax(440px,43%)_minmax(0,1fr)] 2xl:max-w-[1520px]">
+          <div className="relative min-h-[520px] overflow-hidden bg-menu-accent-bg lg:min-h-[620px] xl:min-h-[680px] 2xl:min-h-[760px]">
+            <ProductHero
+              product={product}
+              heroFailed={heroFailed}
+              setHeroFailed={setHeroFailed}
+              sizes="(min-width: 1280px) 520px, 44vw"
+            />
+            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-menu-overlay/50 to-transparent" />
+            <button
+              type="button"
+              aria-label="Voltar ao cardápio"
+              onClick={() => router.push(menuHref)}
+              className="absolute left-6 top-6 flex h-12 w-12 items-center justify-center rounded-full border border-menu-overlay-border/35 bg-menu-overlay/45 text-menu-overlay-fg backdrop-blur-sm transition-colors hover:bg-menu-overlay/65"
+            >
+              <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
+            </button>
+          </div>
 
-              <div className="grid gap-4 rounded-[26px] border border-[#f1e7d9] bg-[#fdfaf5] p-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#2f251a]">Observacoes</label>
-                  <p className="text-xs leading-5 text-[#8b7d69]">
-                    Personalize o preparo do jeito que fizer mais sentido para este item.
-                  </p>
-                </div>
-                <Textarea
-                  placeholder="Alguma observacao? Ex: sem cebola"
-                  maxLength={180}
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
-                  className="min-h-[124px] rounded-[22px] border-[#eadfca] bg-white px-4 py-3 text-[#2a1d12] placeholder:text-[#a1937e]"
-                />
-              </div>
+          <div className="grid min-w-0 gap-4 p-5 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-5 xl:p-9">
+            <div className="flex min-w-0 flex-col justify-center">
+              <h1 className="max-w-2xl text-4xl font-black leading-[0.98] text-menu-text xl:text-6xl">
+                {product.name}
+              </h1>
+              {product.description ? (
+                <p className="mt-4 max-w-xl text-base leading-7 text-menu-text-muted xl:mt-5 xl:text-lg xl:leading-8">
+                  {product.description}
+                </p>
+              ) : null}
 
-              <div className="flex items-center justify-between rounded-[26px] border border-[#eadfca] bg-[#faf7f1] p-4">
-                <div className="space-y-1">
-                  <p className="font-semibold text-[#2b2114]">Quantidade</p>
-                  <p className="text-xs text-[#8b7d69]">Ajuste antes de adicionar ao pedido</p>
+              <div className="mt-5 grid max-w-xl grid-cols-2 gap-3 xl:mt-7">
+                <div className="rounded-2xl border border-menu-border bg-menu-surface p-3 xl:p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-menu-text-subtle">Preço</p>
+                  <p className="mt-1 text-2xl font-black text-menu-accent-strong">{formatCurrency(product.price)}</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((current) => Math.max(1, current - 1))}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-[#e5d9c5] bg-white text-[#8f6d1e] transition-colors hover:bg-[#fff8ea]"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="w-8 text-center text-xl font-bold text-[#2b2114]">{quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => setQuantity((current) => current + 1)}
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-[#e5d9c5] bg-white text-[#8f6d1e] transition-colors hover:bg-[#fff8ea]"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+                <div className="rounded-2xl border border-menu-border bg-menu-surface p-3 xl:p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-menu-text-subtle">Pedido</p>
+                  <p className="mt-1 text-xl font-black text-menu-text">{mesa ? `Mesa ${mesa}` : "Delivery"}</p>
                 </div>
               </div>
             </div>
+
+            <aside className="self-center lg:max-w-[560px] xl:max-w-none">
+              <div className="rounded-[28px] border border-menu-border bg-menu-bg p-4 shadow-soft xl:p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-bold text-menu-text-muted">Adicionar ao pedido</p>
+                    <p className="mt-1 text-3xl font-black tracking-tight text-menu-text xl:text-4xl">{formatCurrency(total)}</p>
+                  </div>
+                  <div className="rounded-2xl bg-menu-cta p-3 text-menu-cta-fg">
+                    <ShoppingBag className="h-6 w-6" strokeWidth={1.5} />
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-menu-border bg-menu-surface-raised p-3 xl:p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-bold text-menu-text">Quantidade</p>
+                      <p className="text-xs text-menu-text-subtle">Ajuste antes de seguir</p>
+                    </div>
+                    <QuantityControl quantity={quantity} setQuantity={setQuantity} compact />
+                  </div>
+                </div>
+
+                <div className="mt-3 rounded-2xl border border-menu-border bg-menu-surface-raised p-3 xl:mt-4 xl:p-4">
+                  <label className="font-bold text-menu-text">Observações</label>
+                  <Textarea
+                    placeholder="Alguma observação?"
+                    maxLength={180}
+                    value={note}
+                    onChange={(event) => setNote(event.target.value)}
+                    className="mt-3 min-h-[86px] rounded-2xl border-menu-border bg-menu-surface text-menu-text placeholder:text-menu-text-subtle focus:border-menu-accent focus:ring-1 focus:ring-menu-accent-border xl:min-h-[112px]"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  className="mt-4 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-menu-cta px-5 text-base font-black text-menu-cta-fg shadow-soft transition-colors hover:bg-menu-cta-hover active:scale-[0.99] xl:mt-5 xl:h-14"
+                >
+                  <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
+                  Adicionar ao pedido
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => router.push(menuHref)}
+                  className="mt-3 w-full rounded-2xl border border-menu-border bg-menu-surface px-5 py-3 text-sm font-bold text-menu-accent-strong transition-colors hover:bg-menu-accent-bg"
+                >
+                  Voltar ao cardápio
+                </button>
+              </div>
+            </aside>
           </div>
         </div>
-
-        <div className="fixed bottom-4 left-1/2 w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2">
-          <Button
-            size="lg"
-            className="h-16 w-full rounded-[24px] bg-[linear-gradient(90deg,#d8a11c_0%,#c89417_100%)] text-base font-semibold shadow-[0_18px_40px_rgba(169,117,8,0.35)] hover:opacity-95"
-            onClick={handleAdd}
-          >
-            Adicionar {formatCurrency(product.price * quantity)}
-          </Button>
-        </div>
-      </Card>
+      </section>
     </main>
   );
 }

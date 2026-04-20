@@ -15,58 +15,66 @@ import {
   TableProperties
 } from "lucide-react";
 
-import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
 
-// Sidebar principal do admin. Cada item tem a propria regra de destaque para
-// evitar falsos positivos entre rotas parecidas, como /admin/configuracoes e
-// /admin/configuracoes/impressoras.
+// Sidebar principal do admin.
+// Em xl (1280px): colapsada — apenas ícones, 72px de largura.
+// Em 2xl (1536px): expandida — ícones + labels, 240px de largura.
+// Cada item tem title= para tooltip nativo ao passar o mouse no modo colapsado.
 const items = [
   { href: "/admin/pedidos", label: "Gestor de Pedidos", icon: ReceiptText, match: "exact" as const },
   { href: "/admin/pedidos/configuracoes", label: "Fluxo e Alertas", icon: Bell, match: "exact" as const },
   { href: "/admin/configuracoes/impressoras", label: "Impressoras", icon: Printer, match: "exact" as const },
   { href: "/admin/caixa", label: "Caixa", icon: CircleDollarSign, match: "exact" as const },
-  { href: "/admin/cardapio", label: "Cardapio", icon: MenuSquare, match: "exact" as const },
+  { href: "/admin/cardapio", label: "Cardápio", icon: MenuSquare, match: "exact" as const },
   { href: "/admin/mesas", label: "Mesas & QR", icon: TableProperties, match: "exact" as const },
   { href: "/admin/configuracoes", label: "Ajustes Gerais", icon: Settings, match: "exact" as const },
-  { href: "/admin/historico", label: "Historico", icon: BarChart3, match: "prefix" as const },
-  { href: "/menu?mesa=7", label: "Ver Cardapio", icon: QrCode, match: "path" as const, pathMatch: "/menu" }
+  { href: "/admin/historico", label: "Histórico", icon: BarChart3, match: "prefix" as const },
+  { href: "/menu?mesa=7", label: "Ver Cardápio", icon: QrCode, match: "path" as const, pathMatch: "/menu" }
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname() ?? "";
+
   const isActive = (
     href: string,
     match: "exact" | "prefix" | "path",
     pathMatch?: string
   ) => {
-    if (match === "path") {
-      return pathname === pathMatch;
-    }
-
-    if (match === "prefix") {
-      return pathname === href || pathname.startsWith(`${href}/`);
-    }
-
+    if (match === "path") return pathname === pathMatch;
+    if (match === "prefix") return pathname === href || pathname.startsWith(`${href}/`);
     return pathname === href;
   };
 
   return (
-    <aside className="admin-sidebar hidden w-[280px] shrink-0 border-r border-[var(--admin-sidebar-border)] bg-[var(--admin-sidebar-bg)] px-5 py-6 xl:block">
-      <div className="space-y-8">
-        <BrandMark />
-        <nav className="space-y-2">
+    <aside className="admin-sidebar hidden xl:flex xl:w-[72px] 2xl:w-[240px] shrink-0 flex-col border-r border-[var(--admin-sidebar-border)] bg-[var(--admin-sidebar-bg)] py-6">
+      <div className="flex flex-1 flex-col gap-8 px-3 2xl:px-5">
+
+        {/* Brand — ícone centrado em xl, wordmark completo em 2xl */}
+        <div className="flex items-center justify-center 2xl:justify-start">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--admin-brand-tile-bg)] text-base font-black text-[var(--admin-brand-tile-fg)]">
+            CS
+          </div>
+          <div className="ml-3 hidden 2xl:block">
+            <p className="text-sm font-semibold tracking-[0.24em] text-[var(--admin-brand-wordmark)]">CASA DO SHEIK</p>
+            <p className="text-xs text-muted-foreground">Sistema de pedidos</p>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex flex-col gap-1">
           <Link
             href="/admin"
+            title="Início"
             className={cn(
-              "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+              "flex items-center justify-center gap-3 rounded-2xl py-3 text-sm font-medium transition-colors 2xl:justify-start 2xl:px-4",
               pathname === "/admin"
                 ? "border border-[var(--admin-nav-active-border)] bg-[var(--admin-nav-active-bg)] text-[var(--admin-nav-active-fg)]"
                 : "text-[var(--admin-nav-fg)] hover:bg-[var(--admin-nav-hover-bg)] hover:text-[var(--admin-nav-hover-fg)]"
             )}
           >
-            <LayoutDashboard className="h-4 w-4" />
-            Inicio
+            <LayoutDashboard className="h-5 w-5 shrink-0 2xl:h-4 2xl:w-4" />
+            <span className="hidden 2xl:inline">Início</span>
           </Link>
 
           {items.map((item) => {
@@ -77,15 +85,16 @@ export function AdminSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                title={item.label}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-colors",
+                  "flex items-center justify-center gap-3 rounded-2xl py-3 text-sm font-medium transition-colors 2xl:justify-start 2xl:px-4",
                   active
                     ? "border border-[var(--admin-nav-active-border)] bg-[var(--admin-nav-active-bg)] text-[var(--admin-nav-active-fg)]"
                     : "text-[var(--admin-nav-fg)] hover:bg-[var(--admin-nav-hover-bg)] hover:text-[var(--admin-nav-hover-fg)]"
                 )}
               >
-                <Icon className="h-4 w-4" />
-                {item.label}
+                <Icon className="h-5 w-5 shrink-0 2xl:h-4 2xl:w-4" />
+                <span className="hidden 2xl:inline">{item.label}</span>
               </Link>
             );
           })}

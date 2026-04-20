@@ -1,0 +1,125 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Design tokens do sistema Casa do Sheik. FONTE DA VERDADE — nenhuma cor, raio, sombra ou espaçamento deve ser definido fora deste arquivo.",
+    "usage": "Mapeados para tailwind.config.ts como classes semânticas (ex: bg-admin-surface, text-brand-gold). Nunca use hex hardcoded nos componentes."
+  },
+
+  "color": {
+    "brand": {
+      "gold":       { "value": "#f4c35a", "usage": "Cor primária da marca — ícones de destaque, valores monetários, CTAs dourados" },
+      "gold-dim":   { "value": "#d4a017", "usage": "Variante escura do ouro — hover de links, texto de rótulo em fundos escuros" },
+      "gold-bg":    { "value": "#2a1d08", "usage": "Fundo escuro para elementos com ouro — icon wrap, badges de brand" },
+      "purple":     { "value": "#5b34ff", "usage": "Cor de ação administrativa — botão admin, contadores de badge" },
+      "purple-bg":  { "value": "#231534", "usage": "Fundo para status 'novo' e elementos purple" },
+      "purple-fg":  { "value": "#d8c8ff", "usage": "Texto sobre fundo purple" }
+    },
+
+    "admin": {
+      "base":          { "value": "#080808", "usage": "Background mais escuro — body do shell admin" },
+      "shell":         { "value": "#0d0d0d", "usage": "Background do shell admin (gradiente parte clara)" },
+      "surface":       { "value": "#111111", "usage": "Superfície de painéis internos, blocos profundos, tabelas" },
+      "elevated":      { "value": "#171717", "usage": "Cards elevados — camada acima do surface" },
+      "overlay":       { "value": "#1d1d1d", "usage": "Hover background em cards e itens de lista" },
+      "border-faint":  { "value": "#1e1e1e", "usage": "Divisores entre linhas de tabela" },
+      "border":        { "value": "#2a2a2a", "usage": "Borda padrão de cards e painéis no tema admin" },
+      "border-strong": { "value": "#3f3f3f", "usage": "Bordas de hover, foco e estados ativos" },
+      "fg":            { "value": "#ffffff", "usage": "Texto primário no admin — títulos, valores" },
+      "fg-secondary":  { "value": "#c8c1b5", "usage": "Texto de corpo, descrições, rótulos de campos" },
+      "fg-muted":      { "value": "#8f8a7e", "usage": "Texto de suporte — labels, datas, notas" },
+      "fg-faint":      { "value": "#6b6660", "usage": "Texto mais apagado — cabeçalhos de tabela, eixos de gráfico" }
+    },
+
+    "status": {
+      "success-bg":     { "value": "#112016", "usage": "Fundo de elementos de sucesso/confirmação" },
+      "success-border": { "value": "#2d3f30", "usage": "Borda de elementos de sucesso" },
+      "success-fg":     { "value": "#8ce3b0", "usage": "Ícone e texto de destaque em contexto de sucesso" },
+      "success-text":   { "value": "#cfe8d6", "usage": "Texto corrido em blocos de sucesso" },
+
+      "warning-bg":     { "value": "#1d170d", "usage": "Fundo de alertas e avisos" },
+      "warning-border": { "value": "#3f3522", "usage": "Borda de avisos" },
+      "warning-fg":     { "value": "#f4c35a", "usage": "Ícone e texto de destaque em contexto de aviso" },
+      "warning-text":   { "value": "#eadfc9", "usage": "Texto corrido em blocos de aviso" },
+
+      "info-bg":        { "value": "#0b2634", "usage": "Fundo de blocos informativos" },
+      "info-border":    { "value": "#1e526f", "usage": "Borda de blocos informativos" },
+      "info-fg":        { "value": "#2f89ff", "usage": "Ícone e texto de destaque informativo" },
+      "info-text":      { "value": "#89d3f8", "usage": "Texto corrido em blocos de info" },
+
+      "danger-bg":      { "value": "#2a1010", "usage": "Fundo de estados de erro/perigo" },
+      "danger-border":  { "value": "#5c2020", "usage": "Borda de estados de erro" },
+      "danger-fg":      { "value": "#f87171", "usage": "Ícone e texto de destaque em contexto de erro" },
+      "danger-text":    { "value": "#fca5a5", "usage": "Texto corrido em blocos de erro" },
+
+      "new-bg":         { "value": "#231534", "usage": "Fundo de status 'novo' (pedidos recém chegados)" },
+      "new-border":     { "value": "#6b46c1", "usage": "Borda de status 'novo'" },
+      "new-fg":         { "value": "#d8c8ff", "usage": "Texto/ícone em status 'novo'" }
+    }
+  },
+
+  "radius": {
+    "xs":  { "value": "0.5rem",  "px": 8,  "usage": "Chips inline, tooltips" },
+    "sm":  { "value": "0.75rem", "px": 12, "usage": "Badges, tags, inputs pequenos" },
+    "md":  { "value": "1rem",    "px": 16, "usage": "Botões padrão, inputs" },
+    "lg":  { "value": "1.25rem", "px": 20, "usage": "Cards secundários, controles" },
+    "xl":  { "value": "1.5rem",  "px": 24, "usage": "Cards principais, painéis" },
+    "2xl": { "value": "1.75rem", "px": 28, "usage": "Blocos de destaque, cards hero" }
+  },
+
+  "spacing": {
+    "1":  { "value": "0.25rem", "px": 4  },
+    "2":  { "value": "0.5rem",  "px": 8  },
+    "3":  { "value": "0.75rem", "px": 12 },
+    "4":  { "value": "1rem",    "px": 16 },
+    "5":  { "value": "1.25rem", "px": 20 },
+    "6":  { "value": "1.5rem",  "px": 24 },
+    "8":  { "value": "2rem",    "px": 32 },
+    "10": { "value": "2.5rem",  "px": 40 },
+    "12": { "value": "3rem",    "px": 48 },
+    "16": { "value": "4rem",    "px": 64 }
+  },
+
+  "typography": {
+    "size": {
+      "xs":   { "value": "0.75rem",  "px": 12, "usage": "Cabeçalhos de tabela, eixos de gráfico, labels uppercase" },
+      "sm":   { "value": "0.875rem", "px": 14, "usage": "Texto de suporte, notas, metadata" },
+      "base": { "value": "1rem",     "px": 16, "usage": "Corpo padrão" },
+      "lg":   { "value": "1.125rem", "px": 18, "usage": "Subtítulos, valores de destaque secundário" },
+      "xl":   { "value": "1.25rem",  "px": 20, "usage": "Títulos de seção, CardTitle" },
+      "2xl":  { "value": "1.5rem",   "px": 24, "usage": "Métricas e valores grandes" },
+      "3xl":  { "value": "1.875rem", "px": 30, "usage": "Valores de KPI em telas grandes" }
+    },
+    "weight": {
+      "normal":   { "value": "400", "usage": "Corpo de texto" },
+      "medium":   { "value": "500", "usage": "Rótulos, links de navegação" },
+      "semibold": { "value": "600", "usage": "Títulos, valores de KPI, botões" },
+      "bold":     { "value": "700", "usage": "Destaques críticos" },
+      "black":    { "value": "900", "usage": "Monogramas, ícones de marca" }
+    },
+    "tracking": {
+      "tight":   { "value": "-0.01em", "usage": "Títulos grandes" },
+      "normal":  { "value": "0",       "usage": "Corpo padrão" },
+      "wide":    { "value": "0.04em",  "usage": "Subtítulos de seção" },
+      "widest":  { "value": "0.28em",  "usage": "Labels uppercase (ex: 'CAIXA DE HOJE')" }
+    }
+  },
+
+  "shadow": {
+    "none":  { "value": "none",                                     "usage": "Admin - sem sombra na maioria dos elementos" },
+    "panel": { "value": "0 22px 54px rgba(0, 0, 0, 0.46)",         "usage": "Painéis flutuantes, modais no admin" },
+    "card":  { "value": "0 20px 60px -30px rgba(0, 0, 0, 0.55)",   "usage": "Cards elevados no tema claro/público" },
+    "soft":  { "value": "0 14px 40px -18px rgba(15, 15, 15, 0.18)","usage": "Cards no tema público (luz)" }
+  },
+
+  "transition": {
+    "default": { "value": "180ms ease", "usage": "Transição padrão de bg, border e color em todos os componentes admin" }
+  },
+
+  "rules": [
+    "Nenhum componente pode usar cor hex hardcoded — apenas tokens via classe Tailwind ou var() CSS.",
+    "Cores de status (sucesso, aviso, info, perigo) devem sempre vir das classes status-* do tailwind.",
+    "inline style é permitido APENAS para valores dinâmicos calculados em runtime (ex: altura de barra de gráfico, gradiente cônico de donut).",
+    "Todo componente novo deve ter variante 'admin' usando tokens admin-*.",
+    "Sombras somente via classes shadow-* definidas no tailwind — nunca shadow-[...]."
+  ]
+}

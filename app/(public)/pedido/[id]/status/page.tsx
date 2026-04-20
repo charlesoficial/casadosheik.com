@@ -35,19 +35,21 @@ export default async function OrderStatusPage({
     }
 
     return (
-      <main className="mx-auto flex min-h-screen max-w-[480px] items-center px-4 py-8">
-        <Card className="w-full border-[#eadfca] bg-white">
-          <CardHeader className="space-y-2">
-            <p className="text-sm font-medium text-[#8f6d1e]">Acompanhamento do pedido</p>
-            <CardTitle className="text-2xl text-[#22180d]">Pedido nao encontrado</CardTitle>
+      <main className="menu-theme flex min-h-screen w-full items-center [background:var(--menu-bg-gradient-soft)] px-4 py-8 text-menu-text lg:px-8">
+        <Card className="mx-auto w-full max-w-[520px] border-menu-border bg-menu-surface-raised text-menu-text shadow-card lg:max-w-[760px]">
+          <CardHeader className="space-y-2 lg:p-8">
+            <p className="text-sm font-medium uppercase tracking-[0.18em] text-menu-accent-strong">
+              Acompanhamento do pedido
+            </p>
+            <CardTitle className="text-2xl text-menu-text lg:text-4xl">Pedido não encontrado</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Esse link nao esta mais disponivel ou o pedido ainda nao foi sincronizado. Voce pode voltar ao cardapio e
+          <CardContent className="space-y-5 lg:p-8 lg:pt-0">
+            <p className="text-sm leading-6 text-menu-text-muted lg:max-w-2xl lg:text-base lg:leading-7">
+              Esse link não está mais disponível ou o pedido ainda não foi sincronizado. Você pode voltar ao cardápio e
               fazer um novo pedido normalmente.
             </p>
-            <Button asChild className="w-full">
-              <Link href="/menu">Voltar ao cardapio</Link>
+            <Button asChild className="w-full rounded-ds-lg bg-menu-cta text-menu-cta-fg hover:bg-menu-cta-hover lg:w-auto lg:px-8">
+              <Link href="/menu">Voltar ao cardápio</Link>
             </Button>
           </CardContent>
         </Card>

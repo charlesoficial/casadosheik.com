@@ -2,21 +2,51 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CircleDollarSign, Loader2, MinusCircle, PlusCircle, Printer, Receipt, Store, Wallet } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  CheckCircle2,
+  CircleDollarSign,
+  History,
+  Loader2,
+  MinusCircle,
+  Printer,
+  PlusCircle,
+  Receipt,
+  Store,
+  Wallet,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DSFeedback } from "@/components/system";
+import {
+  AdminPage,
+  AdminHeader,
+  AdminHeaderContent,
+  AdminHeaderTitle,
+  AdminHeaderDescription,
+  AdminHeaderActions,
+} from "@/components/layout";
 import { getSupabaseBrowserClient } from "@/lib/realtime/client";
+import { ReceiptPrintHost } from "@/components/receipt/receipt-print-host";
+import { mapCashClosingToReceipt } from "@/lib/receipt/layout";
+import { printReceiptFromDom } from "@/lib/receipt/print";
 import type { CashClosingSummary, CashMovementType } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
 
-// Esta tela concentra o fechamento operacional do caixa.
-// Aqui convivem resumo financeiro, sangria/suprimento e impressao do fechamento.
 export function CashClosePanel({ initialSummary }: { initialSummary: CashClosingSummary }) {
   const [summary, setSummary] = useState(initialSummary);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [showCloseModal, setShowCloseModal] = useState(false);
@@ -27,12 +57,8 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
   const [movementNote, setMovementNote] = useState("");
   const [movementLoading, setMovementLoading] = useState(false);
   const refreshInFlightRef = useRef(false);
-  const printAreaRef = useRef<HTMLDivElement | null>(null);
+  const receipt = useMemo(() => mapCashClosingToReceipt(summary), [summary]);
   const movementActionLabel = movementType === "sangria" ? "Registrar sangria" : "Registrar suprimento";
-  const movementDescription =
-    movementType === "sangria"
-      ? "Use para registrar retiradas de dinheiro do caixa durante a operacao."
-      : "Use para registrar entrada manual de dinheiro no caixa.";
   const moneyPayment = useMemo(
     () => summary.payments.find((payment) => payment.method === "dinheiro")?.total ?? 0,
     [summary.payments]
@@ -41,10 +67,9 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
   function formatCurrencyField(value: string) {
     const digits = value.replace(/\D/g, "");
     if (!digits) return "";
-
     return (Number(digits) / 100).toLocaleString("pt-BR", {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     });
   }
 
@@ -54,14 +79,12 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
   }
 
   async function refreshSummary(options?: { silent?: boolean }) {
-    // Evita concorrencia entre polling, foco da janela e eventos realtime.
     if (refreshInFlightRef.current) return;
     refreshInFlightRef.current = true;
+    if (!options?.silent) setRefreshing(true);
 
     try {
-      if (!options?.silent) {
-        setError(null);
-      }
+      if (!options?.silent) setError(null);
 
       const response = await fetch("/api/admin/cash-close", { cache: "no-store" });
       const data = await response.json();
@@ -79,6 +102,7 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
       }
     } finally {
       refreshInFlightRef.current = false;
+      setRefreshing(false);
     }
   }
 
@@ -94,8 +118,6 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
     window.addEventListener("focus", handleVisibilityRefresh);
     document.addEventListener("visibilitychange", handleVisibilityRefresh);
 
-    // Polling curto e realtime trabalham juntos para a operacao nao depender
-    // de refresh manual durante o expediente.
     const interval = window.setInterval(() => {
       if (document.visibilityState === "visible") {
         void refreshSummary({ silent: true });
@@ -138,7 +160,7 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
       const response = await fetch("/api/admin/cash-close", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note: closeNote.trim() || undefined })
+        body: JSON.stringify({ note: closeNote.trim() || undefined }),
       });
       const data = await response.json();
 
@@ -176,8 +198,8 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
         body: JSON.stringify({
           type: movementType,
           amount: normalizedAmount,
-          note: movementNote.trim() || undefined
-        })
+          note: movementNote.trim() || undefined,
+        }),
       });
       const data = await response.json();
 
@@ -188,7 +210,9 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
       setShowMovementModal(false);
       setMovementAmount("");
       setMovementNote("");
-      setMessage(movementType === "sangria" ? "Sangria registrada com sucesso." : "Suprimento registrado com sucesso.");
+      setMessage(
+        movementType === "sangria" ? "Sangria registrada com sucesso." : "Suprimento registrado com sucesso."
+      );
       await refreshSummary({ silent: true });
     } catch (movementError) {
       setError(movementError instanceof Error ? movementError.message : "Erro ao registrar movimentacao.");
@@ -197,554 +221,763 @@ export function CashClosePanel({ initialSummary }: { initialSummary: CashClosing
     }
   }
 
-  function handlePrintSummary() {
-    // O fechamento precisa ter saida simples mesmo sem ponte de impressao dedicada.
-    const content = printAreaRef.current?.innerHTML;
-    if (!content) {
-      window.print();
-      return;
+  async function handlePrintSummary() {
+    try {
+      await printReceiptFromDom();
+    } catch (printError) {
+      setError(printError instanceof Error ? printError.message : "Erro ao imprimir cupom.");
     }
-
-    const printWindow = window.open("", "_blank", "width=900,height=700");
-    if (!printWindow) {
-      window.print();
-      return;
-    }
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Fechamento de Caixa</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
-            h1, h2, h3, p { margin: 0 0 10px; }
-            .section { margin-top: 24px; }
-            .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; }
-          </style>
-        </head>
-        <body>${content}</body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
   }
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_380px]">
-      <div className="space-y-5">
-        <Card className="border-[#2a2a2a] bg-[#171717] admin-cash-shell-card">
-          <CardHeader>
-            <div>
-              <p className="text-sm text-[#9f998e]">Caixa do dia</p>
-              <CardTitle className="mt-2 text-white">Fechamento operacional</CardTitle>
-              <p className="mt-2 text-sm text-[#bdb7ab]">
-                Consolide o movimento do dia depois de fechar as mesas e concluir os pedidos de delivery ou retirada.
+    <AdminPage gap="default">
+      <ReceiptPrintHost receipt={receipt} />
+
+      {/* ── Page header ── */}
+      <AdminHeader>
+        <AdminHeaderContent>
+          <AdminHeaderTitle>Caixa</AdminHeaderTitle>
+          <AdminHeaderDescription>
+            Operação do dia — {summary.referenceDate}
+            {refreshing && (
+              <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin text-admin-fg-faint" />
+            )}
+          </AdminHeaderDescription>
+        </AdminHeaderContent>
+        <AdminHeaderActions>
+          {summary.lastUpdatedAt && (
+            <span className="hidden text-xs text-admin-fg-faint sm:block">
+              Atualizado às{" "}
+              {new Date(summary.lastUpdatedAt).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          )}
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${
+              summary.alreadyClosed
+                ? "bg-status-success-fg/10 text-status-success-fg ring-status-success-border/30"
+                : "bg-status-warning-fg/10 text-status-warning-fg ring-status-warning-border/30"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                summary.alreadyClosed
+                  ? "bg-status-success-fg"
+                  : "bg-status-warning-fg animate-pulse"
+              }`}
+            />
+            {summary.alreadyClosed ? "Fechado" : "Aberto"}
+          </span>
+        </AdminHeaderActions>
+      </AdminHeader>
+
+      {/* ── Main grid ── */}
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_304px] 2xl:grid-cols-[minmax(0,1fr)_344px]">
+
+      {/* ── Main column ── */}
+      <div className="min-w-0 space-y-6">
+
+        {/* Feedback */}
+        {message && (
+          <DSFeedback variant="success" title={message} onDismiss={() => setMessage(null)} />
+        )}
+        {error && (
+          <DSFeedback variant="error" title={error} onDismiss={() => setError(null)} />
+        )}
+
+        {/* ── KPI strip ── */}
+        <div className="grid gap-4 sm:grid-cols-3">
+
+          {/* Faturamento */}
+          <div className="group relative overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] p-6 shadow-soft transition-all duration-motion-default hover:shadow-card">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-status-warning-fg/60 to-transparent" />
+            <div className="flex items-start justify-between">
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-admin-fg-faint">
+                Faturamento
               </p>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-5">
-            {message ? <p className="text-sm font-medium text-emerald-400">{message}</p> : null}
-            {error ? <p className="text-sm font-medium text-red-400">{error}</p> : null}
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="rounded-[24px] border border-[#2b2b2b] bg-[#121212] p-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#969183]">Faturamento</p>
-                  <CircleDollarSign className="h-4 w-4 text-[#f4c35a]" />
-                </div>
-                <p className="mt-3 text-3xl font-semibold text-white">{formatCurrency(summary.total)}</p>
-                <p className="mt-2 text-sm text-[#8f8a82]">Referencia {summary.referenceDate}</p>
-              </div>
-
-              <div className="rounded-[24px] border border-[#2b2b2b] bg-[#121212] p-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#969183]">Lancamentos</p>
-                  <Receipt className="h-4 w-4 text-[#7eb5ff]" />
-                </div>
-                <p className="mt-3 text-3xl font-semibold text-white">{summary.ordersCount}</p>
-                <p className="mt-2 text-sm text-[#8f8a82]">Mesas fechadas: {summary.tablesCount}</p>
-              </div>
-
-              <div className="rounded-[24px] border border-[#2b2b2b] bg-[#121212] p-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-[#969183]">Status</p>
-                  <Wallet className="h-4 w-4 text-[#8ce3b0]" />
-                </div>
-                <p className="mt-3 text-2xl font-semibold text-white">
-                  {summary.alreadyClosed ? "Fechado" : "Aberto"}
-                </p>
-                <p className="mt-2 text-sm text-[#8f8a82]">
-                  {summary.lastClosedAt
-                    ? `Ultimo fechamento em ${new Date(summary.lastClosedAt).toLocaleString("pt-BR")}`
-                    : "Aguardando fechamento do dia"}
-                </p>
-                {summary.lastUpdatedAt ? (
-                  <p className="mt-2 text-xs text-[#6f6a5f]">
-                    Atualizado as {new Date(summary.lastUpdatedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                  </p>
-                ) : null}
+              <div className="rounded-ds-md bg-status-warning-fg/10 p-2 ring-1 ring-status-warning-fg/20">
+                <CircleDollarSign className="h-3.5 w-3.5 text-status-warning-fg" />
               </div>
             </div>
+            <p className="mt-4 text-3xl font-bold tracking-tight text-admin-fg">
+              {formatCurrency(summary.total)}
+            </p>
+            <p className="mt-1.5 text-xs text-admin-fg-faint">Total do dia</p>
+          </div>
 
-            <div className="rounded-[26px] border border-[#2a2a2a] bg-[#111111] p-5">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#8d877b]">Resumo por pagamento</p>
-                  <p className="mt-2 text-sm text-[#bfb7ac]">
-                    Use este resumo para conferir maquininha, pix e dinheiro antes de encerrar a operacao.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-[#313131] bg-transparent text-[#e5dfd5] hover:bg-[#212121]"
-                    onClick={() => {
-                      setMovementType("sangria");
-                      setShowMovementModal(true);
-                    }}
-                    disabled={summary.alreadyClosed}
-                  >
-                    <MinusCircle className="h-4 w-4" />
-                    Sangria
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-[#313131] bg-transparent text-[#e5dfd5] hover:bg-[#212121]"
-                    onClick={() => {
-                      setMovementType("suprimento");
-                      setShowMovementModal(true);
-                    }}
-                    disabled={summary.alreadyClosed}
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    Suprimento
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="border-[#313131] bg-transparent text-[#e5dfd5] hover:bg-[#212121]"
-                    onClick={handlePrintSummary}
-                  >
-                    <Printer className="h-4 w-4" />
-                    Imprimir fechamento
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="admin"
-                    disabled={summary.alreadyClosed || loading}
-                    onClick={() => setShowCloseModal(true)}
-                  >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    {summary.alreadyClosed ? "Caixa encerrado" : "Fechar caixa"}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                {summary.payments.length ? (
-                  summary.payments.map((payment) => (
-                    <div
-                      key={payment.method}
-                      className="flex items-center justify-between rounded-2xl border border-[#232323] bg-[#181818] px-4 py-3 text-[#ebe4d8]"
-                    >
-                      <div>
-                        <span className="capitalize">{payment.method.replaceAll("_", " ")}</span>
-                        <p className="mt-1 text-xs text-[#8f8a82]">{payment.count} lancamentos</p>
-                      </div>
-                      <span className="font-medium">{formatCurrency(payment.total)}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="rounded-2xl border border-[#232323] bg-[#181818] px-4 py-6 text-sm text-[#9d978b]">
-                    Ainda nao ha movimentacao consolidada para o fechamento de hoje.
-                  </div>
-                )}
+          {/* Pedidos */}
+          <div className="group relative overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] p-6 shadow-soft transition-all duration-motion-default hover:shadow-card">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-status-info-fg/60 to-transparent" />
+            <div className="flex items-start justify-between">
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-admin-fg-faint">
+                Pedidos
+              </p>
+              <div className="rounded-ds-md bg-status-info-fg/10 p-2 ring-1 ring-status-info-fg/20">
+                <Receipt className="h-3.5 w-3.5 text-status-info-fg" />
               </div>
             </div>
-
-            <div className="rounded-[26px] border border-[#2a2a2a] bg-[#111111] p-5">
-              <div className="flex items-center gap-2">
-                <Wallet className="h-4 w-4 text-[#8ce3b0]" />
-                <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#8d877b]">Controle do dinheiro</p>
-              </div>
-
-              <div className="mt-5 grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-[#232323] bg-[#181818] px-4 py-4 text-[#ebe4d8]">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8f8a82]">Vendas em dinheiro</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{formatCurrency(moneyPayment)}</p>
-                </div>
-                <div className="rounded-2xl border border-[#232323] bg-[#181818] px-4 py-4 text-[#ebe4d8]">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8f8a82]">Sangrias do dia</p>
-                  <p className="mt-2 text-2xl font-semibold text-[#f4c35a]">{formatCurrency(summary.movementTotals.sangria)}</p>
-                </div>
-                <div className="rounded-2xl border border-[#232323] bg-[#181818] px-4 py-4 text-[#ebe4d8]">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8f8a82]">Saldo esperado em dinheiro</p>
-                  <p className="mt-2 text-2xl font-semibold text-[#8ce3b0]">{formatCurrency(summary.expectedCashBalance)}</p>
-                  <p className="mt-2 text-xs text-[#8f8a82]">Dinheiro vendido + suprimentos - sangrias</p>
-                </div>
-              </div>
-
-              <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-                <div className="rounded-2xl border border-[#232323] bg-[#181818] p-4">
-                  <p className="text-sm font-medium text-white">Movimentacoes registradas hoje</p>
-                  <div className="mt-4 space-y-3">
-                    {summary.movements.length ? (
-                      summary.movements.slice(0, 6).map((movement) => (
-                        <div
-                          key={movement.id}
-                          className="flex items-start justify-between gap-3 rounded-2xl border border-[#262626] bg-[#141414] px-4 py-3 text-[#ebe4d8]"
-                        >
-                          <div>
-                            <p className="font-medium capitalize">
-                              {movement.type === "sangria" ? "Sangria" : "Suprimento"}
-                            </p>
-                            <p className="mt-1 text-xs text-[#8f8a82]">
-                              {new Date(movement.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                            {movement.note ? <p className="mt-2 text-xs text-[#bcb5aa]">{movement.note}</p> : null}
-                          </div>
-                          <span className={movement.type === "sangria" ? "font-medium text-[#f4c35a]" : "font-medium text-[#8ce3b0]"}>
-                            {movement.type === "sangria" ? "-" : "+"}
-                            {formatCurrency(movement.amount)}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="rounded-2xl border border-[#262626] bg-[#141414] px-4 py-6 text-sm text-[#9d978b]">
-                        Nenhuma sangria ou suprimento registrado hoje.
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-[#232323] bg-[#181818] p-4">
-                  <p className="text-sm font-medium text-white">Resumo rapido</p>
-                  <div className="mt-4 space-y-3">
-                    <div className="rounded-2xl border border-[#262626] bg-[#141414] px-4 py-3 text-[#ebe4d8]">
-                      <p className="text-xs uppercase tracking-[0.18em] text-[#8f8a82]">Suprimentos</p>
-                      <p className="mt-2 text-xl font-semibold text-[#8ce3b0]">{formatCurrency(summary.movementTotals.suprimento)}</p>
-                    </div>
-                    <div className="rounded-2xl border border-[#262626] bg-[#141414] px-4 py-3 text-[#ebe4d8]">
-                      <p className="text-xs uppercase tracking-[0.18em] text-[#8f8a82]">Ultima movimentacao</p>
-                      <p className="mt-2 text-sm text-white">
-                        {summary.movements[0]
-                          ? `${summary.movements[0].type === "sangria" ? "Sangria" : "Suprimento"} as ${new Date(summary.movements[0].createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
-                          : "Sem movimentacoes hoje"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-              <div className="rounded-[26px] border border-[#2a2a2a] bg-[#111111] p-5">
-                <div className="flex items-center gap-2">
-                  <Store className="h-4 w-4 text-[#8fd0ff]" />
-                  <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#8d877b]">Origem das vendas</p>
-                </div>
-                <div className="mt-5 space-y-3">
-                  {summary.origins.map((origin) => (
-                    <div
-                      key={origin.key}
-                      className="flex items-center justify-between rounded-2xl border border-[#232323] bg-[#181818] px-4 py-3 text-[#ebe4d8]"
-                    >
-                      <div>
-                        <span>{origin.label}</span>
-                        <p className="mt-1 text-xs text-[#8f8a82]">{origin.count} fechamentos</p>
-                      </div>
-                      <span className="font-medium">{formatCurrency(origin.total)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-[26px] border border-[#2a2a2a] bg-[#111111] p-5">
-                <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#8d877b]">Fechamentos recentes</p>
-                <div className="mt-5 space-y-3">
-                  {summary.recentClosures.length ? (
-                    summary.recentClosures.map((closure) => (
-                      <div
-                        key={closure.id}
-                        className="rounded-2xl border border-[#232323] bg-[#181818] px-4 py-3 text-[#ebe4d8]"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="font-medium">{closure.label}</span>
-                          <span className="text-[#f4c35a]">{formatCurrency(closure.total)}</span>
-                        </div>
-                        <p className="mt-2 text-xs text-[#8f8a82]">
-                          {closure.paymentMethod} - {new Date(closure.closedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="rounded-2xl border border-[#232323] bg-[#181818] px-4 py-6 text-sm text-[#9d978b]">
-                      Nenhum fechamento recente encontrado para hoje.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="border-[#2a2a2a] bg-[#171717] admin-cash-shell-card">
-        <CardHeader>
-          <CardTitle className="text-white">Como usar</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm text-[#d7d0c5]">
-          <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-            <p className="font-medium text-white">1. Feche as mesas</p>
-            <p className="mt-2 text-[#bcb5aa]">
-              Primeiro finalize as contas das mesas no Gestor de Pedidos usando o botao <span className="font-medium text-white">Fechar mesa</span>.
+            <p className="mt-4 text-3xl font-bold tracking-tight text-admin-fg">
+              {summary.ordersCount}
+            </p>
+            <p className="mt-1.5 text-xs text-admin-fg-faint">
+              {summary.tablesCount} mesa{summary.tablesCount !== 1 ? "s" : ""} fechadas
             </p>
           </div>
-          <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-            <p className="font-medium text-white">2. Confira os pagamentos</p>
-            <p className="mt-2 text-[#bcb5aa]">
-              Valide os totais do dia no dinheiro, pix e maquininha antes de consolidar o fechamento.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-            <p className="font-medium text-white">3. Registre sangrias</p>
-            <p className="mt-2 text-[#bcb5aa]">
-              Sempre que tirar dinheiro do caixa, use <span className="font-medium text-white">Sangria</span> para manter o saldo esperado correto.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-            <p className="font-medium text-white">4. Feche o caixa</p>
-            <p className="mt-2 text-[#bcb5aa]">
-              Depois do expediente, use <span className="font-medium text-white">Fechar caixa</span> para registrar o resumo final da operacao.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-            <p className="font-medium text-white">5. Consulte o historico</p>
-            <p className="mt-2 text-[#bcb5aa]">
-              Confira a linha do tempo dos caixas fechados para validar a operacao do dia.
-            </p>
-            <Link
-              href="/admin/historico"
-              className="mt-4 inline-flex rounded-xl border border-[#313131] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#1c1c1c]"
-            >
-              Abrir historico
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
 
-      <div ref={printAreaRef} className="sr-only">
-        <h1>Fechamento de caixa</h1>
-        <p>Referencia: {summary.referenceDate}</p>
-        <p>Total consolidado: {formatCurrency(summary.total)}</p>
-        <p>Lancamentos: {summary.ordersCount}</p>
-        <p>Mesas fechadas: {summary.tablesCount}</p>
-
-        <div className="section">
-          <h2>Pagamentos</h2>
-          {summary.payments.map((payment) => (
-            <div key={`print-${payment.method}`} className="row">
-              <span>{payment.method}</span>
-              <span>
-                {payment.count} lancamentos - {formatCurrency(payment.total)}
-              </span>
+          {/* Saldo em dinheiro */}
+          <div className="group relative overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] p-6 shadow-soft transition-all duration-motion-default hover:shadow-card">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-status-success-fg/60 to-transparent" />
+            <div className="flex items-start justify-between">
+              <p className="text-xs font-medium uppercase tracking-[0.12em] text-admin-fg-faint">
+                Saldo em dinheiro
+              </p>
+              <div className="rounded-ds-md bg-status-success-fg/10 p-2 ring-1 ring-status-success-fg/20">
+                <Wallet className="h-3.5 w-3.5 text-status-success-fg" />
+              </div>
             </div>
-          ))}
+            <p className="mt-4 text-3xl font-bold tracking-tight text-status-success-fg">
+              {formatCurrency(summary.expectedCashBalance)}
+            </p>
+            <p className="mt-1.5 text-xs text-admin-fg-faint">Saldo a conferir no caixa</p>
+          </div>
         </div>
 
-        <div className="section">
-          <h2>Movimentacoes de caixa</h2>
-          {summary.movements.length ? (
-            summary.movements.map((movement) => (
-              <div key={`movement-${movement.id}`} className="row">
-                <span>{movement.type === "sangria" ? "Sangria" : "Suprimento"}</span>
-                <span>
-                  {movement.type === "sangria" ? "-" : "+"}
-                  {formatCurrency(movement.amount)}
-                </span>
-              </div>
-            ))
+        {/* ── Pagamentos por método ── */}
+        <div className="overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] shadow-soft">
+          {/* Section header */}
+          <div className="border-b border-[var(--admin-panel-header-border)] bg-[var(--admin-panel-header-bg)] px-6 py-4">
+            <p className="text-sm font-semibold text-admin-fg">Pagamentos por método</p>
+            <p className="mt-0.5 text-xs text-admin-fg-faint">
+              Totais consolidados por forma de pagamento
+            </p>
+          </div>
+
+          {summary.payments.length ? (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-admin-border-faint bg-admin-shell/60">
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-admin-fg-faint">
+                    Método
+                  </th>
+                  <th className="px-6 py-3 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-admin-fg-faint">
+                    Lançamentos
+                  </th>
+                  <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-[0.18em] text-admin-fg-faint">
+                    Total
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.payments.map((payment, index) => (
+                  <tr
+                    key={payment.method}
+                    className={`group transition-colors duration-motion-fast hover:bg-admin-surface/60 ${
+                      index !== 0 ? "border-t border-admin-border-faint" : ""
+                    }`}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-ds-md bg-admin-overlay ring-1 ring-admin-border-faint">
+                          <span className="text-[9px] font-bold uppercase text-admin-fg-faint">
+                            {payment.method.slice(0, 2)}
+                          </span>
+                        </div>
+                        <span className="text-sm font-medium capitalize text-admin-fg-secondary">
+                          {payment.method.replaceAll("_", " ")}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center text-sm tabular-nums text-admin-fg-faint">
+                      {payment.count}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-bold tabular-nums text-admin-fg">
+                      {formatCurrency(payment.total)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-admin-border-faint bg-admin-shell/80">
+                  <td className="px-6 py-4 text-xs font-bold uppercase tracking-[0.14em] text-admin-fg-faint">
+                    Total do dia
+                  </td>
+                  <td className="px-6 py-4 text-center text-xs tabular-nums text-admin-fg-faint">
+                    {summary.payments.reduce((sum, p) => sum + p.count, 0)}
+                  </td>
+                  <td className="px-6 py-4 text-right text-base font-bold tabular-nums text-status-warning-fg">
+                    {formatCurrency(summary.total)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           ) : (
-            <div className="row">
-              <span>Sem movimentacoes</span>
-              <span>R$ 0,00</span>
+            <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-admin-overlay ring-1 ring-admin-border-faint">
+                <Receipt className="h-5 w-5 text-admin-fg-faint" />
+              </div>
+              <p className="text-sm font-semibold text-admin-fg-secondary">
+                Nenhum pagamento consolidado
+              </p>
+              <p className="mt-1.5 max-w-[240px] text-xs leading-relaxed text-admin-fg-faint">
+                Feche as mesas para os totais aparecerem aqui.
+              </p>
             </div>
           )}
         </div>
 
-        <div className="section">
-          <h2>Saldo esperado em dinheiro</h2>
-          <p>{formatCurrency(summary.expectedCashBalance)}</p>
+        {/* ── Movimentações do dia ── */}
+        <div className="overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] shadow-soft">
+          <div className="border-b border-[var(--admin-panel-header-border)] bg-[var(--admin-panel-header-bg)] px-6 py-4">
+            <p className="text-sm font-semibold text-admin-fg">Movimentações do dia</p>
+            <p className="mt-0.5 text-xs text-admin-fg-faint">
+              Sangrias e suprimentos registrados hoje
+            </p>
+          </div>
+
+          {summary.movements.length ? (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-admin-border-faint bg-admin-shell/60">
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-admin-fg-faint">
+                    Tipo
+                  </th>
+                  <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-admin-fg-faint">
+                    Horário
+                  </th>
+                  <th className="hidden px-6 py-3 text-left text-[10px] font-bold uppercase tracking-[0.18em] text-admin-fg-faint sm:table-cell">
+                    Observação
+                  </th>
+                  <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-[0.18em] text-admin-fg-faint">
+                    Valor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.movements.map((movement, index) => (
+                  <tr
+                    key={movement.id}
+                    className={`group transition-colors duration-motion-fast hover:bg-admin-surface/60 ${
+                      index !== 0 ? "border-t border-admin-border-faint" : ""
+                    }`}
+                  >
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${
+                          movement.type === "sangria"
+                            ? "bg-status-danger-fg/10 text-status-danger-fg ring-status-danger-fg/20"
+                            : "bg-status-success-fg/10 text-status-success-fg ring-status-success-fg/20"
+                        }`}
+                      >
+                        {movement.type === "sangria" ? (
+                          <ArrowDownLeft className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpRight className="h-3 w-3" />
+                        )}
+                        {movement.type === "sangria" ? "Sangria" : "Suprimento"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm tabular-nums text-admin-fg-faint">
+                      {new Date(movement.createdAt).toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                    <td className="hidden px-6 py-4 text-sm text-admin-fg-faint sm:table-cell">
+                      {movement.note ?? (
+                        <span className="text-admin-fg-faint/40">—</span>
+                      )}
+                    </td>
+                    <td
+                      className={`px-6 py-4 text-right text-sm font-bold tabular-nums ${
+                        movement.type === "sangria"
+                          ? "text-status-danger-fg"
+                          : "text-status-success-fg"
+                      }`}
+                    >
+                      {movement.type === "sangria" ? "−" : "+"}
+                      {formatCurrency(movement.amount)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-admin-overlay ring-1 ring-admin-border-faint">
+                <Wallet className="h-5 w-5 text-admin-fg-faint" />
+              </div>
+              <p className="text-sm font-semibold text-admin-fg-secondary">
+                Nenhuma movimentação hoje
+              </p>
+              <p className="mt-1.5 max-w-[240px] text-xs leading-relaxed text-admin-fg-faint">
+                Use Sangria ou Suprimento no painel ao lado para registrar entradas e saídas.
+              </p>
+            </div>
+          )}
         </div>
 
-        <div className="section">
-          <h2>Origem das vendas</h2>
-          {summary.origins.map((origin) => (
-            <div key={`origin-${origin.key}`} className="row">
-              <span>{origin.label}</span>
-              <span>
-                {origin.count} fechamentos - {formatCurrency(origin.total)}
-              </span>
-            </div>
-          ))}
-        </div>
+        {/* ── Origem + Fechamentos recentes ── */}
+        <div className="grid gap-4 xl:grid-cols-2">
 
-        <div className="section">
-          <h2>Fechamentos recentes</h2>
-          {summary.recentClosures.map((closure) => (
-            <div key={`closure-${closure.id}`} className="row">
-              <span>{closure.label}</span>
-              <span>
-                {closure.paymentMethod} - {formatCurrency(closure.total)}
-              </span>
+          <div className="overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] shadow-soft">
+            <div className="flex items-center gap-2.5 border-b border-[var(--admin-panel-header-border)] bg-[var(--admin-panel-header-bg)] px-6 py-4">
+              <div className="flex h-6 w-6 items-center justify-center rounded-ds-sm bg-status-info-fg/10">
+                <Store className="h-3.5 w-3.5 text-status-info-fg" />
+              </div>
+              <p className="text-sm font-semibold text-admin-fg">Origem dos fechamentos</p>
             </div>
-          ))}
+            <div className="divide-y divide-admin-border-faint">
+              {summary.origins.length ? (
+                summary.origins.map((origin) => (
+                  <div
+                    key={origin.key}
+                    className="flex items-center justify-between px-6 py-4 transition-colors duration-motion-fast hover:bg-admin-surface/60"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-admin-fg-secondary">
+                        {origin.label}
+                      </p>
+                      <p className="mt-0.5 text-xs text-admin-fg-faint">
+                        {origin.count} fechamento{origin.count !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold tabular-nums text-admin-fg">
+                      {formatCurrency(origin.total)}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="px-6 py-10 text-center text-sm text-admin-fg-faint">
+                  Nenhum fechamento registrado hoje.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] shadow-soft">
+            <div className="border-b border-[var(--admin-panel-header-border)] bg-[var(--admin-panel-header-bg)] px-6 py-4">
+              <p className="text-sm font-semibold text-admin-fg">Fechamentos recentes</p>
+            </div>
+            <div className="divide-y divide-admin-border-faint">
+              {summary.recentClosures.length ? (
+                summary.recentClosures.map((closure) => (
+                  <div
+                    key={closure.id}
+                    className="flex items-center justify-between px-6 py-4 transition-colors duration-motion-fast hover:bg-admin-surface/60"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-admin-fg-secondary">
+                        {closure.label}
+                      </p>
+                      <p className="mt-0.5 text-xs text-admin-fg-faint">
+                        {closure.paymentMethod} ·{" "}
+                        {new Date(closure.closedAt).toLocaleTimeString("pt-BR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold tabular-nums text-admin-fg">
+                      {formatCurrency(closure.total)}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="px-6 py-10 text-center text-sm text-admin-fg-faint">
+                  Nenhum fechamento recente hoje.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {showCloseModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => setShowCloseModal(false)}>
-          <div
-            className="w-full max-w-xl rounded-[28px] border border-[#313131] bg-[#171717] shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="space-y-5 p-6">
-              <div className="space-y-2">
-                <p className="text-sm uppercase tracking-[0.2em] text-[#8f8a82]">Fechamento de caixa</p>
-                <h3 className="text-2xl font-semibold text-white">Confirmar fechamento do dia</h3>
-                <p className="text-sm text-[#bcb5aa]">
-                  Revise os valores do caixa antes de encerrar o dia. Depois disso, o fechamento ficara registrado no historico.
+      {/* ── Right sidebar ── */}
+      <div className="space-y-4">
+
+        {/* Controle de dinheiro */}
+        <div className="overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] shadow-soft">
+          <div className="border-b border-[var(--admin-panel-header-border)] bg-[var(--admin-panel-header-bg)] px-5 py-4">
+            <p className="text-sm font-semibold text-admin-fg">Controle de dinheiro</p>
+            <p className="mt-0.5 text-xs text-admin-fg-faint">Conferência do saldo físico</p>
+          </div>
+
+          <div className="p-4">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between rounded-ds-lg px-3 py-3 transition-colors duration-motion-fast hover:bg-admin-surface/60">
+                <p className="text-xs text-admin-fg-faint">Vendas em dinheiro</p>
+                <p className="text-sm font-semibold tabular-nums text-admin-fg">
+                  {formatCurrency(moneyPayment)}
                 </p>
               </div>
-
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8d877b]">Total</p>
-                  <p className="mt-2 text-2xl font-semibold text-[#f4c35a]">{formatCurrency(summary.total)}</p>
+              <div className="flex items-center justify-between rounded-ds-lg px-3 py-3 transition-colors duration-motion-fast hover:bg-admin-surface/60">
+                <div className="flex items-center gap-1.5">
+                  <ArrowDownLeft className="h-3 w-3 text-status-danger-fg/70" />
+                  <p className="text-xs text-admin-fg-faint">Total de sangrias</p>
                 </div>
-                <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8d877b]">Lancamentos</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{summary.ordersCount}</p>
-                </div>
-                <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8d877b]">Mesas</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{summary.tablesCount}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-white" htmlFor="cash-close-note">
-                  Observacao do fechamento
-                </label>
-                <Textarea
-                  id="cash-close-note"
-                  value={closeNote}
-                  onChange={(event) => setCloseNote(event.target.value)}
-                  placeholder="Ex.: caixa conferido, sem divergencias."
-                  className="min-h-[110px] border-[#2f2f2f] bg-[#121212] text-sm text-[#ebe4d8] placeholder:text-[#7f786d]"
-                />
-                <p className="text-xs text-[#7f786d]">
-                  Observacao operacional do fechamento. Se o schema ja estiver atualizado, ela tambem entra no historico.
+                <p className="text-sm font-semibold tabular-nums text-status-danger-fg">
+                  −{formatCurrency(summary.movementTotals.sangria)}
                 </p>
               </div>
+              <div className="flex items-center justify-between rounded-ds-lg px-3 py-3 transition-colors duration-motion-fast hover:bg-admin-surface/60">
+                <div className="flex items-center gap-1.5">
+                  <ArrowUpRight className="h-3 w-3 text-status-success-fg/70" />
+                  <p className="text-xs text-admin-fg-faint">Total de suprimentos</p>
+                </div>
+                <p className="text-sm font-semibold tabular-nums text-status-success-fg">
+                  +{formatCurrency(summary.movementTotals.suprimento)}
+                </p>
+              </div>
+            </div>
 
-              <div className="flex flex-wrap justify-end gap-3 pt-2">
+            {/* Saldo total */}
+            <div className="mt-3 overflow-hidden rounded-ds-lg border border-status-success-border/20 bg-status-success-fg/[0.06]">
+              <div className="flex items-center justify-between px-4 py-4">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-status-success-fg/70">
+                    Saldo a conferir
+                  </p>
+                  <p className="mt-0.5 text-xs text-admin-fg-faint">Físico no caixa</p>
+                </div>
+                <p className="text-xl font-bold tabular-nums text-status-success-fg">
+                  {formatCurrency(summary.expectedCashBalance)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Ações */}
+        <div className="overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] shadow-soft">
+          <div className="border-b border-[var(--admin-panel-header-border)] bg-[var(--admin-panel-header-bg)] px-5 py-4">
+            <p className="text-sm font-semibold text-admin-fg">Ações de caixa</p>
+          </div>
+
+          <div className="space-y-2 p-4">
+            {/* Sangria */}
+            <button
+              type="button"
+              disabled={summary.alreadyClosed}
+              onClick={() => {
+                setMovementType("sangria");
+                setShowMovementModal(true);
+              }}
+              className="group flex w-full items-center gap-3.5 rounded-ds-lg border border-admin-border-faint bg-admin-surface/80 px-4 py-3.5 text-left transition-all duration-motion-default hover:border-status-danger-fg/30 hover:bg-admin-elevated disabled:pointer-events-none disabled:opacity-40"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-ds-md bg-status-danger-fg/10 ring-1 ring-status-danger-fg/20 transition-colors group-hover:bg-status-danger-fg/15">
+                <MinusCircle className="h-3.5 w-3.5 text-status-danger-fg" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-admin-fg">Sangria</p>
+                <p className="text-xs text-admin-fg-faint">Registrar retirada de dinheiro</p>
+              </div>
+            </button>
+
+            {/* Suprimento */}
+            <button
+              type="button"
+              disabled={summary.alreadyClosed}
+              onClick={() => {
+                setMovementType("suprimento");
+                setShowMovementModal(true);
+              }}
+              className="group flex w-full items-center gap-3.5 rounded-ds-lg border border-admin-border-faint bg-admin-surface/80 px-4 py-3.5 text-left transition-all duration-motion-default hover:border-status-success-fg/30 hover:bg-admin-elevated disabled:pointer-events-none disabled:opacity-40"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-ds-md bg-status-success-fg/10 ring-1 ring-status-success-fg/20 transition-colors group-hover:bg-status-success-fg/15">
+                <PlusCircle className="h-3.5 w-3.5 text-status-success-fg" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-admin-fg">Suprimento</p>
+                <p className="text-xs text-admin-fg-faint">Registrar entrada de dinheiro</p>
+              </div>
+            </button>
+
+            {/* Imprimir */}
+            <button
+              type="button"
+              onClick={handlePrintSummary}
+              className="group flex w-full items-center gap-3.5 rounded-ds-lg border border-admin-border-faint bg-admin-surface/80 px-4 py-3.5 text-left transition-all duration-motion-default hover:bg-admin-elevated"
+            >
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-ds-md bg-admin-overlay ring-1 ring-admin-border-faint">
+                <Printer className="h-3.5 w-3.5 text-admin-fg-secondary" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-admin-fg">Imprimir resumo</p>
+                <p className="text-xs text-admin-fg-faint">Gerar comprovante do caixa</p>
+              </div>
+            </button>
+
+            <div className="pt-1">
+              {!summary.alreadyClosed ? (
                 <Button
                   type="button"
-                  variant="outline"
-                  className="border-[#313131] bg-transparent text-[#e5dfd5] hover:bg-[#212121]"
-                  onClick={() => setShowCloseModal(false)}
+                  variant="admin"
+                  className="h-10 w-full rounded-ds-lg text-sm font-semibold"
                   disabled={loading}
+                  onClick={() => setShowCloseModal(true)}
                 >
-                  Cancelar
+                  {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                  Fechar caixa
                 </Button>
-                <Button type="button" variant="admin" disabled={loading || summary.alreadyClosed} onClick={() => void handleCloseCash()}>
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  Confirmar fechamento
-                </Button>
-              </div>
+              ) : (
+                <div className="flex items-center gap-3 rounded-ds-lg border border-status-success-border/20 bg-status-success-fg/[0.06] px-4 py-3.5">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-status-success-fg" />
+                  <div>
+                    <p className="text-sm font-semibold text-status-success-fg">
+                      Caixa fechado
+                    </p>
+                    {summary.lastClosedAt && (
+                      <p className="text-xs text-admin-fg-faint">
+                        Registrado às{" "}
+                        {new Date(summary.lastClosedAt).toLocaleTimeString("pt-BR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      ) : null}
 
-      {showMovementModal ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4" onClick={() => setShowMovementModal(false)}>
-          <div
-            className="w-full max-w-xl rounded-[28px] border border-[#313131] bg-[#171717] shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="space-y-5 p-6">
-              <div className="space-y-2">
-                <p className="text-sm uppercase tracking-[0.2em] text-[#8f8a82]">Movimentacao de caixa</p>
-                <h3 className="text-2xl font-semibold text-white">{movementActionLabel}</h3>
-                <p className="text-sm text-[#bcb5aa]">{movementDescription}</p>
-              </div>
+        {/* Como usar */}
+        <div className="overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] shadow-soft">
+          <div className="border-b border-[var(--admin-panel-header-border)] bg-[var(--admin-panel-header-bg)] px-5 py-4">
+            <p className="text-sm font-semibold text-admin-fg">Como usar</p>
+            <p className="mt-0.5 text-xs text-admin-fg-faint">Etapas ao final do expediente</p>
+          </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8d877b]">Saldo esperado atual</p>
-                  <p className="mt-2 text-2xl font-semibold text-[#8ce3b0]">{formatCurrency(summary.expectedCashBalance)}</p>
+          <ol className="divide-y divide-admin-border-faint">
+            {[
+              {
+                label: "Feche as mesas",
+                desc: "Finalize as contas no Gestor de Pedidos.",
+              },
+              {
+                label: "Confira os pagamentos",
+                desc: "Valide os totais por método antes de consolidar.",
+              },
+              {
+                label: "Registre sangrias",
+                desc: "Toda retirada de dinheiro deve ser registrada.",
+              },
+              {
+                label: "Feche o caixa",
+                desc: "Consolida o resumo financeiro do dia.",
+              },
+              {
+                label: "Consulte o histórico",
+                desc: "Valide os caixas anteriores quando necessário.",
+              },
+            ].map((step, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-4 px-5 py-4 transition-colors duration-motion-fast hover:bg-admin-surface/60"
+              >
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-admin-overlay text-[10px] font-bold tabular-nums text-admin-fg-faint ring-1 ring-admin-border-faint">
+                  {index + 1}
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-admin-fg">{step.label}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-admin-fg-muted">
+                    {step.desc}
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8d877b]">Dinheiro vendido</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{formatCurrency(moneyPayment)}</p>
-                </div>
-              </div>
+              </li>
+            ))}
+          </ol>
 
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-white" htmlFor="cash-movement-amount">
-                  Valor
-                </label>
-                <Input
-                  id="cash-movement-amount"
-                  type="text"
-                  inputMode="numeric"
-                  value={movementAmount}
-                  onChange={(event) => setMovementAmount(formatCurrencyField(event.target.value))}
-                  placeholder="0,00"
-                  className="border-[#2f2f2f] bg-[#121212] text-sm text-[#ebe4d8] placeholder:text-[#7f786d]"
-                />
-                <p className="text-xs text-[#7f786d]">Digite em formato brasileiro. Ex.: `1200` vira `12,00`.</p>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-white" htmlFor="cash-movement-note">
-                  Observacao
-                </label>
-                <Textarea
-                  id="cash-movement-note"
-                  value={movementNote}
-                  onChange={(event) => setMovementNote(event.target.value)}
-                  placeholder={movementType === "sangria" ? "Ex.: retirada para cofre." : "Ex.: troco inicial do caixa."}
-                  className="min-h-[96px] border-[#2f2f2f] bg-[#121212] text-sm text-[#ebe4d8] placeholder:text-[#7f786d]"
-                />
-              </div>
-
-              <div className="flex flex-wrap justify-end gap-3 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="border-[#313131] bg-transparent text-[#e5dfd5] hover:bg-[#212121]"
-                  onClick={() => setShowMovementModal(false)}
-                  disabled={movementLoading}
-                >
-                  Cancelar
-                </Button>
-                <Button type="button" variant="admin" disabled={movementLoading || summary.alreadyClosed} onClick={() => void handleCreateMovement()}>
-                  {movementLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  {movementActionLabel}
-                </Button>
-              </div>
-            </div>
+          <div className="border-t border-admin-border-faint p-4">
+            <Link
+              href="/admin/historico"
+              className="flex items-center gap-2.5 rounded-ds-lg border border-admin-border px-4 py-3 text-sm font-medium text-admin-fg transition-all duration-motion-default hover:bg-admin-overlay"
+            >
+              <History className="h-3.5 w-3.5 text-admin-fg-faint" />
+              Ver histórico de caixas
+            </Link>
           </div>
         </div>
-      ) : null}
-    </div>
+      </div>
+      </div>{/* ── /main grid ── */}
+
+      {/* ── Modal: Fechar caixa ── */}
+      <Dialog
+        open={showCloseModal}
+        onOpenChange={(open) => {
+          if (!open && !loading) setShowCloseModal(false);
+        }}
+      >
+        <DialogContent className="overflow-hidden rounded-ds-2xl border-admin-border bg-admin-surface p-0 shadow-panel sm:max-w-lg [&>button]:text-admin-fg-muted [&>button]:hover:text-admin-fg [&>button]:top-5 [&>button]:right-5">
+          <DialogHeader className="px-7 pt-7 pb-5">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-admin-fg-muted">
+              Fechamento de caixa
+            </p>
+            <DialogTitle className="mt-1.5 text-2xl font-bold text-admin-fg">
+              Confirmar fechamento do dia
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="grid grid-cols-3 border-t border-admin-border-faint bg-admin-shell/60">
+            <div className="border-r border-admin-border-faint px-6 py-5">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-admin-fg-muted">Total</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-status-warning-fg">
+                {formatCurrency(summary.total)}
+              </p>
+            </div>
+            <div className="border-r border-admin-border-faint px-6 py-5">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-admin-fg-muted">Pedidos</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-admin-fg">
+                {summary.ordersCount}
+              </p>
+            </div>
+            <div className="px-6 py-5">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-admin-fg-muted">Mesas</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-admin-fg">
+                {summary.tablesCount}
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-admin-border-faint px-7 py-6">
+            <label
+              className="text-xs font-bold uppercase tracking-[0.2em] text-admin-fg-muted"
+              htmlFor="cash-close-note"
+            >
+              Observação
+            </label>
+            <Textarea
+              id="cash-close-note"
+              value={closeNote}
+              onChange={(event) => setCloseNote(event.target.value)}
+              placeholder="Ex.: caixa conferido, sem divergencias."
+              className="mt-3 min-h-[90px] border-admin-border bg-admin-elevated text-sm text-admin-fg-secondary placeholder:text-admin-fg-faint focus-visible:ring-brand-gold/30"
+            />
+          </div>
+
+          <DialogFooter className="flex-row items-center justify-between border-t border-admin-border-faint px-7 py-5 sm:justify-between">
+            <button
+              type="button"
+              className="text-sm font-medium text-admin-fg-muted transition-colors hover:text-admin-fg disabled:opacity-40"
+              onClick={() => setShowCloseModal(false)}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <Button
+              type="button"
+              variant="admin"
+              className="h-10 rounded-ds-lg px-6 text-sm font-semibold"
+              disabled={loading || summary.alreadyClosed}
+              onClick={() => void handleCloseCash()}
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Confirmar fechamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Modal: Sangria / Suprimento ── */}
+      <Dialog
+        open={showMovementModal}
+        onOpenChange={(open) => {
+          if (!open && !movementLoading) setShowMovementModal(false);
+        }}
+      >
+        <DialogContent className="overflow-hidden rounded-ds-2xl border-admin-border bg-admin-surface p-0 shadow-panel sm:max-w-lg [&>button]:text-admin-fg-muted [&>button]:hover:text-admin-fg [&>button]:top-5 [&>button]:right-5">
+          <DialogHeader className="px-7 pt-7 pb-5">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-admin-fg-muted">
+              Movimentação de caixa
+            </p>
+            <DialogTitle className="mt-1.5 text-2xl font-bold text-admin-fg">
+              {movementActionLabel}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 border-t border-admin-border-faint bg-admin-shell/60">
+            <div className="border-r border-admin-border-faint px-7 py-5">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-admin-fg-muted">
+                Saldo esperado
+              </p>
+              <p className="mt-2 text-xl font-bold tabular-nums text-status-success-fg">
+                {formatCurrency(summary.expectedCashBalance)}
+              </p>
+            </div>
+            <div className="px-7 py-5">
+              <p className="text-[10px] uppercase tracking-[0.14em] text-admin-fg-muted">
+                Dinheiro vendido
+              </p>
+              <p className="mt-2 text-xl font-bold tabular-nums text-admin-fg">
+                {formatCurrency(moneyPayment)}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-5 border-t border-admin-border-faint px-7 py-6">
+            <div className="space-y-2">
+              <label
+                className="text-xs font-bold uppercase tracking-[0.2em] text-admin-fg-muted"
+                htmlFor="cash-movement-amount"
+              >
+                Valor
+              </label>
+              <Input
+                id="cash-movement-amount"
+                type="text"
+                inputMode="numeric"
+                value={movementAmount}
+                onChange={(event) => setMovementAmount(formatCurrencyField(event.target.value))}
+                placeholder="0,00"
+                className="border-admin-border bg-admin-elevated text-sm text-admin-fg-secondary placeholder:text-admin-fg-faint focus-visible:ring-brand-gold/30"
+              />
+            </div>
+            <div className="space-y-2">
+              <label
+                className="text-xs font-bold uppercase tracking-[0.2em] text-admin-fg-muted"
+                htmlFor="cash-movement-note"
+              >
+                Observação
+              </label>
+              <Textarea
+                id="cash-movement-note"
+                value={movementNote}
+                onChange={(event) => setMovementNote(event.target.value)}
+                placeholder={
+                  movementType === "sangria"
+                    ? "Ex.: retirada para cofre."
+                    : "Ex.: troco inicial do caixa."
+                }
+                className="min-h-[80px] border-admin-border bg-admin-elevated text-sm text-admin-fg-secondary placeholder:text-admin-fg-faint focus-visible:ring-brand-gold/30"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex-row items-center justify-between border-t border-admin-border-faint px-7 py-5 sm:justify-between">
+            <button
+              type="button"
+              className="text-sm font-medium text-admin-fg-muted transition-colors hover:text-admin-fg disabled:opacity-40"
+              onClick={() => setShowMovementModal(false)}
+              disabled={movementLoading}
+            >
+              Cancelar
+            </button>
+            <Button
+              type="button"
+              variant="admin"
+              className="h-10 rounded-ds-lg px-6 text-sm font-semibold"
+              disabled={movementLoading || summary.alreadyClosed}
+              onClick={() => void handleCreateMovement()}
+            >
+              {movementLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {movementActionLabel}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AdminPage>
   );
 }
-

@@ -1,6 +1,8 @@
 import { AdminOrderAlerts } from "@/features/orders/components/admin-order-alerts";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminTopbar } from "@/components/admin/admin-topbar";
+import { NavProgressBar } from "@/components/admin/nav-progress-bar";
+import { DSToastHost } from "@/components/system/ds-toast";
 import { createSupabaseServerAuthClient } from "@/lib/supabase/auth-server";
 import { adminThemes, type AdminTheme } from "@/lib/constants/admin-themes";
 
@@ -26,12 +28,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           __html: `(function(){var t=localStorage.getItem("admin-theme");var v=["black","light"];if(t&&v.indexOf(t)!==-1){var e=document.currentScript.parentElement;e.classList.remove("admin-theme-black","admin-theme-light");e.classList.add("admin-theme-"+t);}})();`
         }}
       />
+      <NavProgressBar />
       <div className="flex min-h-screen">
         <AdminSidebar />
         <div className="flex min-h-screen flex-1 flex-col">
           <AdminOrderAlerts />
           <AdminTopbar />
           <div className="flex-1 px-4 py-4 sm:px-6 sm:py-6">{children}</div>
+          {/* Toast host — renderiza a stack de notificações globais */}
+          <DSToastHost />
         </div>
       </div>
     </div>

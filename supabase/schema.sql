@@ -312,7 +312,7 @@ create table order_settings (
   notifications_enabled boolean not null default true,
   alert_sound alert_sound_enum not null default 'Alerta 1',
   alert_frequency alert_frequency_enum not null default 'repeat_while_pending',
-  alert_volume integer not null default 70 check (alert_volume between 0 and 100),
+  alert_volume integer not null default 100 check (alert_volume between 0 and 100),
   auto_print_enabled boolean not null default false,
   auto_print_mode auto_print_mode_enum not null default 'single_printer',
   default_auto_print_printer_id uuid references printers(id) on delete set null,

@@ -30,12 +30,12 @@ export function CustomerFlowHeader({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-b-[34px] bg-[linear-gradient(180deg,#f9f4e9_0%,#f5eee2_60%,#f1e5d0_100%)] px-4 pb-5 pt-5",
+        "relative overflow-hidden rounded-b-ds-2xl bg-menu-surface-soft px-4 pb-5 pt-5",
         className
       )}
     >
-      <div className="absolute inset-0 bg-arabesque opacity-70" />
-      <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(244,195,90,0.24)_0%,rgba(244,195,90,0)_72%)]" />
+      <div className="absolute inset-0 opacity-40 [background:var(--menu-header-pattern)]" />
+      <div className="absolute right-0 top-0 h-28 w-28 rounded-full [background:var(--menu-header-glow)]" />
       <div className="relative space-y-4">
         {topBar}
 
@@ -43,9 +43,9 @@ export function CustomerFlowHeader({
           <div className="flex min-w-0 items-start gap-3">
             {leading ? <div className="shrink-0">{leading}</div> : null}
             <div className="min-w-0 space-y-2">
-              {eyebrow ? <p className="text-sm font-medium text-[#8f6d1e]">{eyebrow}</p> : null}
-              <h1 className="text-3xl font-bold leading-none text-[#21180f]">{title}</h1>
-              {description ? <p className="text-sm leading-6 text-[#766a59]">{description}</p> : null}
+              {eyebrow ? <p className="text-sm font-medium text-menu-accent-strong">{eyebrow}</p> : null}
+              <h1 className="text-3xl font-bold leading-none text-menu-text">{title}</h1>
+              {description ? <p className="text-sm leading-6 text-menu-text-muted">{description}</p> : null}
               {badges ? <div className="flex flex-wrap items-center gap-2">{badges}</div> : null}
             </div>
           </div>

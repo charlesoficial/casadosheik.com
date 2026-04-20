@@ -3,7 +3,15 @@ import { Link2, QrCode, Store, Truck } from "lucide-react";
 
 import { TablesQrManager } from "@/features/tables/components/tables-qr-manager";
 import { tableService } from "@/features/tables/services/table.service";
-import { Badge } from "@/components/ui/badge";
+import {
+  AdminPage,
+  AdminHeader,
+  AdminHeaderContent,
+  AdminHeaderEyebrow,
+  AdminHeaderTitle,
+  AdminHeaderDescription,
+  AdminHeaderActions,
+} from "@/components/layout";
 
 function getBaseUrl() {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
@@ -22,80 +30,101 @@ export default async function AdminTablesPage() {
   const baseUrl = getBaseUrl();
   const tables = await tableService.listActiveTables();
   const tableCount = tables.length;
+
   const entries = [
-    ...tables.map((table) => {
-      const tableNumber = table.number;
-      return {
-        id: table.id,
-        title: `Mesa ${tableNumber}`,
-        subtitle: "Cliente escaneia e faz o pedido direto da mesa.",
-        href: `${baseUrl}/menu?mesa=${tableNumber}`,
-        mode: "mesa" as const
-      };
-    }),
+    ...tables.map((table) => ({
+      id: table.id,
+      title: `Mesa ${table.number}`,
+      subtitle: "Cliente escaneia e faz o pedido diretamente da mesa.",
+      href: `${baseUrl}/menu?mesa=${table.number}`,
+      mode: "mesa" as const,
+    })),
     {
       id: "delivery",
       title: "QR Delivery",
-      subtitle: "Cliente entra direto no cardapio sem mesa vinculada.",
+      subtitle: "Cliente acessa o cardápio sem mesa vinculada — delivery ou retirada.",
       href: `${baseUrl}/menu`,
-      mode: "delivery" as const
-    }
+      mode: "delivery" as const,
+    },
   ];
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-5">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="max-w-3xl space-y-2">
-            <p className="text-sm text-[#a49f92]">Gerenciamento real de acesso ao cardapio</p>
-            <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#131313] sm:text-4xl dark:text-white">Mesas & QR Codes</h1>
-            <p className="text-sm leading-7 text-[#b8b0a4] sm:text-base">
-              Cada mesa tem um QR proprio apontando para o cardapio com a mesa ja identificada. O QR de delivery leva o cliente direto para o cardapio geral para atendimento externo, embalagens e divulgacao.
+    <AdminPage gap="default">
+
+      {/* ── Header ───────────────────────────────────────────────────────── */}
+      <AdminHeader>
+        <AdminHeaderContent>
+          <AdminHeaderEyebrow>Acesso ao cardápio</AdminHeaderEyebrow>
+          <AdminHeaderTitle>Mesas &amp; QR Codes</AdminHeaderTitle>
+          <AdminHeaderDescription>
+            Cada mesa tem um QR próprio com identificação automática. O canal de delivery serve para atendimento externo e materiais de divulgação.
+          </AdminHeaderDescription>
+        </AdminHeaderContent>
+        <AdminHeaderActions>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-status-warning-border bg-status-warning-bg px-3 py-1.5 text-xs font-semibold text-status-warning-fg">
+            <Store className="h-3 w-3" />
+            {tableCount} mesas ativas
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-status-info-border bg-status-info-bg px-3 py-1.5 text-xs font-semibold text-status-info-fg">
+            <Truck className="h-3 w-3" />
+            1 canal delivery
+          </span>
+        </AdminHeaderActions>
+      </AdminHeader>
+
+      {/* ── KPI strip ────────────────────────────────────────────────────── */}
+      <div className="overflow-hidden rounded-ds-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)] shadow-soft">
+        <div className="grid grid-cols-3 divide-x divide-admin-border-faint">
+
+          <div className="relative px-6 py-5">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-status-warning-fg/50 to-transparent" />
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-admin-fg-faint">
+                Mesas ativas
+              </p>
+              <div className="rounded-ds-sm bg-status-warning-fg/10 p-1.5 ring-1 ring-status-warning-fg/20">
+                <QrCode className="h-3.5 w-3.5 text-status-warning-fg" />
+              </div>
+            </div>
+            <p className="mt-3 text-3xl font-bold tabular-nums text-admin-fg">{tableCount}</p>
+            <p className="mt-1 text-xs text-admin-fg-faint">Com QR configurado</p>
+          </div>
+
+          <div className="relative px-6 py-5">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-status-info-fg/50 to-transparent" />
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-admin-fg-faint">
+                Canal externo
+              </p>
+              <div className="rounded-ds-sm bg-status-info-fg/10 p-1.5 ring-1 ring-status-info-fg/20">
+                <Truck className="h-3.5 w-3.5 text-status-info-fg" />
+              </div>
+            </div>
+            <p className="mt-3 text-3xl font-bold tabular-nums text-admin-fg">1</p>
+            <p className="mt-1 text-xs text-admin-fg-faint">Delivery e retirada</p>
+          </div>
+
+          <div className="relative px-6 py-5">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-admin-fg-faint/30 to-transparent" />
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-admin-fg-faint">
+                URL base
+              </p>
+              <div className="rounded-ds-sm bg-admin-overlay p-1.5 ring-1 ring-admin-border-faint">
+                <Link2 className="h-3.5 w-3.5 text-admin-fg-secondary" />
+              </div>
+            </div>
+            <p className="mt-3 truncate text-sm font-semibold text-admin-fg-secondary">
+              {baseUrl}/menu
             </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            <Badge className="border-[#4a3410] bg-[#21170c] px-3 py-1 text-[#f5c562]">
-              <Store className="mr-1 h-3.5 w-3.5" />
-              {tableCount} mesas prontas
-            </Badge>
-            <Badge className="border-[#295779] bg-[#10263c] px-3 py-1 text-[#8fd0ff]">
-              <Truck className="mr-1 h-3.5 w-3.5" />1 QR de delivery
-            </Badge>
+            <p className="mt-1 text-xs text-admin-fg-faint">Base de todos os QR codes</p>
           </div>
         </div>
+      </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="admin-tables-dark-card rounded-[24px] border border-[#2d2d2d] bg-[linear-gradient(180deg,#191919_0%,#131313_100%)] p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.18em] text-[#998f82]">Acesso interno</span>
-              <QrCode className="h-4 w-4 text-[#f0e7db]" />
-            </div>
-            <p className="text-3xl font-semibold text-white">{tableCount}</p>
-            <p className="mt-2 text-sm leading-6 text-[#a99f92]">Mesas com identificacao pronta para leitura do cliente.</p>
-          </div>
-
-          <div className="admin-tables-dark-card rounded-[24px] border border-[#2d2d2d] bg-[linear-gradient(180deg,#191919_0%,#131313_100%)] p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.18em] text-[#998f82]">Canal externo</span>
-              <Truck className="h-4 w-4 text-[#8fd0ff]" />
-            </div>
-            <p className="text-3xl font-semibold text-white">1</p>
-            <p className="mt-2 text-sm leading-6 text-[#a99f92]">QR pronto para delivery, retirada e materiais de divulgacao.</p>
-          </div>
-
-          <div className="admin-tables-dark-card rounded-[24px] border border-[#2d2d2d] bg-[linear-gradient(180deg,#191919_0%,#131313_100%)] p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.18em] text-[#998f82]">Link base</span>
-              <Link2 className="h-4 w-4 text-[#d7cdbf]" />
-            </div>
-            <p className="truncate text-sm font-medium text-white">{baseUrl}/menu</p>
-            <p className="mt-2 text-sm leading-6 text-[#a99f92]">Todas as mesas derivam deste endereco com o parametro de identificacao.</p>
-          </div>
-        </div>
-      </section>
-
+      {/* ── Manager ──────────────────────────────────────────────────────── */}
       <TablesQrManager entries={entries} />
-    </div>
+
+    </AdminPage>
   );
 }
