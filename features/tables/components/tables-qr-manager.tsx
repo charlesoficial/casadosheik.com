@@ -16,7 +16,7 @@ type QrEntry = {
 };
 
 function buildQrImageUrl(href: string) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(href)}`;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(href)}`;
 }
 
 export function TablesQrManager({ entries }: { entries: QrEntry[] }) {
@@ -33,72 +33,77 @@ export function TablesQrManager({ entries }: { entries: QrEntry[] }) {
   }
 
   function printQr(entry: QrEntry) {
-    // A impressao abre uma folha isolada para o operador conseguir gerar
-    // material fisico de mesa sem depender de estilos do painel.
     const qrUrl = buildQrImageUrl(entry.href);
-    const printWindow = window.open("", "_blank", "width=720,height=900");
+    const printWindow = window.open("", "_blank", "width=800,height=1000");
     if (!printWindow) return;
 
-    printWindow.document.write(`
-      <!doctype html>
-      <html lang="pt-BR">
-        <head>
-          <meta charset="utf-8" />
-          <title>${entry.title}</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 32px;
-              display: flex;
-              justify-content: center;
-              background: #ffffff;
-              color: #111111;
-            }
-            .sheet {
-              width: 360px;
-              border: 2px solid #111111;
-              border-radius: 24px;
-              padding: 24px;
-              text-align: center;
-            }
-            h1 {
-              margin: 0 0 8px;
-              font-size: 28px;
-            }
-            p {
-              margin: 0 0 16px;
-              color: #444444;
-            }
-            img {
-              width: 280px;
-              height: 280px;
-              display: block;
-              margin: 0 auto 16px;
-            }
-            .link {
-              font-size: 12px;
-              word-break: break-all;
-              color: #666666;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="sheet">
-            <h1>${entry.title}</h1>
-            <p>${entry.subtitle}</p>
-            <img src="${qrUrl}" alt="${entry.title}" />
-            <div class="link">${entry.href}</div>
-          </div>
-          <script>
-            window.onload = () => {
-              window.print();
-              window.onafterprint = () => window.close();
-            };
-          </script>
-        </body>
-      </html>
-    `);
+    printWindow.document.write(`<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>${entry.title}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      background: #fff;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      width: 100mm;
+      text-align: center;
+      border: 1.5px solid #222;
+      border-radius: 12px;
+      padding: 4mm;
+    }
+    .title {
+      font-family: Arial, sans-serif;
+      font-size: 22pt;
+      font-weight: bold;
+      color: #111;
+      margin-bottom: 3mm;
+    }
+    img {
+      width: 92mm;
+      height: 92mm;
+      display: block;
+      margin: 0 auto 3mm;
+    }
+    .subtitle { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">${entry.title}</div>
+    <img src="${qrUrl}" alt="${entry.title}" />
+    <div class="subtitle">${entry.subtitle}</div>
+  </div>
+  <script>
+    var img = document.querySelector('img');
+    img.onload = function() {
+      window.print();
+      window.onafterprint = function() { window.close(); };
+    };
+    img.onerror = function() {
+      window.print();
+      window.onafterprint = function() { window.close(); };
+    };
+    setTimeout(function() {
+      window.print();
+      window.onafterprint = function() { window.close(); };
+    }, 2500);
+  </script>
+</body>
+</html>`);
     printWindow.document.close();
   }
 
