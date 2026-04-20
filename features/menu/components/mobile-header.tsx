@@ -1,5 +1,4 @@
-import Image from "next/image";
-import { Store, Truck } from "lucide-react";
+import { Store, Truck, User } from "lucide-react";
 
 import { CustomerFlowHeader } from "@/components/customer/customer-flow-header";
 import { Badge } from "@/components/ui/badge";
@@ -13,12 +12,6 @@ export function MobileHeader({
   mesa?: string;
 }) {
   const modeLabel = mesa ? `Mesa ${mesa}` : "Delivery";
-  const logoInitials = restaurant.name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("");
 
   return (
     <CustomerFlowHeader
@@ -26,22 +19,8 @@ export function MobileHeader({
       title={restaurant.name}
       description={restaurant.welcome}
       leading={
-        <div className="rounded-full border border-menu-accent-border bg-menu-surface-raised p-1 shadow-soft">
-          {restaurant.logoUrl ? (
-            <div className="relative h-20 w-20 overflow-hidden rounded-full">
-              <Image
-                src={restaurant.logoUrl}
-                alt={restaurant.name}
-                fill
-                priority
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#2b1705] text-lg font-black text-[#f4c35a]">
-              {logoInitials}
-            </div>
-          )}
+        <div className="flex h-20 w-20 items-center justify-center rounded-full border border-menu-accent-border bg-menu-surface-raised shadow-soft">
+          <User className="h-9 w-9 text-menu-accent" strokeWidth={1.5} />
         </div>
       }
       topBar={

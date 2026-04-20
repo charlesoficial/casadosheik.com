@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { Search, ShoppingBag, Store, Truck } from "lucide-react";
+import { Search, ShoppingBag, Store, Truck, User } from "lucide-react";
 
 import { useCart } from "@/components/cart-provider";
 import { Badge } from "@/components/ui/badge";
@@ -21,31 +20,13 @@ export function DesktopTopbar({
 }) {
   const { totalItems } = useCart();
   const modeLabel = mesa ? `Mesa ${mesa}` : "Delivery";
-  const logoInitials = restaurant.name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("");
 
   return (
     <header className="sticky top-0 z-30 hidden items-center gap-6 border-b border-menu-border bg-menu-surface px-8 py-4 lg:flex">
       {/* Logo + nome */}
       <div className="flex shrink-0 items-center gap-3">
-        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-menu-accent-border">
-          {restaurant.logoUrl ? (
-            <Image
-              src={restaurant.logoUrl}
-              alt={restaurant.name}
-              fill
-              priority
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[#2b1705] text-sm font-black text-[#f4c35a]">
-              {logoInitials}
-            </div>
-          )}
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-menu-accent-border bg-menu-surface-raised">
+          <User className="h-5 w-5 text-menu-accent" strokeWidth={1.5} />
         </div>
         <div>
           <p className="font-bold leading-none text-menu-text">{restaurant.name}</p>
