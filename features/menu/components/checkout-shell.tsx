@@ -121,7 +121,15 @@ function CartLine({
   );
 }
 
-export function CheckoutShell({ mesa, fromProduct }: { mesa?: string; fromProduct?: string }) {
+export function CheckoutShell({
+  mesa,
+  fromProduct,
+  deliveryFee = 0,
+}: {
+  mesa?: string;
+  fromProduct?: string;
+  deliveryFee?: number;
+}) {
   const router = useRouter();
   const { items: cart, updateQuantity, removeItem, clearCart } = useCart();
   const [clienteNome, setClienteNome] = useState("");
@@ -136,9 +144,11 @@ export function CheckoutShell({ mesa, fromProduct }: { mesa?: string; fromProduc
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const total = useMemo(() => cart.reduce((sum, item) => sum + item.qty * item.price, 0), [cart]);
   const totalQuantity = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
   const deliveryMode = !mesa;
+  const itemsTotal = useMemo(() => cart.reduce((sum, item) => sum + item.qty * item.price, 0), [cart]);
+  const deliveryFeeTotal = deliveryMode && cart.length > 0 ? deliveryFee : 0;
+  const total = itemsTotal + deliveryFeeTotal;
   const menuHref = buildMenuHref(mesa);
   const backHref = fromProduct ? buildProductHref(fromProduct, mesa) : menuHref;
 
@@ -323,13 +333,27 @@ export function CheckoutShell({ mesa, fromProduct }: { mesa?: string; fromProduc
                   ))}
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-menu-border pt-4">
-                  <Link href={menuHref} className="text-sm font-semibold text-menu-accent-strong">
-                    Adicionar mais itens
-                  </Link>
-                  <div className="flex min-w-[220px] items-center justify-between rounded-2xl bg-menu-surface-soft px-4 py-3 text-lg font-semibold">
-                    <span>Total</span>
-                    <span className="text-menu-accent-strong">{formatCurrency(total)}</span>
+                <div className="space-y-3 border-t border-menu-border pt-4">
+                  <div className="space-y-2 rounded-2xl bg-menu-surface-soft px-4 py-3 text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-menu-text-muted">Itens</span>
+                      <span className="font-semibold text-menu-text">{formatCurrency(itemsTotal)}</span>
+                    </div>
+                    {deliveryMode ? (
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-menu-text-muted">Taxa de entrega</span>
+                        <span className="font-semibold text-menu-text">{formatCurrency(deliveryFeeTotal)}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <Link href={menuHref} className="text-sm font-semibold text-menu-accent-strong">
+                      Adicionar mais itens
+                    </Link>
+                    <div className="flex min-w-[220px] items-center justify-between rounded-2xl bg-menu-surface-soft px-4 py-3 text-lg font-semibold">
+                      <span>Total</span>
+                      <span className="text-menu-accent-strong">{formatCurrency(total)}</span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -449,11 +473,23 @@ export function CheckoutShell({ mesa, fromProduct }: { mesa?: string; fromProduc
               ) : null}
 
               <div className="hidden border-t border-menu-border pt-4 lg:block">
-                <div className="mb-3 flex items-center justify-between text-sm">
-                  <span className="text-menu-text-muted">
-                    {totalQuantity} {totalQuantity === 1 ? "item" : "itens"}
-                  </span>
-                  <span className="font-semibold text-menu-accent-strong">{formatCurrency(total)}</span>
+                <div className="mb-3 space-y-2 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-menu-text-muted">
+                      {totalQuantity} {totalQuantity === 1 ? "item" : "itens"}
+                    </span>
+                    <span className="font-semibold text-menu-text">{formatCurrency(itemsTotal)}</span>
+                  </div>
+                  {deliveryMode ? (
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-menu-text-muted">Entrega</span>
+                      <span className="font-semibold text-menu-text">{formatCurrency(deliveryFeeTotal)}</span>
+                    </div>
+                  ) : null}
+                  <div className="flex items-center justify-between gap-3 border-t border-menu-border pt-2">
+                    <span className="font-semibold text-menu-text">Total</span>
+                    <span className="font-semibold text-menu-accent-strong">{formatCurrency(total)}</span>
+                  </div>
                 </div>
                 <Button
                   type="submit"
@@ -474,7 +510,7 @@ export function CheckoutShell({ mesa, fromProduct }: { mesa?: string; fromProduc
         <div className="rounded-ds-2xl border border-menu-border bg-menu-surface-raised p-2 shadow-card">
           <div className="mb-2 flex items-center justify-between px-3 pt-1 text-sm">
             <span className="text-menu-text-muted">
-              {totalQuantity} {totalQuantity === 1 ? "item" : "itens"}
+              {deliveryMode ? "Total com entrega" : `${totalQuantity} ${totalQuantity === 1 ? "item" : "itens"}`}
             </span>
             <span className="font-semibold text-menu-accent-strong">{formatCurrency(total)}</span>
           </div>

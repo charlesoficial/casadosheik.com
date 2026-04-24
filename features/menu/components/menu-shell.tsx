@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useActiveCategory } from "@/hooks/use-active-category";
 import { getCategoryAnchor } from "@/features/menu/utils/category-anchor";
+import { restoreMenuScrollPosition } from "@/features/menu/utils/menu-scroll-position";
 import type { MenuProduct, RestaurantConfig } from "@/lib/types";
 
 import { CartPanel } from "./cart-panel";
@@ -42,6 +43,10 @@ export function MenuShell({
       ),
     [categories, products]
   );
+
+  useEffect(() => {
+    restoreMenuScrollPosition();
+  }, []);
 
   function scrollToCategory(anchor: string) {
     const el = document.getElementById(`cat-${anchor}`);

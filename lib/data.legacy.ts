@@ -176,6 +176,27 @@ function getPreferredServerClient() {
   return hasServiceRoleConfigured() ? getSupabaseAdminClient() : getSupabaseServerClient();
 }
 
+function roundCurrencyValue(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+async function getConfiguredDeliveryFee() {
+  if (!isSupabaseConfigured()) return 0;
+
+  const supabase = getPreferredServerClient();
+  const { data, error } = await supabase!
+    .from("restaurante_config")
+    .select("taxa_entrega")
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return roundCurrencyValue(Number(data?.taxa_entrega ?? 0));
+}
+
 // Esta etapa garante que o pedido use o catalogo do servidor como fonte de verdade.
 // Nome, preco e disponibilidade nunca devem depender do payload enviado pelo cliente.
 async function resolveCheckoutItems(
@@ -392,7 +413,8 @@ export async function getRestaurantConfig(): Promise<RestaurantConfig> {
       welcome: restaurant.welcome,
       open: restaurant.open,
       whatsapp: restaurant.whatsapp,
-      logoUrl: restaurant.logoUrl ?? null
+      logoUrl: restaurant.logoUrl ?? null,
+      deliveryFee: 0
     };
   }
 
@@ -400,7 +422,7 @@ export async function getRestaurantConfig(): Promise<RestaurantConfig> {
     const supabase = getPreferredServerClient();
     const { data, error } = await supabase!
       .from("restaurante_config")
-      .select("nome, telefone, whatsapp, logo_url, aberto, mensagem_boas_vindas")
+      .select("nome, telefone, whatsapp, logo_url, aberto, mensagem_boas_vindas, taxa_entrega")
       .limit(1)
       .maybeSingle();
 
@@ -415,7 +437,8 @@ export async function getRestaurantConfig(): Promise<RestaurantConfig> {
       open: data?.aberto ?? restaurant.open,
       // Preferencia: whatsapp dedicado; fallback legado: telefone
       whatsapp: data?.whatsapp ?? data?.telefone ?? restaurant.whatsapp,
-      logoUrl: data?.logo_url ?? restaurant.logoUrl ?? null
+      logoUrl: data?.logo_url ?? restaurant.logoUrl ?? null,
+      deliveryFee: roundCurrencyValue(Number(data?.taxa_entrega ?? 0))
     };
   } catch (error) {
     if (
@@ -428,7 +451,8 @@ export async function getRestaurantConfig(): Promise<RestaurantConfig> {
         welcome: restaurant.welcome,
         open: restaurant.open,
         whatsapp: restaurant.whatsapp,
-        logoUrl: restaurant.logoUrl ?? null
+        logoUrl: restaurant.logoUrl ?? null,
+        deliveryFee: 0
       };
     }
     throw error;
@@ -797,7 +821,9 @@ export async function createOrderFromCheckout(payload: CheckoutPayload) {
 
   // Recalcula os itens com dados do servidor antes de gravar total e subtotais.
   const items = await resolveCheckoutItems(requestedItems);
-  const total = items.reduce((sum, item) => sum + item.quantidade * item.preco, 0);
+  const itemsTotal = roundCurrencyValue(items.reduce((sum, item) => sum + item.quantidade * item.preco, 0));
+  const deliveryFee = payload.tipo === "delivery" ? await getConfiguredDeliveryFee() : 0;
+  const total = roundCurrencyValue(itemsTotal + deliveryFee);
   const sanitizedCustomerName = sanitizeOptionalText(payload.clienteNome, 80);
   const sanitizedCustomerPhone = sanitizePhone(payload.clienteTelefone);
   const sanitizedAddress = sanitizeAddress(payload.enderecoEntrega);

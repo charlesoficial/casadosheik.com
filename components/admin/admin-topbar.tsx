@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAdminSoundPreference } from "@/features/orders/hooks/use-order-sound";
 import { adminThemeMeta, adminThemes, type AdminTheme } from "@/lib/constants/admin-themes";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 // A topbar concentra controles globais do operador:
 // tema, som e acesso rapido ao fluxo de pedidos.
@@ -23,34 +24,45 @@ export function AdminTopbar() {
   const router = useRouter();
   const { soundEnabled, toggleSound } = useAdminSoundPreference();
   const [theme, setTheme] = useState<AdminTheme>("black");
+  const [themeReady, setThemeReady] = useState(false);
   const styles = getThemeStyles();
+
+  async function persistTheme(nextTheme: AdminTheme) {
+    try {
+      await getSupabaseBrowserClient().auth.updateUser({ data: { admin_theme: nextTheme } });
+    } catch {
+      // O tema continua aplicado localmente; se a sincronizacao remota falhar,
+      // o operador nao perde a interacao atual.
+    }
+  }
 
   useEffect(() => {
     // O tema e persistido localmente para cada operador continuar de onde parou.
+    // Sem localStorage, respeita o tema renderizado no servidor pelo perfil.
     const storedTheme = window.localStorage.getItem("admin-theme");
     if (storedTheme && adminThemes.includes(storedTheme as AdminTheme)) {
       setTheme(storedTheme as AdminTheme);
+    } else if (document.querySelector(".admin-shell")?.classList.contains("admin-theme-light")) {
+      setTheme("light");
     }
+    setThemeReady(true);
   }, []);
 
   useEffect(() => {
+    if (!themeReady) return;
     const shell = document.querySelector(".admin-shell");
     if (!shell) return;
-    shell.classList.remove(
-      "admin-theme-dark",
-      "admin-theme-light",
-      "admin-theme-black",
-      "admin-theme-graphite",
-      "admin-theme-sand"
-    );
+    shell.classList.remove("admin-theme-light", "admin-theme-black");
     shell.classList.add(`admin-theme-${theme}`);
     window.localStorage.setItem("admin-theme", theme);
-  }, [theme]);
+  }, [theme, themeReady]);
 
   function cycleTheme() {
     setTheme((current) => {
       const currentIndex = adminThemes.indexOf(current);
-      return adminThemes[(currentIndex + 1) % adminThemes.length];
+      const nextTheme = adminThemes[(currentIndex + 1) % adminThemes.length];
+      void persistTheme(nextTheme);
+      return nextTheme;
     });
   }
 

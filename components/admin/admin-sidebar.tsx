@@ -50,12 +50,9 @@ export function AdminSidebar() {
     <aside className="admin-sidebar hidden xl:flex xl:w-[72px] 2xl:w-[240px] shrink-0 flex-col border-r border-[var(--admin-sidebar-border)] bg-[var(--admin-sidebar-bg)] py-6">
       <div className="flex flex-1 flex-col gap-8 px-3 2xl:px-5">
 
-        {/* Brand — ícone centrado em xl, wordmark completo em 2xl */}
+        {/* Brand — wordmark completo em 2xl, vazio em xl */}
         <div className="flex items-center justify-center 2xl:justify-start">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[var(--admin-brand-tile-bg)] text-base font-black text-[var(--admin-brand-tile-fg)]">
-            CS
-          </div>
-          <div className="ml-3 hidden 2xl:block">
+          <div className="hidden 2xl:block">
             <p className="text-sm font-semibold tracking-[0.24em] text-[var(--admin-brand-wordmark)]">CASA DO SHEIK</p>
             <p className="text-xs text-muted-foreground">Sistema de pedidos</p>
           </div>

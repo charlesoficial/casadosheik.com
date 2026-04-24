@@ -46,6 +46,14 @@ function applyAdminTheme(theme: AdminTheme) {
   window.localStorage.setItem("admin-theme", theme);
 }
 
+async function persistAdminTheme(theme: AdminTheme) {
+  try {
+    await getSupabaseBrowserClient().auth.updateUser({ data: { admin_theme: theme } });
+  } catch {
+    // Mantem a troca visual local mesmo se a sincronizacao remota falhar.
+  }
+}
+
 // ─── Sidebar cards ────────────────────────────────────────────────────────────
 
 function StatusCard({ theme, saveState }: { theme: AdminTheme; saveState: SaveState }) {
@@ -243,6 +251,9 @@ export default function AdminSettingsPage() {
     if (stored && adminThemes.includes(stored as AdminTheme)) {
       setTheme(stored as AdminTheme);
       applyAdminTheme(stored as AdminTheme);
+    } else if (document.querySelector(".admin-shell")?.classList.contains("admin-theme-light")) {
+      setTheme("light");
+      applyAdminTheme("light");
     } else {
       applyAdminTheme("black");
     }
@@ -275,7 +286,7 @@ export default function AdminSettingsPage() {
   function handleThemeChange(next: AdminTheme) {
     setTheme(next);
     applyAdminTheme(next);
-    getSupabaseBrowserClient().auth.updateUser({ data: { admin_theme: next } });
+    void persistAdminTheme(next);
   }
 
   function setField(key: keyof ConfigForm, value: string) {

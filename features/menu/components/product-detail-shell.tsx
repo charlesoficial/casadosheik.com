@@ -103,18 +103,18 @@ export function ProductDetailShell({ product, mesa }: { product: MenuProduct; me
             setHeroFailed={setHeroFailed}
             sizes="100vw"
           />
-          <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-menu-overlay/45 to-transparent" />
-          <button
-            type="button"
-            aria-label="Voltar ao cardápio"
-            onClick={() => router.push(menuHref)}
-            className="absolute left-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-menu-overlay-border/35 bg-menu-overlay/45 text-menu-overlay-fg backdrop-blur-sm transition-colors hover:bg-menu-overlay/65"
-          >
-            <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
-          </button>
         </div>
 
         <div className="bg-menu-bg px-4 pb-6 pt-5">
+          <button
+            type="button"
+            onClick={() => router.push(menuHref)}
+            className="mb-4 inline-flex items-center gap-2 rounded-full border border-menu-border bg-menu-surface-raised px-3 py-2 text-sm font-bold text-menu-accent-strong shadow-soft transition-colors hover:bg-menu-accent-bg"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={1.5} />
+            Voltar ao cardápio
+          </button>
+
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h1 className="text-[2rem] font-black leading-[1.04] text-menu-text">
@@ -172,7 +172,7 @@ export function ProductDetailShell({ product, mesa }: { product: MenuProduct; me
       </section>
 
       <section className="hidden min-h-screen px-6 py-6 lg:flex lg:items-center lg:justify-center xl:px-8">
-        <div className="grid w-full max-w-[1280px] overflow-hidden rounded-[34px] border border-menu-border bg-menu-surface-raised shadow-card lg:grid-cols-[minmax(340px,42%)_minmax(0,1fr)] xl:grid-cols-[minmax(440px,43%)_minmax(0,1fr)] 2xl:max-w-[1520px]">
+        <div className="grid w-full max-w-[1280px] overflow-hidden rounded-ds-2xl border border-menu-border bg-menu-surface-raised shadow-card lg:grid-cols-[minmax(340px,42%)_minmax(0,1fr)] xl:grid-cols-[minmax(440px,43%)_minmax(0,1fr)] 2xl:max-w-[1520px]">
           <div className="relative min-h-[520px] overflow-hidden bg-menu-accent-bg lg:min-h-[620px] xl:min-h-[680px] 2xl:min-h-[760px]">
             <ProductHero
               product={product}
@@ -215,7 +215,7 @@ export function ProductDetailShell({ product, mesa }: { product: MenuProduct; me
             </div>
 
             <aside className="self-center lg:max-w-[560px] xl:max-w-none">
-              <div className="rounded-[28px] border border-menu-border bg-menu-bg p-4 shadow-soft xl:p-5">
+              <div className="rounded-ds-2xl border border-menu-border bg-menu-bg p-4 shadow-soft xl:p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-bold text-menu-text-muted">Adicionar ao pedido</p>

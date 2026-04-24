@@ -17,7 +17,7 @@ export function MobileCartButton({ mesa }: { mesa?: string }) {
     <div className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-24px)] max-w-[456px] -translate-x-1/2 lg:hidden">
       <Button
         asChild
-        className="h-16 w-full justify-between rounded-[24px] bg-menu-cta px-5 text-base text-menu-cta-fg shadow-soft hover:bg-menu-cta-hover hover:opacity-100"
+        className="h-16 w-full justify-between rounded-ds-xl bg-menu-cta px-5 text-base text-menu-cta-fg shadow-soft hover:bg-menu-cta-hover hover:opacity-100"
       >
         <Link href={href}>
           <span className="flex items-center gap-3">

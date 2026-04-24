@@ -8,8 +8,9 @@ import { UtensilsCrossed } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import type { MenuProduct } from "@/lib/types";
+import { saveMenuScrollPosition } from "@/features/menu/utils/menu-scroll-position";
 
-function ProductImage({ src, alt }: { src: string; alt: string }) {
+function ProductImage({ src, alt, priority = false }: { src: string; alt: string; priority?: boolean }) {
   const [failed, setFailed] = useState(false);
 
   if (failed || !src) {
@@ -25,7 +26,8 @@ function ProductImage({ src, alt }: { src: string; alt: string }) {
       src={src}
       alt={alt}
       fill
-      loading="lazy"
+      priority={priority}
+      loading={priority ? undefined : "lazy"}
       sizes="(max-width: 768px) 80px, 96px"
       className="object-cover transition-transform duration-300 group-hover:scale-105"
       onError={() => setFailed(true)}
@@ -33,11 +35,23 @@ function ProductImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
-export function ProductCard({ product, mesa }: { product: MenuProduct; mesa?: string }) {
+export function ProductCard({
+  product,
+  mesa,
+  priority = false,
+}: {
+  product: MenuProduct;
+  mesa?: string;
+  priority?: boolean;
+}) {
   const href = mesa ? `/produto/${product.id}?mesa=${mesa}` : `/produto/${product.id}`;
 
   return (
-    <Link href={href}>
+    <Link
+      id={`menu-product-${product.id}`}
+      href={href}
+      onClick={() => saveMenuScrollPosition(product.id)}
+    >
       <article className="group flex cursor-pointer flex-row items-start gap-3 rounded-2xl border border-menu-border bg-menu-surface p-3 transition-all duration-150 hover:border-menu-border-strong hover:shadow-md active:scale-[0.99] lg:gap-4 lg:p-4">
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-start justify-between gap-2">
@@ -60,7 +74,7 @@ export function ProductCard({ product, mesa }: { product: MenuProduct; mesa?: st
 
         {product.image ? (
           <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl lg:h-24 lg:w-24">
-            <ProductImage src={product.image} alt={product.name} />
+            <ProductImage src={product.image} alt={product.name} priority={priority} />
           </div>
         ) : null}
       </article>

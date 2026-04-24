@@ -1,8 +1,10 @@
+import Image from "next/image";
+
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--admin-brand-tile-bg)] text-lg font-black text-[var(--admin-brand-tile-fg)] shadow-soft">
-        CS
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--admin-brand-tile-bg)] shadow-soft overflow-hidden">
+        <Image src="/logo.png" alt="Casa do Sheik" width={56} height={56} className="object-contain" />
       </div>
       {!compact ? (
         <div className="space-y-0.5">

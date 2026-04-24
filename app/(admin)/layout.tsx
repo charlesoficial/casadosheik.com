@@ -21,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className={`admin-shell admin-theme-${serverTheme} min-h-screen text-[var(--admin-foreground)]`}>
+    <div className={`admin-shell min-h-screen text-[var(--admin-foreground)] admin-theme-${serverTheme}`}>
       {/* Sincroniza com localStorage para troca instantanea sem reload. */}
       <script
         dangerouslySetInnerHTML={{

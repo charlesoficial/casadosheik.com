@@ -5,6 +5,7 @@ export type RestaurantConfig = {
   open: boolean;
   whatsapp: string;
   logoUrl?: string | null;
+  deliveryFee?: number;
 };
 
 export type CategoryItem = {

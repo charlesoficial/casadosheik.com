@@ -43,7 +43,7 @@ export function ProductList({
   if (!visibleCategories.length) {
     return (
       <div className="px-4 py-5 lg:px-6">
-        <Card className="rounded-[28px] border-menu-border bg-menu-surface">
+        <Card className="rounded-ds-2xl border-menu-border bg-menu-surface">
           <CardContent className="space-y-2 p-6 text-center">
             <p className="text-lg font-semibold text-menu-text">
               {search || activeCategory ? "Nenhum produto encontrado" : "Cardápio indisponível"}
@@ -81,8 +81,13 @@ export function ProductList({
             </div>
 
             <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
-              {categoryProducts.map((product) => (
-                <ProductCard key={product.id} product={product} mesa={mesa} />
+              {categoryProducts.map((product, index) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  mesa={mesa}
+                  priority={category === visibleCategories[0] && index < 2}
+                />
               ))}
             </div>
           </section>
