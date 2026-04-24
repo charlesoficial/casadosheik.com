@@ -64,7 +64,7 @@ export function mapOrderToReceipt(order: OrderDetail, options: ReceiptBuildOptio
     kind: isKitchenLike ? destination === "bar" ? "bar" : "kitchen" : "order",
     paperWidth: options.paperWidth,
     storeName: RECEIPT_STORE_NAME,
-    title: isKitchenLike ? `Comanda ${destinationTitle(destination)}` : "Comanda",
+    title: isKitchenLike ? `Comprovante ${destinationTitle(destination)}` : "Comprovante",
     subtitle: destinationTitle(destination),
     destination,
     createdAt: order.createdAt,

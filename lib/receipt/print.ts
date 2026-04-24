@@ -168,7 +168,9 @@ body {
 }
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Courier New", Consolas, monospace;
+  font-size: ${paperWidth === "58mm" ? 10.5 : 11}px;
+  line-height: 1.25;
 }
 
 .receipt-print-root {
@@ -233,26 +235,26 @@ body {
 
 .receipt-header { text-align: center; }
 .receipt-store-name { margin: 0; font-size: 14px; font-weight: 800; line-height: 1.1; }
-.receipt-header h1 { margin: 1mm 0 0; font-size: ${paperWidth === "58mm" ? 17 : 20}px; font-weight: 900; line-height: 1.1; }
+.receipt-header h1 { margin: 0.5mm 0 0; font-size: ${paperWidth === "58mm" ? 13 : 15}px; font-weight: 700; line-height: 1.15; }
 .receipt-subtitle, .receipt-date, .receipt-section-title, .receipt-item-muted, .receipt-item-note, .receipt-note p, .receipt-footer { margin: 0; }
-.receipt-subtitle, .receipt-date { font-size: 12px; font-weight: 700; }
-.receipt-separator { height: 0; margin: 2mm 0; border-top: 1.5px dashed #000; }
+.receipt-subtitle, .receipt-date { font-size: ${paperWidth === "58mm" ? 10 : 11}px; font-weight: 400; }
+.receipt-separator { height: 0; margin: 1.5mm 0; border-top: 1px dashed #000; }
 .receipt-section { display: grid; gap: 1mm; }
 .receipt-row, .receipt-total, .receipt-item-main { display: flex; align-items: baseline; justify-content: space-between; gap: 2mm; width: 100%; }
-.receipt-row span, .receipt-row strong, .receipt-total span, .receipt-total strong { font-size: 13px; line-height: 1.2; }
-.receipt-row strong, .receipt-total strong { text-align: right; font-weight: 900; overflow-wrap: anywhere; }
+.receipt-row span, .receipt-row strong, .receipt-total span, .receipt-total strong { font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; line-height: 1.25; }
+.receipt-row strong, .receipt-total strong { text-align: right; font-weight: 700; overflow-wrap: anywhere; }
 .receipt-date { padding-top: 0.5mm; text-align: center; }
-.receipt-section-title { font-size: 12px; font-weight: 900; text-transform: uppercase; }
-.receipt-items { display: grid; gap: 1.6mm; }
+.receipt-section-title { font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; font-weight: 700; text-transform: uppercase; }
+.receipt-items { display: grid; gap: 1.2mm; }
 .receipt-item { display: grid; gap: 0.5mm; }
-.receipt-item-main strong { min-width: 0; font-size: ${paperWidth === "58mm" ? 14 : 16}px; font-weight: 900; line-height: 1.15; overflow-wrap: anywhere; }
-.receipt-item-main span { flex: 0 0 auto; font-size: 14px; font-weight: 900; }
-.receipt-item-muted, .receipt-item-note, .receipt-note p { font-size: 12px; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
-.receipt-total-strong span, .receipt-total-strong strong { font-size: ${paperWidth === "58mm" ? 15 : 17}px; font-weight: 900; text-transform: uppercase; }
-.receipt-notes { gap: 1.5mm; }
+.receipt-item-main strong { min-width: 0; font-size: ${paperWidth === "58mm" ? 11 : 12}px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.receipt-item-main span { flex: 0 0 auto; font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; font-weight: 700; }
+.receipt-item-muted, .receipt-item-note, .receipt-note p { font-size: ${paperWidth === "58mm" ? 9.5 : 10}px; font-weight: 400; line-height: 1.25; overflow-wrap: anywhere; }
+.receipt-total-strong span, .receipt-total-strong strong { font-size: ${paperWidth === "58mm" ? 12 : 13}px; font-weight: 700; text-transform: uppercase; }
+.receipt-notes { gap: 1.2mm; }
 .receipt-note { display: grid; gap: 0.5mm; }
-.receipt-note strong { font-size: 13px; font-weight: 900; text-transform: uppercase; }
-.receipt-footer { text-align: center; font-size: 13px; font-weight: 900; }
+.receipt-note strong { font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; font-weight: 700; text-transform: uppercase; }
+.receipt-footer { text-align: center; font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; font-weight: 700; }
 
 @media print {
   body > *:not(.receipt-print-root), .no-print {
@@ -297,7 +299,7 @@ export async function printReceiptFromDom() {
   // Escreve documento térmico isolado no iframe
   frameDocument.open();
   frameDocument.write(
-    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/><title>Cupom</title>` +
+    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/><title></title>` +
     `<style id="receipt-page-style">${getReceiptDocumentCss(paperWidth, firstMeasuredHeightMm)}</style>` +
     `</head><body>${root.outerHTML}</body></html>`
   );
