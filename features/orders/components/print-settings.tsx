@@ -185,7 +185,7 @@ export function PrintSettings({
   const [loading, setLoading]               = useState(false);
   const [message, setMessage]               = useState<string | null>(null);
   const [error, setError]                   = useState<string | null>(null);
-  const [receiptPaperWidth, setReceiptPaperWidth] = useState<ReceiptPaperWidth>("80mm");
+  const [receiptPaperWidth, setReceiptPaperWidth] = useState<ReceiptPaperWidth>("a4");
 
   const printerOptions          = useMemo(() => activePrinters, [activePrinters]);
   const autoPrintControlsDisabled = !form.autoPrintEnabled;
@@ -225,7 +225,7 @@ export function PrintSettings({
   function handleReceiptPaperWidthChange(value: ReceiptPaperWidth) {
     setReceiptPaperWidth(value);
     saveReceiptPaperWidth(value);
-    setMessage(`Bobina ${value} salva para impressoes pelo navegador.`);
+    setMessage(`Formato ${value === "a4" ? "A4" : value} salvo para impressoes pelo navegador.`);
     setError(null);
   }
 
@@ -619,14 +619,15 @@ export function PrintSettings({
 
                 <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
                   <label className="mb-1.5 block text-sm font-semibold text-admin-fg">
-                    Tamanho da bobina
+                    Tamanho da impressao
                   </label>
-                  <p className="mb-3 text-xs text-admin-fg-muted">80mm padrão, 58mm compacta.</p>
+                  <p className="mb-3 text-xs text-admin-fg-muted">Folha inteira para impressora comum; bobina para termica.</p>
                   <select
                     className={selectClass(false)}
                     value={receiptPaperWidth}
                     onChange={(e) => handleReceiptPaperWidthChange(e.target.value as ReceiptPaperWidth)}
                   >
+                    <option value="a4">Folha A4 inteira</option>
                     <option value="80mm">80mm — bobina grande</option>
                     <option value="58mm">58mm — bobina compacta</option>
                   </select>

@@ -1,4 +1,8 @@
-import { DEFAULT_RECEIPT_PAPER_WIDTH, RECEIPT_PAPER, type ReceiptPaperWidth } from "@/lib/receipt/constants";
+import {
+  DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH,
+  RECEIPT_PAPER,
+  type ReceiptPaperWidth
+} from "@/lib/receipt/constants";
 
 const PAPER_WIDTH_STORAGE_KEY = "receipt_paper_width";
 const DYNAMIC_PAGE_STYLE_ID = "receipt-dynamic-page-size";
@@ -9,7 +13,7 @@ function pixelsToMm(pixels: number) {
 
 function readPaperWidth(root: Element | null): ReceiptPaperWidth {
   const value = root?.getAttribute("data-receipt-width");
-  return value === "58mm" || value === "80mm" ? value : DEFAULT_RECEIPT_PAPER_WIDTH;
+  return value === "58mm" || value === "80mm" || value === "a4" ? value : DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH;
 }
 
 function findReceiptRoot() {
@@ -33,11 +37,14 @@ function measureReceiptHeightMm(paper: HTMLElement) {
 
 function buildDynamicPageCss(paperWidth: ReceiptPaperWidth, pageHeightMm: number) {
   const paper = RECEIPT_PAPER[paperWidth];
+  const isFullPage = paperWidth === "a4";
+  const pageSize = isFullPage ? "A4 portrait" : `${paper.paperWidthMm}mm ${pageHeightMm}mm`;
+  const rootWidth = isFullPage ? "210mm" : `${paper.paperWidthMm}mm`;
 
   return `
 @media print {
   @page {
-    size: ${paper.paperWidthMm}mm ${pageHeightMm}mm;
+    size: ${pageSize};
     margin: 0;
   }
 
@@ -61,18 +68,18 @@ function buildDynamicPageCss(paperWidth: ReceiptPaperWidth, pageHeightMm: number
     position: absolute !important;
     top: 0 !important;
     left: 0 !important;
-    width: ${paper.paperWidthMm}mm !important;
-    min-width: ${paper.paperWidthMm}mm !important;
-    max-width: ${paper.paperWidthMm}mm !important;
+    width: ${rootWidth} !important;
+    min-width: ${rootWidth} !important;
+    max-width: ${rootWidth} !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
   }
 
   .receipt-paper {
-    width: ${paper.paperWidthMm}mm !important;
-    min-width: ${paper.paperWidthMm}mm !important;
-    max-width: ${paper.paperWidthMm}mm !important;
+    width: ${rootWidth} !important;
+    min-width: ${rootWidth} !important;
+    max-width: ${rootWidth} !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -116,9 +123,9 @@ export function installReceiptPrintPageSizing() {
 }
 
 export function getSavedReceiptPaperWidth(): ReceiptPaperWidth {
-  if (typeof window === "undefined") return DEFAULT_RECEIPT_PAPER_WIDTH;
+  if (typeof window === "undefined") return DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH;
   const value = window.localStorage.getItem(PAPER_WIDTH_STORAGE_KEY);
-  return value === "58mm" || value === "80mm" ? value : DEFAULT_RECEIPT_PAPER_WIDTH;
+  return value === "58mm" || value === "80mm" || value === "a4" ? value : DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH;
 }
 
 export function saveReceiptPaperWidth(value: ReceiptPaperWidth) {
@@ -142,8 +149,12 @@ async function waitForReceiptRoot(timeoutMs = 700) {
 
 function getReceiptDocumentCss(paperWidth: ReceiptPaperWidth, contentHeightMm?: number) {
   const paper = RECEIPT_PAPER[paperWidth];
+  const isFullPage = paperWidth === "a4";
   const pageHeightMm = contentHeightMm ? Math.max(35, Math.ceil(contentHeightMm)) : undefined;
-  const pageSize = pageHeightMm ? `${paper.paperWidthMm}mm ${pageHeightMm}mm` : `${paper.paperWidthMm}mm auto`;
+  const pageSize = isFullPage ? "A4 portrait" : pageHeightMm ? `${paper.paperWidthMm}mm ${pageHeightMm}mm` : `${paper.paperWidthMm}mm auto`;
+  const rootWidth = isFullPage ? "210mm" : `${paper.paperWidthMm}mm`;
+  const baseFontSize = paperWidth === "58mm" ? 10.5 : paperWidth === "80mm" ? 11 : 16;
+  const mutedFontSize = paperWidth === "58mm" ? 9.5 : paperWidth === "80mm" ? 10 : 14;
 
   return `
 @page {
@@ -169,7 +180,7 @@ body {
 
 body {
   font-family: "Courier New", Consolas, monospace;
-  font-size: ${paperWidth === "58mm" ? 10.5 : 11}px;
+  font-size: ${baseFontSize}px;
   line-height: 1.25;
 }
 
@@ -179,9 +190,9 @@ body {
   left: 0 !important;
   top: 0 !important;
   z-index: auto !important;
-  width: ${paper.paperWidthMm}mm !important;
-  min-width: ${paper.paperWidthMm}mm !important;
-  max-width: ${paper.paperWidthMm}mm !important;
+  width: ${rootWidth} !important;
+  min-width: ${rootWidth} !important;
+  max-width: ${rootWidth} !important;
   height: auto !important;
   min-height: 0 !important;
   margin: 0 !important;
@@ -204,9 +215,9 @@ body {
 .receipt-paper {
   box-sizing: border-box !important;
   display: block !important;
-  width: ${paper.paperWidthMm}mm !important;
-  min-width: ${paper.paperWidthMm}mm !important;
-  max-width: ${paper.paperWidthMm}mm !important;
+  width: ${rootWidth} !important;
+  min-width: ${rootWidth} !important;
+  max-width: ${rootWidth} !important;
   height: auto !important;
   min-height: 0 !important;
   margin: 0 !important;
@@ -234,27 +245,27 @@ body {
 }
 
 .receipt-header { text-align: center; }
-.receipt-store-name { margin: 0; font-size: 14px; font-weight: 800; line-height: 1.1; }
-.receipt-header h1 { margin: 0.5mm 0 0; font-size: ${paperWidth === "58mm" ? 13 : 15}px; font-weight: 700; line-height: 1.15; }
+.receipt-store-name { margin: 0; font-size: ${isFullPage ? 20 : 14}px; font-weight: 800; line-height: 1.1; }
+.receipt-header h1 { margin: 0.5mm 0 0; font-size: ${paperWidth === "58mm" ? 13 : paperWidth === "80mm" ? 15 : 26}px; font-weight: 700; line-height: 1.15; }
 .receipt-subtitle, .receipt-date, .receipt-section-title, .receipt-item-muted, .receipt-item-note, .receipt-note p, .receipt-footer { margin: 0; }
-.receipt-subtitle, .receipt-date { font-size: ${paperWidth === "58mm" ? 10 : 11}px; font-weight: 400; }
-.receipt-separator { height: 0; margin: 1.5mm 0; border-top: 1px dashed #000; }
-.receipt-section { display: grid; gap: 1mm; }
+.receipt-subtitle, .receipt-date { font-size: ${isFullPage ? 14 : paperWidth === "58mm" ? 10 : 11}px; font-weight: 400; }
+.receipt-separator { height: 0; margin: ${isFullPage ? 4 : 1.5}mm 0; border-top: 1px dashed #000; }
+.receipt-section { display: grid; gap: ${isFullPage ? 2.5 : 1}mm; }
 .receipt-row, .receipt-total, .receipt-item-main { display: flex; align-items: baseline; justify-content: space-between; gap: 2mm; width: 100%; }
-.receipt-row span, .receipt-row strong, .receipt-total span, .receipt-total strong { font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; line-height: 1.25; }
+.receipt-row span, .receipt-row strong, .receipt-total span, .receipt-total strong { font-size: ${baseFontSize}px; line-height: 1.25; }
 .receipt-row strong, .receipt-total strong { text-align: right; font-weight: 700; overflow-wrap: anywhere; }
 .receipt-date { padding-top: 0.5mm; text-align: center; }
-.receipt-section-title { font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; font-weight: 700; text-transform: uppercase; }
-.receipt-items { display: grid; gap: 1.2mm; }
+.receipt-section-title { font-size: ${baseFontSize}px; font-weight: 700; text-transform: uppercase; }
+.receipt-items { display: grid; gap: ${isFullPage ? 3 : 1.2}mm; }
 .receipt-item { display: grid; gap: 0.5mm; }
-.receipt-item-main strong { min-width: 0; font-size: ${paperWidth === "58mm" ? 11 : 12}px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
-.receipt-item-main span { flex: 0 0 auto; font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; font-weight: 700; }
-.receipt-item-muted, .receipt-item-note, .receipt-note p { font-size: ${paperWidth === "58mm" ? 9.5 : 10}px; font-weight: 400; line-height: 1.25; overflow-wrap: anywhere; }
-.receipt-total-strong span, .receipt-total-strong strong { font-size: ${paperWidth === "58mm" ? 12 : 13}px; font-weight: 700; text-transform: uppercase; }
-.receipt-notes { gap: 1.2mm; }
+.receipt-item-main strong { min-width: 0; font-size: ${paperWidth === "58mm" ? 11 : paperWidth === "80mm" ? 12 : 18}px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.receipt-item-main span { flex: 0 0 auto; font-size: ${baseFontSize}px; font-weight: 700; }
+.receipt-item-muted, .receipt-item-note, .receipt-note p { font-size: ${mutedFontSize}px; font-weight: 400; line-height: 1.25; overflow-wrap: anywhere; }
+.receipt-total-strong span, .receipt-total-strong strong { font-size: ${paperWidth === "58mm" ? 12 : paperWidth === "80mm" ? 13 : 22}px; font-weight: 700; text-transform: uppercase; }
+.receipt-notes { gap: ${isFullPage ? 3 : 1.2}mm; }
 .receipt-note { display: grid; gap: 0.5mm; }
-.receipt-note strong { font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; font-weight: 700; text-transform: uppercase; }
-.receipt-footer { text-align: center; font-size: ${paperWidth === "58mm" ? 10.5 : 11}px; font-weight: 700; }
+.receipt-note strong { font-size: ${baseFontSize}px; font-weight: 700; text-transform: uppercase; }
+.receipt-footer { text-align: center; font-size: ${baseFontSize}px; font-weight: 700; }
 
 @media print {
   body > *:not(.receipt-print-root), .no-print {
@@ -314,10 +325,15 @@ export async function printReceiptFromDom() {
   if (style) {
     style.textContent = getReceiptDocumentCss(paperWidth, measuredHeightMm);
   }
-  iframe.style.height = `${measuredHeightMm}mm`;
+  iframe.style.height = paperWidth === "a4" ? "297mm" : `${measuredHeightMm}mm`;
 
   await new Promise((resolve) => frameWindow.requestAnimationFrame(() => resolve(null)));
+  const previousTitle = document.title;
+  document.title = "";
   frameWindow.print();
+  window.setTimeout(() => {
+    document.title = previousTitle;
+  }, 1000);
 
   // Remove iframe após a impressão ser despachada
   window.setTimeout(() => iframe.remove(), 2000);

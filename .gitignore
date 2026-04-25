@@ -41,6 +41,7 @@ next-start.log
 build.log
 codex-dev.log
 .codex-server.log
+.codex-next-dev.*.log
 
 # artefatos de teste
 /test-results/
