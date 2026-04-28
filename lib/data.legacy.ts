@@ -34,6 +34,78 @@ import type {
   UpdateProductPayload
 } from "@/lib/types";
 
+// -----------------------------------------------------------------------------
+// CALCULO DE HORARIO DE FUNCIONAMENTO
+// Verifica se o restaurante esta aberto agora com base no campo `horarios`
+// (JSONB do banco). Usa horario de Brasilia (UTC-3) para a comparacao.
+//
+// Formato esperado de cada entrada do array `horarios`:
+//   { dia: string, abertura: string|null, fechamento: string|null, fechado?: boolean }
+//
+// O campo `aberto` (boolean) do banco funciona como override manual:
+//   - false => forcado fechado (feriado, manutencao etc.)
+//   - true  => respeita o horario calculado
+// -----------------------------------------------------------------------------
+
+type HorarioEntry = {
+  dia: string;
+  abertura: string | null;
+  fechamento: string | null;
+  fechado?: boolean;
+};
+
+const DIA_MAP: Record<number, string> = {
+  0: "domingo",
+  1: "segunda",
+  2: "terca",
+  3: "quarta",
+  4: "quinta",
+  5: "sexta",
+  6: "sabado"
+};
+
+function isRestaurantOpenBySchedule(
+  horarios: HorarioEntry[],
+  overrideAberto: boolean
+): boolean {
+  // Override manual: admin forcou fechado
+  if (!overrideAberto) return false;
+
+  if (!Array.isArray(horarios) || horarios.length === 0) {
+    // Sem horarios configurados, confia no override
+    return overrideAberto;
+  }
+
+  // Hora atual em Brasilia (UTC-3)
+  const now = new Date();
+  const brasiliaOffset = -3 * 60; // minutos
+  const localOffset = now.getTimezoneOffset(); // minutos (positivo = atras de UTC)
+  const diff = (brasiliaOffset + localOffset) * 60 * 1000;
+  const brasilia = new Date(now.getTime() + diff);
+
+  const weekday = brasilia.getDay(); // 0 = domingo
+  const nomeDia = DIA_MAP[weekday];
+  const horaAtual = brasilia.getHours() * 60 + brasilia.getMinutes(); // minutos desde meia-noite
+
+  const entrada = horarios.find(
+    (h) => h.dia.toLowerCase().trim() === nomeDia
+  );
+
+  if (!entrada) return false;
+  if (entrada.fechado) return false;
+  if (!entrada.abertura || !entrada.fechamento) return false;
+
+  function toMinutes(hhmm: string) {
+    const [h, m] = hhmm.split(":").map(Number);
+    return h * 60 + (m ?? 0);
+  }
+
+  const abre = toMinutes(entrada.abertura);
+  const fecha = toMinutes(entrada.fechamento);
+
+  return horaAtual >= abre && horaAtual < fecha;
+}
+
 // Este modulo concentra a maior parte da regra de negocio legada do sistema.
 // Apesar do nome "legacy", ele ainda alimenta fluxos criticos de menu, pedidos,
 // caixa e historico, então alteracoes aqui exigem bastante cuidado.
@@ -52,7 +124,7 @@ const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[
 const publicOrderTokenRegex = /^[a-f0-9]{32}$/i;
 
 function getOrderTokenSecret() {
-  return process.env.ORDER_PUBLIC_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || null;
+  return process.env.ORDER_PUBLIC_TOKEN_SECRET || null;
 }
 
 function signPublicOrderToken(orderId: string) {
@@ -422,7 +494,7 @@ export async function getRestaurantConfig(): Promise<RestaurantConfig> {
     const supabase = getPreferredServerClient();
     const { data, error } = await supabase!
       .from("restaurante_config")
-      .select("nome, telefone, whatsapp, logo_url, aberto, mensagem_boas_vindas, taxa_entrega")
+      .select("nome, telefone, whatsapp, logo_url, aberto, horarios, mensagem_boas_vindas, taxa_entrega")
       .limit(1)
       .maybeSingle();
 
@@ -430,11 +502,18 @@ export async function getRestaurantConfig(): Promise<RestaurantConfig> {
       throw new Error(error.message);
     }
 
+    // Calcula aberto/fechado com base no horario configurado.
+    // Se o campo `aberto` for false, o restaurante e considerado fechado
+    // independente do horario (override manual do admin).
+    const overrideAberto = data?.aberto ?? true;
+    const horarios: HorarioEntry[] = Array.isArray(data?.horarios) ? data.horarios : [];
+    const estaAberto = isRestaurantOpenBySchedule(horarios, overrideAberto);
+
     return {
       name: data?.nome ?? restaurant.name,
       cuisine: "Culinaria Arabe",
       welcome: data?.mensagem_boas_vindas ?? restaurant.welcome,
-      open: data?.aberto ?? restaurant.open,
+      open: estaAberto,
       // Preferencia: whatsapp dedicado; fallback legado: telefone
       whatsapp: data?.whatsapp ?? data?.telefone ?? restaurant.whatsapp,
       logoUrl: data?.logo_url ?? restaurant.logoUrl ?? null,
@@ -473,7 +552,7 @@ export async function getMenuData(): Promise<{ categories: string[]; products: M
       supabase!.from("categorias").select("id, nome, ordem").eq("ativa", true).is("deleted_at", null).order("ordem"),
       supabase!
         .from("produtos")
-        .select("id, nome, descricao, preco, foto_url, destaque, categorias(nome)")
+        .select("id, nome, descricao, preco, foto_url, destaque, ordem, categorias(nome)")
         .eq("disponivel", true)
         .is("deleted_at", null)
         .order("ordem")
@@ -495,6 +574,7 @@ export async function getMenuData(): Promise<{ categories: string[]; products: M
         description: product.descricao ?? "",
         price: Number(product.preco),
         image: product.foto_url || products[0].image,
+        order: product.ordem ?? 0,
         badge: product.destaque ? "Destaque" : undefined
       })) ?? [];
 
@@ -541,7 +621,7 @@ export async function getMenuManagementData(): Promise<{
     supabase!.from("categorias").select("id, nome, ordem, ativa").order("ordem"),
     supabase!
       .from("produtos")
-      .select("id, categoria_id, nome, descricao, preco, foto_url, destaque, disponivel, categorias(nome)")
+      .select("id, categoria_id, nome, descricao, preco, foto_url, destaque, disponivel, ordem, categorias(nome)")
       .order("ordem")
   ]);
 
@@ -563,6 +643,7 @@ export async function getMenuManagementData(): Promise<{
         description: product.descricao ?? "",
         price: Number(product.preco),
         image: product.foto_url || products[0].image,
+        order: product.ordem ?? 0,
         available: product.disponivel ?? true,
         highlight: product.destaque ?? false,
         badge: product.destaque ? "Destaque" : undefined
@@ -2142,6 +2223,19 @@ export async function createProduct(payload: CreateProductPayload) {
   }
 
   const supabase = getSupabaseAdminClient();
+  let latestOrderQuery = supabase!
+    .from("produtos")
+    .select("ordem")
+    .is("deleted_at", null)
+    .order("ordem", { ascending: false })
+    .limit(1);
+
+  latestOrderQuery = payload.categoryId
+    ? latestOrderQuery.eq("categoria_id", payload.categoryId)
+    : latestOrderQuery.is("categoria_id", null);
+
+  const { data: latest } = await latestOrderQuery.maybeSingle();
+
   const { data, error } = await supabase!
     .from("produtos")
     .insert({
@@ -2150,10 +2244,11 @@ export async function createProduct(payload: CreateProductPayload) {
       descricao: payload.description ?? null,
       preco: payload.price,
       foto_url: payload.image ?? null,
+      ordem: (latest?.ordem ?? 0) + 1,
       destaque: payload.highlight ?? false,
       disponivel: payload.available ?? true
     })
-    .select("id, categoria_id, nome, descricao, preco, foto_url, destaque, disponivel, categorias(nome)")
+    .select("id, categoria_id, nome, descricao, preco, foto_url, destaque, disponivel, ordem, categorias(nome)")
     .single();
 
   if (error || !data) {
@@ -2168,6 +2263,7 @@ export async function createProduct(payload: CreateProductPayload) {
     description: data.descricao ?? "",
     price: Number(data.preco),
     image: data.foto_url || products[0].image,
+    order: data.ordem ?? 0,
     available: data.disponivel ?? true,
     highlight: data.destaque ?? false,
     badge: data.destaque ? "Destaque" : undefined
@@ -2290,7 +2386,7 @@ export async function updateProduct(id: string, payload: UpdateProductPayload) {
       disponivel: payload.available ?? true
     })
     .eq("id", id)
-    .select("id, categoria_id, nome, descricao, preco, foto_url, destaque, disponivel, categorias(nome)")
+    .select("id, categoria_id, nome, descricao, preco, foto_url, destaque, disponivel, ordem, categorias(nome)")
     .single();
 
   if (error || !data) {
@@ -2305,6 +2401,7 @@ export async function updateProduct(id: string, payload: UpdateProductPayload) {
     description: data.descricao ?? "",
     price: Number(data.preco),
     image: data.foto_url || products[0].image,
+    order: data.ordem ?? 0,
     available: data.disponivel ?? true,
     highlight: data.destaque ?? false,
     badge: data.destaque ? "Destaque" : undefined
@@ -2329,4 +2426,104 @@ export async function deleteProduct(id: string) {
   }
 
   return { success: true };
+}
+
+export async function reorderCategories(ids: string[]) {
+  if (!ids.length) return { success: true };
+
+  if (!isSupabaseConfigured()) {
+    return { success: true };
+  }
+
+  const supabase = getSupabaseAdminClient();
+  const updates = ids.map((id, index) =>
+    supabase!
+      .from("categorias")
+      .update({ ordem: index + 1 })
+      .eq("id", id)
+      .is("deleted_at", null)
+  );
+
+  const results = await Promise.all(updates);
+  const failed = results.find((result) => result.error);
+  if (failed?.error) {
+    throw new Error(failed.error.message);
+  }
+
+  return { success: true };
+}
+
+export async function reorderProducts(categoryId: string, ids: string[]) {
+  if (!categoryId || !ids.length) return { success: true };
+
+  if (!isSupabaseConfigured()) {
+    return { success: true };
+  }
+
+  const supabase = getSupabaseAdminClient();
+  const updates = ids.map((id, index) =>
+    supabase!
+      .from("produtos")
+      .update({ ordem: index + 1 })
+      .eq("id", id)
+      .eq("categoria_id", categoryId)
+      .is("deleted_at", null)
+  );
+
+  const results = await Promise.all(updates);
+  const failed = results.find((result) => result.error);
+  if (failed?.error) {
+    throw new Error(failed.error.message);
+  }
+
+  return { success: true };
+}
+
+export async function moveProductToCategory(productId: string, categoryId: string) {
+  if (!productId || !categoryId) {
+    throw new Error("Produto ou categoria invalida");
+  }
+
+  if (!isSupabaseConfigured()) {
+    return { success: true };
+  }
+
+  const supabase = getSupabaseAdminClient();
+  const { data: latest } = await supabase!
+    .from("produtos")
+    .select("ordem")
+    .eq("categoria_id", categoryId)
+    .is("deleted_at", null)
+    .order("ordem", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = await supabase!
+    .from("produtos")
+    .update({
+      categoria_id: categoryId,
+      ordem: (latest?.ordem ?? 0) + 1,
+    })
+    .eq("id", productId)
+    .is("deleted_at", null)
+    .select("id, categoria_id, nome, descricao, preco, foto_url, destaque, disponivel, ordem, categorias(nome)")
+    .single();
+
+  if (error || !data) {
+    throw new Error(error?.message ?? "Nao foi possivel mover produto");
+  }
+
+  return {
+    id: data.id,
+    categoryId: data.categoria_id ?? undefined,
+    category: (data.categorias as { nome?: string } | null)?.nome ?? "Sem categoria",
+    name: data.nome,
+    description: data.descricao ?? "",
+    price: Number(data.preco),
+    image: data.foto_url || products[0].image,
+    order: data.ordem ?? 0,
+    available: data.disponivel ?? true,
+    highlight: data.destaque ?? false,
+    badge: data.destaque ? "Destaque" : undefined
+  } satisfies MenuProduct;
 }

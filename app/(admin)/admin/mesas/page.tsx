@@ -13,12 +13,12 @@ import {
   AdminHeaderActions,
 } from "@/components/layout";
 
-function getBaseUrl() {
+async function getBaseUrl() {
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
   }
 
-  const headerStore = headers();
+  const headerStore = await headers();
   const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host") ?? "localhost:3000";
   const protocol =
     headerStore.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
@@ -27,8 +27,7 @@ function getBaseUrl() {
 }
 
 export default async function AdminTablesPage() {
-  const baseUrl = getBaseUrl();
-  const tables = await tableService.listActiveTables();
+  const [baseUrl, tables] = await Promise.all([getBaseUrl(), tableService.listActiveTables()]);
   const tableCount = tables.length;
 
   const entries = [

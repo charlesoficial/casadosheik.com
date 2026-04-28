@@ -19,11 +19,12 @@ export function AdminOrderAlerts() {
         ? {
             enabled: isEnabled,
             volume: Math.max(1, settings.alertVolume) / 100,
-            repeatIfPending: settings.alertFrequency !== "once_per_order" && settings.alertFrequency !== "none",
-            alertTone: settings.alertSound
+            repeatIfPending: true,
+            repeatIntervalMs: 0,
+            alertTone: "Alerta 1" as const
           }
         : undefined,
-    [isEnabled, settings?.alertFrequency, settings?.alertSound, settings?.alertVolume]
+    [isEnabled, settings?.alertVolume]
   );
 
   async function refreshOrders() {
@@ -84,11 +85,27 @@ export function AdminOrderAlerts() {
     };
   }, []);
 
-  useAlertAudio({
+  const { state, playTestSound } = useAlertAudio({
     orders,
     enabled: isEnabled,
     settings: audioSettings
   });
 
-  return null;
+  const needsAudioActivation = isEnabled && (!state.unlocked || state.lastError);
+
+  if (!needsAudioActivation) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 max-w-sm rounded-ds-lg border border-status-warning-border bg-status-warning-bg p-4 text-sm text-status-warning-text shadow-soft">
+      <p className="font-semibold">Som de pedidos bloqueado pelo navegador</p>
+      <p className="mt-1 leading-5">Clique para ativar a campainha de restaurante nos proximos pedidos.</p>
+      <button
+        type="button"
+        onClick={() => void playTestSound()}
+        className="mt-3 rounded-ds-md border border-status-warning-border bg-admin-surface px-3 py-2 text-xs font-semibold text-admin-fg hover:bg-admin-elevated"
+      >
+        Ativar som
+      </button>
+    </div>
+  );
 }

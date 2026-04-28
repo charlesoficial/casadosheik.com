@@ -39,8 +39,12 @@ export async function POST(request: Request) {
       error instanceof Error &&
       [
         "Nome e telefone sao obrigatorios para delivery.",
+        "Rua e obrigatoria para delivery.",
+        "Numero e obrigatorio para delivery.",
+        "Bairro e obrigatorio para delivery.",
         "Pedido sem itens",
         "Carrinho com produto invalido.",
+        "Produto indisponivel para este pedido.",
         "Produto indisponivel ou inexistente no catalogo.",
         "Mesa invalida para este pedido."
       ].includes(error.message)

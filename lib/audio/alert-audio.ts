@@ -31,140 +31,92 @@ export type AlertAudioState = {
 const SETTINGS_KEY = "alert_sound_settings";
 const SETTINGS_EVENT = "alert_sound_settings_updated";
 const UNLOCKED_KEY = "alert_audio_unlocked";
+const RESTAURANT_BELL_TONE: AlertTone = "Alerta 1";
 
-// Uma "nota" dentro de um toque sintetizado.
 type ToneStep = {
-  freq: number;          // Hz
+  freq: number;
   type: OscillatorType;
-  startTime: number;     // segundos a partir do início do toque
-  duration: number;      // segundos
-  gainPeak: number;      // ganho relativo (0–1)
+  startTime: number;
+  duration: number;
+  gainPeak: number;
 };
 
-// ── 8 toques sintetizados para restaurante de balcão ──────────────────────────
-//
-// Projetados para cortar ruído de salão, serem reconhecíveis e não irritativos.
-// Cada receita é composta por osciladores com envelope ADSR simplificado.
-//
-const TONE_RECIPES: Record<AlertTone, ToneStep[]> = {
-  // 1 · Sino único — campainha limpa de balcão
-  "Alerta 1": [
-    { freq: 880, type: "sine", startTime: 0, duration: 0.5, gainPeak: 1 },
-  ],
+const RESTAURANT_BELL_RECIPE: ToneStep[] = [
+  { freq: 1174.66, type: "sine", startTime: 0, duration: 0.22, gainPeak: 1 },
+  { freq: 880, type: "sine", startTime: 0.03, duration: 0.38, gainPeak: 0.9 },
+  { freq: 587.33, type: "triangle", startTime: 0.08, duration: 0.52, gainPeak: 0.5 }
+];
 
-  // 2 · Ding-dong — dois tons descendentes (campainha de entrada)
-  "Alerta 2": [
-    { freq: 987, type: "sine", startTime: 0,    duration: 0.28, gainPeak: 1   },
-    { freq: 783, type: "sine", startTime: 0.32, duration: 0.40, gainPeak: 0.9 },
-  ],
-
-  // 3 · Três pings — atenção rápida no pico do serviço
-  "Alerta 3": [
-    { freq: 880, type: "sine", startTime: 0,    duration: 0.16, gainPeak: 1 },
-    { freq: 880, type: "sine", startTime: 0.24, duration: 0.16, gainPeak: 1 },
-    { freq: 880, type: "sine", startTime: 0.48, duration: 0.16, gainPeak: 1 },
-  ],
-
-  // 4 · Balcão (oitava) — sino grave + agudo simultâneos, encorpado
-  "Alerta 4": [
-    { freq: 587,  type: "sine", startTime: 0, duration: 0.45, gainPeak: 0.8 },
-    { freq: 1174, type: "sine", startTime: 0, duration: 0.40, gainPeak: 0.65 },
-  ],
-
-  // 5 · Chime suave — discreto para ambientes com som ambiente alto
-  "Alerta 5": [
-    { freq: 659, type: "sine", startTime: 0, duration: 0.75, gainPeak: 0.7 },
-  ],
-
-  // 6 · Duplo agudo — dois pings de alta frequência, corta qualquer ruído
-  "Alerta 6": [
-    { freq: 1047, type: "triangle", startTime: 0,    duration: 0.14, gainPeak: 0.9 },
-    { freq: 1047, type: "triangle", startTime: 0.22, duration: 0.14, gainPeak: 0.9 },
-  ],
-
-  // 7 · Chamada rítmica — padrão grave-agudo-grave, prende a atenção
-  "Alerta 7": [
-    { freq: 880, type: "sine", startTime: 0,    duration: 0.20, gainPeak: 1   },
-    { freq: 660, type: "sine", startTime: 0.26, duration: 0.16, gainPeak: 0.8 },
-    { freq: 880, type: "sine", startTime: 0.48, duration: 0.26, gainPeak: 1   },
-  ],
-
-  // 8 · Fanfarra — sequência ascendente de quatro notas, inconfundível
-  "Alerta 8": [
-    { freq: 523,  type: "sine", startTime: 0,    duration: 0.16, gainPeak: 0.8  },
-    { freq: 659,  type: "sine", startTime: 0.20, duration: 0.16, gainPeak: 0.85 },
-    { freq: 784,  type: "sine", startTime: 0.40, duration: 0.16, gainPeak: 0.9  },
-    { freq: 1047, type: "sine", startTime: 0.60, duration: 0.28, gainPeak: 1    },
-  ],
-};
+const RESTAURANT_BELL_DURATION_MS =
+  Math.ceil(Math.max(...RESTAURANT_BELL_RECIPE.map((step) => step.startTime + step.duration)) * 1000) + 120;
 
 export const ALERT_SOUND_PROFILES: Record<
   AlertSoundProfile,
   { label: string; volume: number; gainBoost: number; repeatIfPending: boolean; repeatIntervalMs: number }
 > = {
   soft: {
-    label: "Suave",
+    label: "Campainha restaurante",
     volume: 0.65,
     gainBoost: 1,
-    repeatIfPending: false,
-    repeatIntervalMs: 10000
+    repeatIfPending: true,
+    repeatIntervalMs: 0
   },
   normal: {
-    label: "Normal",
+    label: "Campainha restaurante",
     volume: 0.85,
     gainBoost: 1,
     repeatIfPending: true,
-    repeatIntervalMs: 10000
+    repeatIntervalMs: 0
   },
   loud: {
-    label: "Alto",
+    label: "Campainha restaurante",
     volume: 1,
     gainBoost: 1.2,
     repeatIfPending: true,
-    repeatIntervalMs: 8000
+    repeatIntervalMs: 0
   },
   max_restaurant: {
-    label: "Maximo restaurante",
+    label: "Campainha restaurante",
     volume: 1,
     gainBoost: 1.5,
     repeatIfPending: true,
-    repeatIntervalMs: 8000
+    repeatIntervalMs: 0
   }
 };
 
 export const ALERT_TONES: Record<AlertTone, { label: string; hint: string }> = {
   "Alerta 1": {
-    label: "Sino único",
-    hint: "Campainha limpa de balcão — direta e reconhecível.",
+    label: "Campainha restaurante",
+    hint: "Toque bell de restaurante usado globalmente para pedidos novos."
   },
   "Alerta 2": {
-    label: "Ding-dong",
-    hint: "Dois tons descendentes, estilo campainha de entrada.",
+    label: "Campainha restaurante",
+    hint: "Normalizado para a campainha padrao de restaurante."
   },
   "Alerta 3": {
-    label: "Três pings",
-    hint: "Três toques rápidos para chamar atenção no pico do serviço.",
+    label: "Campainha restaurante",
+    hint: "Normalizado para a campainha padrao de restaurante."
   },
   "Alerta 4": {
-    label: "Balcão oitava",
-    hint: "Sino grave e agudo juntos — encorpado e limpo.",
+    label: "Campainha restaurante",
+    hint: "Normalizado para a campainha padrao de restaurante."
   },
   "Alerta 5": {
-    label: "Chime suave",
-    hint: "Tom discreto, ideal para ambientes com som ambiente alto.",
+    label: "Campainha restaurante",
+    hint: "Normalizado para a campainha padrao de restaurante."
   },
   "Alerta 6": {
-    label: "Duplo agudo",
-    hint: "Dois pings de alta frequência — corta qualquer ruído de salão.",
+    label: "Campainha restaurante",
+    hint: "Normalizado para a campainha padrao de restaurante."
   },
   "Alerta 7": {
-    label: "Chamada rítmica",
-    hint: "Padrão grave-agudo-grave que prende a atenção sem irritar.",
+    label: "Campainha restaurante",
+    hint: "Normalizado para a campainha padrao de restaurante."
   },
   "Alerta 8": {
-    label: "Fanfarra",
-    hint: "Sequência ascendente de quatro notas — inconfundível.",
-  },
+    label: "Campainha restaurante",
+    hint: "Normalizado para a campainha padrao de restaurante."
+  }
 };
 
 export const DEFAULT_ALERT_AUDIO_SETTINGS: AlertAudioSettings = {
@@ -172,9 +124,9 @@ export const DEFAULT_ALERT_AUDIO_SETTINGS: AlertAudioSettings = {
   volume: 1,
   gainBoost: 1.5,
   repeatIfPending: true,
-  repeatIntervalMs: 8000,
+  repeatIntervalMs: 0,
   soundProfile: "max_restaurant",
-  alertTone: "Alerta 8"
+  alertTone: RESTAURANT_BELL_TONE
 };
 
 type WebKitAudioWindow = Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext };
@@ -189,10 +141,10 @@ function normalizeSettings(input: Partial<AlertAudioSettings> = {}): AlertAudioS
     enabled: input.enabled ?? DEFAULT_ALERT_AUDIO_SETTINGS.enabled,
     volume: clamp(input.volume ?? profile.volume, 0, 1),
     gainBoost: clamp(input.gainBoost ?? profile.gainBoost, 0.1, 3),
-    repeatIfPending: input.repeatIfPending ?? profile.repeatIfPending,
-    repeatIntervalMs: clamp(input.repeatIntervalMs ?? profile.repeatIntervalMs, 0, 60000),
+    repeatIfPending: true,
+    repeatIntervalMs: 0,
     soundProfile: input.soundProfile ?? DEFAULT_ALERT_AUDIO_SETTINGS.soundProfile,
-    alertTone: input.alertTone && ALERT_TONES[input.alertTone] ? input.alertTone : DEFAULT_ALERT_AUDIO_SETTINGS.alertTone
+    alertTone: RESTAURANT_BELL_TONE
   };
 }
 
@@ -276,23 +228,22 @@ class AlertAudioEngine {
   }
 
   startRepeating() {
-    this.stopRepeating();
+    this.stopRepeating(false);
     if (!this.settings.enabled || !this.settings.repeatIfPending) return;
-    // 0 = sem pausa: usa 100 ms de polling; o playLockUntil (650 ms) garante que o
-    // som não se sobreponha — repete logo após a trava expirar (~650 ms de ciclo).
-    const intervalMs = this.settings.repeatIntervalMs === 0 ? 100 : this.settings.repeatIntervalMs;
+    void this.playNewOrderSound();
     this.repeatTimer = window.setInterval(() => {
       void this.playNewOrderSound();
-    }, intervalMs);
+    }, RESTAURANT_BELL_DURATION_MS);
     this.log("repeat_started");
   }
 
-  stopRepeating() {
+  stopRepeating(stopCurrentSound = true) {
     if (this.repeatTimer) {
       window.clearInterval(this.repeatTimer);
       this.repeatTimer = null;
       this.log("repeat_stopped");
     }
+    if (stopCurrentSound) this.stopActiveOscillators();
   }
 
   private async play(reason: "test" | "new_order") {
@@ -301,16 +252,17 @@ class AlertAudioEngine {
 
     const now = Date.now();
     if (now < this.playLockUntil) return false;
-    this.playLockUntil = now + 650;
+    this.playLockUntil = now + RESTAURANT_BELL_DURATION_MS;
 
     try {
       await this.ensureAudioContext();
       await this.ensureContextRunning();
       if (this.audioContext && this.audioContext.state === "running") {
         this.stopActiveOscillators();
-        this.playToneRecipe(this.audioContext);
+        this.playRestaurantBell(this.audioContext);
         this.unlocked = true;
         window.localStorage.setItem(UNLOCKED_KEY, "true");
+        this.lastError = null;
         this.log("audio_play_success");
         return true;
       }
@@ -319,7 +271,7 @@ class AlertAudioEngine {
       this.log("audio_play_failure");
     }
 
-    return this.playFallbackBeep(reason);
+    return this.playFallbackBell(reason);
   }
 
   private async ensureAudioContext() {
@@ -340,9 +292,8 @@ class AlertAudioEngine {
     }
   }
 
-  private playToneRecipe(ctx: AudioContext) {
+  private playRestaurantBell(ctx: AudioContext) {
     const now = ctx.currentTime + 0.01;
-    const recipe = TONE_RECIPES[this.settings.alertTone];
     const masterLoudness = clamp(this.settings.volume * this.settings.gainBoost, 0.0001, 2.4);
 
     const compressor = ctx.createDynamicsCompressor();
@@ -353,7 +304,7 @@ class AlertAudioEngine {
     compressor.release.value = 0.12;
     compressor.connect(ctx.destination);
 
-    for (const step of recipe) {
+    for (const step of RESTAURANT_BELL_RECIPE) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -374,38 +325,28 @@ class AlertAudioEngine {
       osc.stop(endAt + 0.05);
 
       osc.onended = () => {
-        try { osc.disconnect(); } catch { /* já desconectado */ }
-        try { gain.disconnect(); } catch { /* já desconectado */ }
+        try { osc.disconnect(); } catch { /* already disconnected */ }
+        try { gain.disconnect(); } catch { /* already disconnected */ }
       };
 
       this.activeOscillators.push(osc);
     }
 
-    // Desconecta o compressor após todos os osciladores terminarem
-    const maxDuration = Math.max(...recipe.map((s) => s.startTime + s.duration)) + 0.15;
     window.setTimeout(() => {
-      try { compressor.disconnect(); } catch { /* já desconectado */ }
-    }, maxDuration * 1000);
+      try { compressor.disconnect(); } catch { /* already disconnected */ }
+    }, RESTAURANT_BELL_DURATION_MS);
   }
 
-  // Cria um contexto temporário quando o contexto principal ainda está bloqueado
-  private playFallbackBeep(reason: "test" | "new_order") {
+  private playFallbackBell(reason: "test" | "new_order") {
     try {
       const Ctor = window.AudioContext || (window as WebKitAudioWindow).webkitAudioContext;
       if (!Ctor) throw new Error("Web Audio API indisponivel.");
       const ctx = new Ctor();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 880;
-      gain.gain.setValueAtTime(this.settings.volume * this.settings.gainBoost, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.45);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.5);
-      osc.onended = () => void ctx.close();
+      this.playRestaurantBell(ctx);
+      window.setTimeout(() => void ctx.close(), RESTAURANT_BELL_DURATION_MS + 100);
       this.unlocked = true;
       window.localStorage.setItem(UNLOCKED_KEY, "true");
+      this.lastError = null;
       this.log("audio_play_success");
       return true;
     } catch (error) {
@@ -413,8 +354,8 @@ class AlertAudioEngine {
         error instanceof Error
           ? error.message
           : reason === "test"
-            ? "Clique novamente para liberar o som do navegador."
-            : "Navegador bloqueou o audio. Use o botao de teste de som.";
+            ? "Clique novamente em Ativar som para liberar o audio do navegador."
+            : "Navegador bloqueou o audio. Use o botao Ativar som.";
       this.log("audio_play_failure");
       return false;
     }
@@ -422,10 +363,11 @@ class AlertAudioEngine {
 
   private stopActiveOscillators() {
     for (const osc of this.activeOscillators) {
-      try { osc.stop(); } catch { /* oscilador já encerrado */ }
-      try { osc.disconnect(); } catch { /* desconexão defensiva */ }
+      try { osc.stop(); } catch { /* already stopped */ }
+      try { osc.disconnect(); } catch { /* already disconnected */ }
     }
     this.activeOscillators = [];
+    this.playLockUntil = 0;
   }
 
   private log(event: string) {

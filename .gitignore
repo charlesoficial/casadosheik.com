@@ -42,16 +42,19 @@ build.log
 codex-dev.log
 .codex-server.log
 .codex-next-dev.*.log
+.codex-next-start.*.log
 
 # artefatos de teste
 /test-results/
 /.playwright-cli/
+/.playwright-mcp/
 
 # arquivos gerados / temporários
 itens.txt
 prompt.txt
 application-SKILL.md
 /output/
+/supabase/.temp/
 
 # rascunhos locais
 /projeto/
@@ -64,3 +67,5 @@ Projeto-Cerebro/
 
 # imagens soltas na raiz
 logo_v1710458819.jpeg
+produto-desktop*.png
+RESTAURANTE.SQL/backup.sql

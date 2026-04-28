@@ -1,6 +1,7 @@
 const remotePatterns = [
   { protocol: "https", hostname: "images.unsplash.com" },
-  { protocol: "https", hostname: "www.goomer.app" }
+  { protocol: "https", hostname: "www.goomer.app" },
+  { protocol: "https", hostname: "qfzotteiiikswlljjxup.supabase.co" }
 ];
 
 if (process.env.NEXT_PUBLIC_SUPABASE_URL) {

@@ -7,13 +7,17 @@ export const revalidate = 0;
 export default async function MenuPage({
   searchParams
 }: {
-  searchParams: { mesa?: string };
+  searchParams: Promise<{ mesa?: string }>;
 }) {
-  const [restaurant, menu] = await Promise.all([getRestaurantConfig(), getMenuData()]);
+  const [restaurant, menu, query] = await Promise.all([
+    getRestaurantConfig(),
+    getMenuData(),
+    searchParams
+  ]);
 
   return (
     <MenuShell
-      mesa={searchParams.mesa}
+      mesa={query.mesa}
       restaurant={restaurant}
       categories={menu.categories}
       products={menu.products}

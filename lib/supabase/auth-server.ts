@@ -19,13 +19,17 @@ export function isServerAuthConfigured() {
   return Boolean(getEnv());
 }
 
+function hasAdminRole(user: { app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> }) {
+  return user.app_metadata?.role === "admin" || user.user_metadata?.role === "admin";
+}
+
 // Cria o client autenticado no servidor reutilizando os cookies da request atual.
 // Isso permite que rotas e layouts leiam a sessao sem vazar credenciais ao cliente.
-export function createSupabaseServerAuthClient() {
+export async function createSupabaseServerAuthClient() {
   const env = getEnv();
   if (!env) return null;
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   return createServerClient(env.url, env.key, {
     cookies: {
@@ -49,7 +53,7 @@ export async function requireAdminUser() {
     throw new Error("UNAUTHORIZED");
   }
 
-  const supabase = createSupabaseServerAuthClient();
+  const supabase = await createSupabaseServerAuthClient();
   if (!supabase) {
     throw new Error("UNAUTHORIZED");
   }
@@ -59,7 +63,7 @@ export async function requireAdminUser() {
     error
   } = await supabase.auth.getUser();
 
-  if (error || !user) {
+  if (error || !user || !hasAdminRole(user)) {
     throw new Error("UNAUTHORIZED");
   }
 
@@ -121,7 +125,7 @@ export async function updateAuthSession(request: NextRequest) {
   const isProtectedAdminRoute = pathname.startsWith("/admin") && !isLoginRoute;
 
   // Toda rota de operacao admin exige usuario autenticado.
-  if (isProtectedAdminRoute && !user) {
+  if (isProtectedAdminRoute && (!user || !hasAdminRole(user))) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("next", pathname);
@@ -129,7 +133,7 @@ export async function updateAuthSession(request: NextRequest) {
   }
 
   // Se o operador ja tem sessao valida, evitamos que ele volte ao login por engano.
-  if (isLoginRoute && user) {
+  if (isLoginRoute && user && hasAdminRole(user)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/admin/pedidos";
     redirectUrl.search = "";

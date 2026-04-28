@@ -12,12 +12,13 @@ export default async function OrderStatusPage({
   params,
   searchParams
 }: {
-  params: { id: string };
-  searchParams: { mesa?: string; fromProduct?: string; token?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ mesa?: string; fromProduct?: string; token?: string }>;
 }) {
   try {
+    const [{ id }, query] = await Promise.all([params, searchParams]);
     const [order, restaurant] = await Promise.all([
-      getOrderDetail(params.id, { publicToken: searchParams.token ?? null, requirePublicToken: true }),
+      getOrderDetail(id, { publicToken: query.token ?? null, requirePublicToken: true }),
       getRestaurantConfig()
     ]);
 
@@ -25,8 +26,8 @@ export default async function OrderStatusPage({
       <OrderStatusShell
         initialOrder={order}
         whatsapp={restaurant.whatsapp}
-        mesa={searchParams.mesa}
-        token={searchParams.token}
+        mesa={query.mesa}
+        token={query.token}
       />
     );
   } catch (error) {

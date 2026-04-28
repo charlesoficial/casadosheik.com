@@ -1,44 +1,51 @@
 import { Suspense } from "react";
 import Image from "next/image";
 
-import { FloatingParticles } from "@/features/auth/components/floating-particles";
 import { LoginForm } from "@/features/auth/components/login-form";
 
 export default function AdminLoginPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <div className="grid min-h-screen xl:grid-cols-[minmax(440px,0.92fr)_minmax(0,1.08fr)]">
-        <section className="order-1 flex min-h-screen items-center justify-center bg-background px-6 py-10 sm:px-8 lg:px-12 lg:py-12 xl:order-2 xl:px-20">
-          <div className="w-full max-w-md">
-            <div className="mb-8 space-y-3">
-              <h1 className="text-4xl font-semibold tracking-tight text-foreground">Bem-vindo de volta</h1>
-              <p className="text-base leading-7 text-muted-foreground">
+    <main className="relative min-h-screen overflow-hidden bg-[#100b08]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(184,128,25,0.24)_0%,rgba(184,128,25,0.08)_26%,rgba(0,0,0,0)_55%),linear-gradient(135deg,#120c08_0%,#1b120d_48%,#0a0705_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:44px_44px] opacity-30" />
+      <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-black/70 to-transparent" />
+
+      <section className="relative z-10 flex min-h-screen items-center justify-center px-5 py-10 sm:px-8 lg:px-12">
+        <div className="w-full max-w-[460px]">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/95 shadow-[0_20px_55px_rgba(0,0,0,0.35)]">
+              <Image
+                src="/logo.png"
+                alt="Casa do Sheik"
+                width={72}
+                height={72}
+                className="h-16 w-16 object-contain"
+                priority
+              />
+            </div>
+          </div>
+
+          <div className="rounded-[28px] border border-white/14 bg-[#fffaf2]/95 p-7 shadow-[0_32px_90px_rgba(0,0,0,0.45)] backdrop-blur-md sm:p-9">
+            <div className="mb-8 space-y-3 text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#a06a16]">
+                Casa do Sheik
+              </p>
+              <h1 className="text-4xl font-semibold tracking-tight text-[#18110d]">Bem-vindo de volta</h1>
+              <p className="mx-auto max-w-[340px] text-base leading-7 text-[#6d5b4c]">
                 Entre com suas credenciais para acessar o painel de gerenciamento.
               </p>
             </div>
 
-            <div className="space-y-6">
-              <Suspense fallback={null}>
-                <LoginForm />
-              </Suspense>
-            </div>
-          </div>
-        </section>
+            <Suspense fallback={null}>
+              <LoginForm />
+            </Suspense>
 
-        <section className="order-2 relative min-h-[320px] overflow-hidden xl:order-1 xl:min-h-screen">
-          <Image
-            src="/restaurant-hero.jpg"
-            alt="Painel de gerenciamento de restaurante"
-            fill
-            priority
-            sizes="(min-width: 1280px) 54vw, 100vw"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-foreground/75 via-foreground/45 to-transparent" />
-          <div className="absolute inset-0 bg-arabesque opacity-80" />
-          <FloatingParticles />
-        </section>
-      </div>
+            <p className="mt-6 text-center text-xs font-medium text-[#8a7664]">
+              Acesso restrito a operadores autorizados.
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

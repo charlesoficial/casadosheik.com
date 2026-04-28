@@ -85,7 +85,6 @@ export function useAlertAudio({ orders, enabled = true, settings }: UseAlertAudi
     if (!initializedRef.current) {
       initializedRef.current = true;
       previousOrdersRef.current = orders;
-      return;
     }
 
     const previousById = new Map(previousOrdersRef.current.map((order) => [order.id, order]));
@@ -114,7 +113,7 @@ export function useAlertAudio({ orders, enabled = true, settings }: UseAlertAudi
     }
 
     return () => alertAudio.stopRepeating();
-  }, [audioSettings.enabled, audioSettings.repeatIfPending, audioSettings.repeatIntervalMs, enabled, pendingOrderIds.length]);
+  }, [audioSettings.enabled, audioSettings.repeatIfPending, enabled, pendingOrderIds.length]);
 
   function updateSettings(next: Partial<AlertAudioSettings>) {
     alertAudio.setSettings(next);

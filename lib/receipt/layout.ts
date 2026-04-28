@@ -238,9 +238,9 @@ export function buildReceiptTextLines(receipt: ReceiptData) {
   const lines: string[] = [];
 
   lines.push(centerText(receipt.storeName, width));
-  lines.push(centerText(receipt.title, width));
-  if (receipt.subtitle) lines.push(centerText(receipt.subtitle, width));
-  lines.push(separator(width, "="));
+  lines.push(receipt.title);
+  if (receipt.subtitle) lines.push(receipt.subtitle);
+  lines.push(separator(width));
 
   for (const row of receipt.meta) {
     lines.push(pairLine(row.label, row.value, width));
@@ -251,12 +251,10 @@ export function buildReceiptTextLines(receipt: ReceiptData) {
     lines.push("ITENS");
     for (const item of receipt.items) {
       const prefix = item.quantity ? `${item.quantity}x ` : "";
-      const price = typeof item.total === "number" && receipt.showPrices ? formatReceiptCurrency(item.total) : "";
       const itemText = `${prefix}${item.name}`;
-      if (price) {
-        lines.push(pairLine(itemText, price, width));
-      } else {
-        lines.push(...wrapText(itemText, width));
+      lines.push(...wrapText(itemText, width));
+      if (typeof item.unitPrice === "number" && typeof item.total === "number" && receipt.showPrices) {
+        lines.push(pairLine(`Unit. ${formatReceiptCurrency(item.unitPrice)}`, `Subt. ${formatReceiptCurrency(item.total)}`, width));
       }
       if (item.note) {
         lines.push(...wrapText(`obs: ${item.note}`, width, "  "));
@@ -282,7 +280,6 @@ export function buildReceiptTextLines(receipt: ReceiptData) {
 
   lines.push(separator(width));
   lines.push(centerText(receipt.footer ?? RECEIPT_FOOTER_TEXT, width));
-  lines.push(centerText(formatReceiptDateTime(receipt.createdAt), width));
 
   return lines;
 }

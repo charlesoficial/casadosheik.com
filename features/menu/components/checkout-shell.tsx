@@ -166,6 +166,11 @@ export function CheckoutShell({
       return;
     }
 
+    if (deliveryMode && (!rua.trim() || !numero.trim() || !bairro.trim())) {
+      setError("Preencha rua, numero e bairro para delivery.");
+      return;
+    }
+
     const payload: CheckoutPayload = {
       mesa,
       tipo: mesa ? "mesa" : "delivery",

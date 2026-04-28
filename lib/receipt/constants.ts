@@ -1,7 +1,7 @@
 export type ReceiptPaperWidth = "58mm" | "80mm" | "a4";
 
 export const DEFAULT_RECEIPT_PAPER_WIDTH: ReceiptPaperWidth = "80mm";
-export const DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH: ReceiptPaperWidth = "a4";
+export const DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH: ReceiptPaperWidth = "80mm";
 
 export const RECEIPT_PAPER = {
   "58mm": {
@@ -16,8 +16,8 @@ export const RECEIPT_PAPER = {
     paperWidthMm: 80,
     contentWidthMm: 72,
     escPosColumns: 42,
-    paddingXmm: 4,
-    paddingTopMm: 3,
+    paddingXmm: 3,
+    paddingTopMm: 2,
     paddingBottomMm: 2
   },
   a4: {

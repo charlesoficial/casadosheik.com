@@ -25,23 +25,14 @@ import type { OrderSettingsPayload, OrderSettingsRecord, PrinterRecord } from "@
 // ── Constants (lógica preservada) ─────────────────────────────────────────────
 
 const alertOptions: Array<OrderSettingsRecord["alertSound"]> = [
-  "Alerta 1", "Alerta 2", "Alerta 3", "Alerta 4",
-  "Alerta 5", "Alerta 6", "Alerta 7", "Alerta 8",
+  "Alerta 1",
 ];
-const alertToneMeta: Record<OrderSettingsRecord["alertSound"], { profile: string; hint: string }> = {
-  "Alerta 1": { profile: "Sino unico",      hint: "Campainha limpa de balcao, direta e reconhecivel." },
-  "Alerta 2": { profile: "Ding-dong",       hint: "Dois tons descendentes, estilo campainha de entrada." },
-  "Alerta 3": { profile: "Tres pings",      hint: "Tres toques rapidos para chamar atencao no pico." },
-  "Alerta 4": { profile: "Balcao oitava",   hint: "Sino grave e agudo juntos, encorpado e limpo." },
-  "Alerta 5": { profile: "Chime suave",     hint: "Tom discreto para ambientes com som ambiente alto." },
-  "Alerta 6": { profile: "Duplo agudo",     hint: "Dois pings de alta frequencia, corta qualquer ruido." },
-  "Alerta 7": { profile: "Chamada ritmica", hint: "Padrao grave-agudo-grave que prende a atencao." },
-  "Alerta 8": { profile: "Fanfarra",        hint: "Sequencia ascendente de quatro notas, inconfundivel." },
+const restaurantBellMeta = {
+  profile: "Campainha restaurante",
+  hint: "Toque bell de restaurante usado globalmente."
 };
 const alertFrequencies: Array<{ value: OrderSettingsRecord["alertFrequency"]; label: string; hint: string }> = [
-  { value: "none",                label: "Silenciado",          hint: "Sem som ao entrar pedidos." },
-  { value: "once_per_order",      label: "Uma vez por pedido",  hint: "Toca no momento da entrada." },
-  { value: "repeat_while_pending",label: "Repetir pendentes",   hint: "Repete ate o pedido sair de novo." },
+  { value: "repeat_while_pending", label: "Repetir pendentes", hint: "Repete sem intervalo artificial ate o pedido sair de novo." },
 ];
 const autoPrintModes: Array<{ value: OrderSettingsRecord["autoPrintMode"]; label: string; hint: string }> = [
   { value: "single_printer",  label: "Impressora única",      hint: "Comanda completa em uma impressora." },
@@ -174,8 +165,8 @@ export function PrintSettings({
     enableStepPreparing:        initialSettings.enableStepPreparing,
     enableStepDelivery:         initialSettings.enableStepDelivery,
     notificationsEnabled:       initialSettings.notificationsEnabled,
-    alertSound:                 initialSettings.alertSound,
-    alertFrequency:             initialSettings.alertFrequency,
+    alertSound:                 "Alerta 1",
+    alertFrequency:             "repeat_while_pending",
     alertVolume:                initialSettings.alertVolume,
     autoPrintEnabled:           initialSettings.autoPrintEnabled,
     autoPrintMode:              initialSettings.autoPrintMode,
@@ -185,12 +176,12 @@ export function PrintSettings({
   const [loading, setLoading]               = useState(false);
   const [message, setMessage]               = useState<string | null>(null);
   const [error, setError]                   = useState<string | null>(null);
-  const [receiptPaperWidth, setReceiptPaperWidth] = useState<ReceiptPaperWidth>("a4");
+  const [receiptPaperWidth, setReceiptPaperWidth] = useState<ReceiptPaperWidth>("80mm");
 
   const printerOptions          = useMemo(() => activePrinters, [activePrinters]);
   const autoPrintControlsDisabled = !form.autoPrintEnabled;
   const singlePrinterMode       = form.autoPrintMode === "single_printer";
-  const selectedAlertTone       = alertToneMeta[form.alertSound];
+  const selectedAlertTone       = restaurantBellMeta;
 
   const enabledOrigins = [
     form.enableTableOrders    ? "Mesa"     : null,
@@ -225,7 +216,7 @@ export function PrintSettings({
   function handleReceiptPaperWidthChange(value: ReceiptPaperWidth) {
     setReceiptPaperWidth(value);
     saveReceiptPaperWidth(value);
-    setMessage(`Formato ${value === "a4" ? "A4" : value} salvo para impressoes pelo navegador.`);
+    setMessage(`Formato ${value} salvo para impressoes pelo navegador.`);
     setError(null);
   }
 
@@ -238,7 +229,7 @@ export function PrintSettings({
       const response = await fetch("/api/admin/order-settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, alertSound: "Alerta 1", alertFrequency: "repeat_while_pending" }),
       });
       const data = await readApiJson<OrderSettingsRecord & { error?: string }>(
         response,
@@ -253,8 +244,8 @@ export function PrintSettings({
         enableStepPreparing:        data.enableStepPreparing,
         enableStepDelivery:         data.enableStepDelivery,
         notificationsEnabled:       data.notificationsEnabled,
-        alertSound:                 data.alertSound,
-        alertFrequency:             data.alertFrequency,
+        alertSound:                 "Alerta 1",
+        alertFrequency:             "repeat_while_pending",
         alertVolume:                data.alertVolume,
         autoPrintEnabled:           data.autoPrintEnabled,
         autoPrintMode:              data.autoPrintMode,
@@ -627,7 +618,6 @@ export function PrintSettings({
                     value={receiptPaperWidth}
                     onChange={(e) => handleReceiptPaperWidthChange(e.target.value as ReceiptPaperWidth)}
                   >
-                    <option value="a4">Folha A4 inteira</option>
                     <option value="80mm">80mm — bobina grande</option>
                     <option value="58mm">58mm — bobina compacta</option>
                   </select>

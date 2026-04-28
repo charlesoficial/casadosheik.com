@@ -64,9 +64,22 @@ export async function PATCH(request: Request) {
     const body = await request.json() as RestauranteConfigPayload & { id?: string };
 
     const supabase = getSupabaseAdminClient()!;
+    const existingResult = body.id
+      ? null
+      : await supabase
+          .from("restaurante_config")
+          .select("id")
+          .limit(1)
+          .maybeSingle();
+
+    if (existingResult?.error) {
+      throw new Error(existingResult.error.message);
+    }
+
+    const existingId = body.id || existingResult?.data?.id;
 
     const upsertData = {
-      ...(body.id ? { id: body.id } : {}),
+      ...(existingId ? { id: existingId } : {}),
       nome: String(body.nome ?? "").trim(),
       telefone: String(body.telefone ?? "").trim(),
       endereco: String(body.endereco ?? "").trim(),

@@ -6,11 +6,12 @@ import { requireAdminUser } from "@/lib/auth/server";
 import { formatZodError, printerPayloadSchema } from "@/lib/validators";
 
 // Atualiza ou remove uma impressora cadastrada.
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
     const payload = printerPayloadSchema.parse(await request.json());
-    const printer = await updatePrinter(params.id, payload);
+    const printer = await updatePrinter(id, payload);
     return NextResponse.json(printer);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
@@ -23,10 +24,11 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
-    const result = await deletePrinter(params.id);
+    const { id } = await params;
+    const result = await deletePrinter(id);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {

@@ -6,11 +6,12 @@ import { requireAdminUser } from "@/lib/auth/server";
 import { categoryUpdateSchema, formatZodError } from "@/lib/validators";
 
 // Atualiza ou remove uma categoria específica do cardápio.
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
     const payload = categoryUpdateSchema.parse(await request.json());
-    const category = await updateCategory(params.id, payload);
+    const category = await updateCategory(id, payload);
     return NextResponse.json(category);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
@@ -24,10 +25,11 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
-    const result = await deleteCategory(params.id);
+    const { id } = await params;
+    const result = await deleteCategory(id);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {

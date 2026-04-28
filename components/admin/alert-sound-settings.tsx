@@ -8,6 +8,9 @@ import { ALERT_SOUND_PROFILES, ALERT_TONES } from "@/lib/audio/alert-audio";
 import { setAdminSoundEnabled } from "@/lib/admin-sound";
 import { useAlertAudio } from "@/hooks/use-alert-audio";
 
+const restaurantProfileIds = ["max_restaurant"] as const;
+const restaurantToneIds = ["Alerta 1"] as const;
+
 export function AlertSoundSettings() {
   const { settings, state, updateSettings, playTestSound, resetToMaxRestaurant } = useAlertAudio({ orders: [] });
   const [testing, setTesting] = useState(false);
@@ -34,9 +37,9 @@ export function AlertSoundSettings() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-admin-fg-faint">
               Motor de audio
             </p>
-            <h2 className="mt-2 text-lg font-semibold text-admin-fg">Som maximo do restaurante</h2>
+            <h2 className="mt-2 text-lg font-semibold text-admin-fg">Campainha de restaurante</h2>
             <p className="mt-2 text-sm leading-6 text-admin-fg-muted">
-              Ganho extra, desbloqueio do navegador e repeticao para pedidos pendentes.
+              Toque bell global, desbloqueio do navegador e repeticao sem intervalo artificial.
             </p>
           </div>
         </div>
@@ -87,12 +90,12 @@ export function AlertSoundSettings() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-admin-fg">Perfil sonoro</p>
-                <p className="mt-1 text-xs text-admin-fg-muted">Preset rapido para volume, ganho e repeticao.</p>
+                <p className="mt-1 text-xs text-admin-fg-muted">Preset fixo para campainha global de pedidos.</p>
               </div>
               <DSBadge variant="admin">{profile.label}</DSBadge>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              {(Object.keys(ALERT_SOUND_PROFILES) as Array<keyof typeof ALERT_SOUND_PROFILES>).map((profileId) => (
+              {restaurantProfileIds.map((profileId) => (
                 <button
                   key={profileId}
                   type="button"
@@ -145,8 +148,8 @@ export function AlertSoundSettings() {
             </div>
             <DSBadge variant="secondary">{selectedTone.label}</DSBadge>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-            {(Object.keys(ALERT_TONES) as Array<keyof typeof ALERT_TONES>).map((toneId) => (
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            {restaurantToneIds.map((toneId) => (
               <button
                 key={toneId}
                 type="button"
@@ -199,12 +202,12 @@ export function AlertSoundSettings() {
           </div>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[1fr_220px]">
+        <div className="grid gap-4">
           <label className="flex items-start justify-between gap-4 rounded-ds-lg border border-admin-border bg-admin-elevated px-4 py-4 text-sm">
             <span>
               <span className="block font-semibold text-admin-fg">Repetir enquanto houver pendente</span>
               <span className="mt-1 block text-xs leading-5 text-admin-fg-muted">
-                Reforca o alerta sem empilhar sons ao mesmo tempo.
+                O som continua ate o pedido sair de novo. A repeticao usa 0 segundos de intervalo.
               </span>
             </span>
             <span
@@ -225,29 +228,11 @@ export function AlertSoundSettings() {
             </span>
             <input
               type="checkbox"
-              checked={settings.repeatIfPending}
-              onChange={(event) => updateSettings({ repeatIfPending: event.target.checked })}
+              checked
+              onChange={() => updateSettings({ repeatIfPending: true, repeatIntervalMs: 0 })}
               className="sr-only"
             />
           </label>
-
-          <div className="rounded-ds-xl border border-admin-border bg-admin-elevated p-4">
-            <label className="block text-sm font-medium text-admin-fg" htmlFor="alert-repeat-interval">
-              Intervalo
-            </label>
-            <select
-              id="alert-repeat-interval"
-              value={settings.repeatIntervalMs}
-              onChange={(event) => updateSettings({ repeatIntervalMs: Number(event.target.value) })}
-              className="mt-2 h-10 w-full rounded-ds-md border border-admin-border-strong bg-admin-surface px-3 text-sm text-admin-fg"
-            >
-              <option value={0}>0 segundos</option>
-              <option value={5000}>5 segundos</option>
-              <option value={8000}>8 segundos</option>
-              <option value={10000}>10 segundos</option>
-              <option value={15000}>15 segundos</option>
-            </select>
-          </div>
         </div>
 
         <div className="grid gap-3 rounded-ds-xl border border-status-warning-border bg-status-warning-bg px-4 py-4 text-sm text-status-warning-text xl:grid-cols-[1fr_auto]">

@@ -7,10 +7,11 @@ import { formatZodError, orderStatusUpdateSchema } from "@/lib/validators";
 
 // Rota administrativa dedicada para detalhe e transicao de status do pedido.
 // Aqui nao existe fallback publico: sem sessao valida, a API deve falhar fechada.
-export async function GET(_: Request, { params }: { params: { id: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
-    const order = await getOrderDetail(params.id);
+    const { id } = await params;
+    const order = await getOrderDetail(id);
     return NextResponse.json(order);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
@@ -23,11 +24,12 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
     const body = orderStatusUpdateSchema.parse(await request.json());
-    const order = await updateOrderStatus(params.id, body.status);
+    const order = await updateOrderStatus(id, body.status);
     return NextResponse.json(order);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {

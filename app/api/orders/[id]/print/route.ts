@@ -8,11 +8,12 @@ import { getPrintersForDispatch, listPrinters, resolveDestinationsForOrder } fro
 import { requireAdminUser } from "@/lib/auth/server";
 import { formatZodError, orderPrintRequestSchema } from "@/lib/validators";
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
     const body = orderPrintRequestSchema.parse(await request.json().catch(() => ({})));
-    const order = await getOrderDetail(params.id);
+    const order = await getOrderDetail(id);
     const triggerSource = body.triggerSource ?? "manual_reprint";
     const printers = body.printerId
       ? (await listPrinters()).filter(

@@ -10,14 +10,15 @@ export default async function ProductPage({
   params,
   searchParams
 }: {
-  params: { id: string };
-  searchParams: { mesa?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ mesa?: string }>;
 }) {
-  const product = await getProductById(params.id);
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const product = await getProductById(id);
 
   if (!product) {
-    redirect(searchParams.mesa ? `/menu?mesa=${searchParams.mesa}` : "/menu");
+    redirect(query.mesa ? `/menu?mesa=${query.mesa}` : "/menu");
   }
 
-  return <ProductDetailShell product={product} mesa={searchParams.mesa} />;
+  return <ProductDetailShell product={product} mesa={query.mesa} />;
 }

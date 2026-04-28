@@ -5,11 +5,12 @@ import { getOrderDetail, updateOrderStatus } from "@/lib/data";
 import { requireAdminUser } from "@/lib/auth/server";
 import { formatZodError, orderStatusUpdateSchema } from "@/lib/validators";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     try {
       await requireAdminUser();
-      const order = await getOrderDetail(params.id);
+      const order = await getOrderDetail(id);
       return NextResponse.json(order);
     } catch (error) {
       if (!(error instanceof Error) || error.message !== "UNAUTHORIZED") {
@@ -18,7 +19,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     }
 
     const token = new URL(request.url).searchParams.get("token");
-    const order = await getOrderDetail(params.id, { publicToken: token, requirePublicToken: true });
+    const order = await getOrderDetail(id, { publicToken: token, requirePublicToken: true });
     return NextResponse.json(order);
   } catch (error) {
     if (error instanceof Error && error.message === "Pedido nao encontrado") {
@@ -28,11 +29,12 @@ export async function GET(request: Request, { params }: { params: { id: string }
   }
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
     const body = orderStatusUpdateSchema.parse(await request.json());
-    const order = await updateOrderStatus(params.id, body.status);
+    const order = await updateOrderStatus(id, body.status);
     return NextResponse.json(order);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {

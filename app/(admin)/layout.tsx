@@ -1,3 +1,5 @@
+import Script from "next/script";
+
 import { AdminOrderAlerts } from "@/features/orders/components/admin-order-alerts";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { AdminTopbar } from "@/components/admin/admin-topbar";
@@ -11,7 +13,7 @@ import { adminThemes, type AdminTheme } from "@/lib/constants/admin-themes";
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // Le o tema salvo no banco para renderizar server-side sem flash.
   let serverTheme: AdminTheme = "black";
-  const supabase = createSupabaseServerAuthClient();
+  const supabase = await createSupabaseServerAuthClient();
   if (supabase) {
     const { data: { user } } = await supabase.auth.getUser();
     const meta = user?.user_metadata?.admin_theme;
@@ -22,12 +24,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className={`admin-shell min-h-screen text-[var(--admin-foreground)] admin-theme-${serverTheme}`}>
-      {/* Sincroniza com localStorage para troca instantanea sem reload. */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `(function(){var t=localStorage.getItem("admin-theme");var v=["black","light"];if(t&&v.indexOf(t)!==-1){var e=document.currentScript.parentElement;e.classList.remove("admin-theme-black","admin-theme-light");e.classList.add("admin-theme-"+t);}})();`
-        }}
-      />
+      <Script id="admin-theme-init" strategy="afterInteractive">
+        {`(function(){var t=localStorage.getItem("admin-theme");var v=["black","light"];if(t&&v.indexOf(t)!==-1){var e=document.querySelector(".admin-shell");if(e){e.classList.remove("admin-theme-black","admin-theme-light");e.classList.add("admin-theme-"+t);}}})();`}
+      </Script>
       <NavProgressBar />
       <div className="flex min-h-screen">
         <AdminSidebar />

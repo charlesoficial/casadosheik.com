@@ -12,13 +12,14 @@ const dispatchSchema = z.object({
 });
 
 // Faz o envio server-side para impressoras de rede, sem depender de bridge local no navegador.
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
 
     const payload = dispatchSchema.parse(await request.json().catch(() => ({})));
     const printers = await listPrinters();
-    const printer = printers.find((item) => item.id === params.id);
+    const printer = printers.find((item) => item.id === id);
 
     if (!printer) {
       return NextResponse.json({ error: "Impressora nao encontrada." }, { status: 404 });

@@ -110,6 +110,27 @@ export const checkoutPayloadSchema = z
           message: "Telefone e obrigatorio para delivery."
         });
       }
+      if (!payload.enderecoEntrega?.rua?.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["enderecoEntrega", "rua"],
+          message: "Rua e obrigatoria para delivery."
+        });
+      }
+      if (!payload.enderecoEntrega?.numero?.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["enderecoEntrega", "numero"],
+          message: "Numero e obrigatorio para delivery."
+        });
+      }
+      if (!payload.enderecoEntrega?.bairro?.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["enderecoEntrega", "bairro"],
+          message: "Bairro e obrigatorio para delivery."
+        });
+      }
     }
   });
 

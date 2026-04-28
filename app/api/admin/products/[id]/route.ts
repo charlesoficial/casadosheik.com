@@ -6,11 +6,12 @@ import { requireAdminUser } from "@/lib/auth/server";
 import { formatZodError, productUpdateSchema } from "@/lib/validators";
 
 // Atualiza ou remove um produto específico do cardápio.
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
     const payload = productUpdateSchema.parse(await request.json());
-    const product = await updateProduct(params.id, payload);
+    const product = await updateProduct(id, payload);
     return NextResponse.json(product);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {
@@ -24,10 +25,11 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
-    const result = await deleteProduct(params.id);
+    const { id } = await params;
+    const result = await deleteProduct(id);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {

@@ -13,7 +13,7 @@ function pixelsToMm(pixels: number) {
 
 function readPaperWidth(root: Element | null): ReceiptPaperWidth {
   const value = root?.getAttribute("data-receipt-width");
-  return value === "58mm" || value === "80mm" || value === "a4" ? value : DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH;
+  return value === "58mm" ? "58mm" : DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH;
 }
 
 function findReceiptRoot() {
@@ -36,10 +36,10 @@ function measureReceiptHeightMm(paper: HTMLElement) {
 }
 
 function buildDynamicPageCss(paperWidth: ReceiptPaperWidth, pageHeightMm: number) {
-  const paper = RECEIPT_PAPER[paperWidth];
-  const isFullPage = paperWidth === "a4";
-  const pageSize = isFullPage ? "A4 portrait" : `${paper.paperWidthMm}mm ${pageHeightMm}mm`;
-  const rootWidth = isFullPage ? "210mm" : `${paper.paperWidthMm}mm`;
+  const effectivePaperWidth: ReceiptPaperWidth = paperWidth === "58mm" ? "58mm" : "80mm";
+  const paper = RECEIPT_PAPER[effectivePaperWidth];
+  const pageSize = `${paper.paperWidthMm}mm ${pageHeightMm}mm`;
+  const rootWidth = `${paper.paperWidthMm}mm`;
 
   return `
 @media print {
@@ -74,6 +74,9 @@ function buildDynamicPageCss(paperWidth: ReceiptPaperWidth, pageHeightMm: number
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: none !important;
   }
 
   .receipt-paper {
@@ -125,7 +128,7 @@ export function installReceiptPrintPageSizing() {
 export function getSavedReceiptPaperWidth(): ReceiptPaperWidth {
   if (typeof window === "undefined") return DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH;
   const value = window.localStorage.getItem(PAPER_WIDTH_STORAGE_KEY);
-  return value === "58mm" || value === "80mm" || value === "a4" ? value : DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH;
+  return value === "58mm" ? "58mm" : DEFAULT_BROWSER_RECEIPT_PAPER_WIDTH;
 }
 
 export function saveReceiptPaperWidth(value: ReceiptPaperWidth) {
@@ -148,13 +151,13 @@ async function waitForReceiptRoot(timeoutMs = 700) {
 }
 
 function getReceiptDocumentCss(paperWidth: ReceiptPaperWidth, contentHeightMm?: number) {
-  const paper = RECEIPT_PAPER[paperWidth];
-  const isFullPage = paperWidth === "a4";
+  const effectivePaperWidth: ReceiptPaperWidth = paperWidth === "58mm" ? "58mm" : "80mm";
+  const paper = RECEIPT_PAPER[effectivePaperWidth];
   const pageHeightMm = contentHeightMm ? Math.max(35, Math.ceil(contentHeightMm)) : undefined;
-  const pageSize = isFullPage ? "A4 portrait" : pageHeightMm ? `${paper.paperWidthMm}mm ${pageHeightMm}mm` : `${paper.paperWidthMm}mm auto`;
-  const rootWidth = isFullPage ? "210mm" : `${paper.paperWidthMm}mm`;
-  const baseFontSize = paperWidth === "58mm" ? 10.5 : paperWidth === "80mm" ? 11 : 16;
-  const mutedFontSize = paperWidth === "58mm" ? 9.5 : paperWidth === "80mm" ? 10 : 14;
+  const pageSize = pageHeightMm ? `${paper.paperWidthMm}mm ${pageHeightMm}mm` : `${paper.paperWidthMm}mm auto`;
+  const rootWidth = `${paper.paperWidthMm}mm`;
+  const baseFontSize = effectivePaperWidth === "58mm" ? 10 : 11;
+  const mutedFontSize = effectivePaperWidth === "58mm" ? 9 : 10;
 
   return `
 @page {
@@ -166,9 +169,9 @@ html,
 body {
   position: relative !important;
   display: block !important;
-  width: auto !important;
-  min-width: 0 !important;
-  max-width: none !important;
+  width: ${rootWidth} !important;
+  min-width: ${rootWidth} !important;
+  max-width: ${rootWidth} !important;
   height: auto !important;
   min-height: 0 !important;
   max-height: none !important;
@@ -181,7 +184,15 @@ body {
 body {
   font-family: "Courier New", Consolas, monospace;
   font-size: ${baseFontSize}px;
-  line-height: 1.25;
+  line-height: 1.2;
+}
+
+html::before,
+html::after,
+body::before,
+body::after {
+  display: none !important;
+  content: none !important;
 }
 
 .receipt-print-root {
@@ -197,6 +208,7 @@ body {
   min-height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
+  transform: none !important;
   color: #000 !important;
   background: #fff !important;
   visibility: visible !important;
@@ -244,28 +256,27 @@ body {
   print-color-adjust: exact !important;
 }
 
-.receipt-header { text-align: center; }
-.receipt-store-name { margin: 0; font-size: ${isFullPage ? 20 : 14}px; font-weight: 800; line-height: 1.1; }
-.receipt-header h1 { margin: 0.5mm 0 0; font-size: ${paperWidth === "58mm" ? 13 : paperWidth === "80mm" ? 15 : 26}px; font-weight: 700; line-height: 1.15; }
+.receipt-header { text-align: left; }
+.receipt-store-name { margin: 0; text-align: center; font-size: ${effectivePaperWidth === "58mm" ? 12 : 13}px; font-weight: 600; line-height: 1.15; }
+.receipt-header h1 { margin: 1mm 0 0; font-size: ${baseFontSize}px; font-weight: 500; line-height: 1.2; }
 .receipt-subtitle, .receipt-date, .receipt-section-title, .receipt-item-muted, .receipt-item-note, .receipt-note p, .receipt-footer { margin: 0; }
-.receipt-subtitle, .receipt-date { font-size: ${isFullPage ? 14 : paperWidth === "58mm" ? 10 : 11}px; font-weight: 400; }
-.receipt-separator { height: 0; margin: ${isFullPage ? 4 : 1.5}mm 0; border-top: 1px dashed #000; }
-.receipt-section { display: grid; gap: ${isFullPage ? 2.5 : 1}mm; }
-.receipt-row, .receipt-total, .receipt-item-main { display: flex; align-items: baseline; justify-content: space-between; gap: 2mm; width: 100%; }
-.receipt-row span, .receipt-row strong, .receipt-total span, .receipt-total strong { font-size: ${baseFontSize}px; line-height: 1.25; }
-.receipt-row strong, .receipt-total strong { text-align: right; font-weight: 700; overflow-wrap: anywhere; }
-.receipt-date { padding-top: 0.5mm; text-align: center; }
-.receipt-section-title { font-size: ${baseFontSize}px; font-weight: 700; text-transform: uppercase; }
-.receipt-items { display: grid; gap: ${isFullPage ? 3 : 1.2}mm; }
-.receipt-item { display: grid; gap: 0.5mm; }
-.receipt-item-main strong { min-width: 0; font-size: ${paperWidth === "58mm" ? 11 : paperWidth === "80mm" ? 12 : 18}px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
-.receipt-item-main span { flex: 0 0 auto; font-size: ${baseFontSize}px; font-weight: 700; }
-.receipt-item-muted, .receipt-item-note, .receipt-note p { font-size: ${mutedFontSize}px; font-weight: 400; line-height: 1.25; overflow-wrap: anywhere; }
-.receipt-total-strong span, .receipt-total-strong strong { font-size: ${paperWidth === "58mm" ? 12 : paperWidth === "80mm" ? 13 : 22}px; font-weight: 700; text-transform: uppercase; }
-.receipt-notes { gap: ${isFullPage ? 3 : 1.2}mm; }
-.receipt-note { display: grid; gap: 0.5mm; }
-.receipt-note strong { font-size: ${baseFontSize}px; font-weight: 700; text-transform: uppercase; }
-.receipt-footer { text-align: center; font-size: ${baseFontSize}px; font-weight: 700; }
+.receipt-subtitle, .receipt-date { font-size: ${mutedFontSize}px; font-weight: 400; line-height: 1.2; }
+.receipt-separator { height: 0; margin: 1.2mm 0; border-top: 1px dashed #000; }
+.receipt-section { display: grid; gap: 0.6mm; }
+.receipt-row, .receipt-total, .receipt-item-main, .receipt-item-price-row { display: flex; align-items: baseline; justify-content: space-between; gap: 2mm; width: 100%; }
+.receipt-row span, .receipt-row strong, .receipt-total span, .receipt-total strong { font-size: ${baseFontSize}px; font-weight: 400; line-height: 1.2; }
+.receipt-row strong, .receipt-total strong { text-align: right; overflow-wrap: anywhere; }
+.receipt-section-title { font-size: ${mutedFontSize}px; font-weight: 600; text-transform: uppercase; }
+.receipt-items { display: grid; gap: 1mm; }
+.receipt-item { display: grid; gap: 0.35mm; }
+.receipt-item-main strong { min-width: 0; font-size: ${baseFontSize}px; font-weight: 400; line-height: 1.2; overflow-wrap: anywhere; }
+.receipt-item-price-row span, .receipt-item-muted, .receipt-item-note, .receipt-note p { font-size: ${mutedFontSize}px; font-weight: 400; line-height: 1.2; overflow-wrap: anywhere; }
+.receipt-item-price-row span:last-child { text-align: right; }
+.receipt-total-strong span, .receipt-total-strong strong { font-size: ${effectivePaperWidth === "58mm" ? 11 : 12}px; font-weight: 600; text-transform: uppercase; }
+.receipt-notes { gap: 1mm; }
+.receipt-note { display: grid; gap: 0.35mm; }
+.receipt-note strong { font-size: ${mutedFontSize}px; font-weight: 600; text-transform: uppercase; }
+.receipt-footer { text-align: center; font-size: ${baseFontSize}px; font-weight: 500; }
 
 @media print {
   body > *:not(.receipt-print-root), .no-print {
@@ -290,13 +301,27 @@ export async function printReceiptFromDom() {
   const paperConfig = RECEIPT_PAPER[paperWidth];
   const firstMeasuredHeightMm = readyReceipt?.pageHeightMm ?? measureReceiptHeightMm(paper);
 
-  // Cria iframe fora da tela para isolar o documento de impressão
+  const printDocumentHtml =
+    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>` +
+    `<meta name="viewport" content="width=${paperConfig.paperWidthMm}mm,initial-scale=1"/>` +
+    `<title></title>` +
+    `<style id="receipt-page-style">${getReceiptDocumentCss(paperWidth, firstMeasuredHeightMm)}</style>` +
+    `</head><body>${root.outerHTML}</body></html>`;
+
+  // Cria iframe fora da tela para isolar o documento de impressão da URL do admin.
   const iframe = document.createElement("iframe");
   iframe.setAttribute("aria-hidden", "true");
   iframe.style.cssText =
     "position:fixed;left:-10000px;top:0;border:0;opacity:0;pointer-events:none;" +
     `width:${paperConfig.paperWidthMm}mm;height:${firstMeasuredHeightMm}mm;`;
+
+  const iframeLoaded = new Promise<void>((resolve) => {
+    iframe.addEventListener("load", () => resolve(), { once: true });
+  });
+
   document.body.appendChild(iframe);
+  iframe.srcdoc = printDocumentHtml;
+  await iframeLoaded;
 
   const frameDocument = iframe.contentDocument;
   const frameWindow = iframe.contentWindow;
@@ -307,14 +332,7 @@ export async function printReceiptFromDom() {
     throw new Error("Nao foi possivel preparar o cupom para impressao. Tente novamente.");
   }
 
-  // Escreve documento térmico isolado no iframe
-  frameDocument.open();
-  frameDocument.write(
-    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/><title></title>` +
-    `<style id="receipt-page-style">${getReceiptDocumentCss(paperWidth, firstMeasuredHeightMm)}</style>` +
-    `</head><body>${root.outerHTML}</body></html>`
-  );
-  frameDocument.close();
+  frameDocument.title = "";
 
   // Aguarda render para medir altura real do conteúdo
   await new Promise((resolve) => frameWindow.requestAnimationFrame(() => resolve(null)));
@@ -325,7 +343,7 @@ export async function printReceiptFromDom() {
   if (style) {
     style.textContent = getReceiptDocumentCss(paperWidth, measuredHeightMm);
   }
-  iframe.style.height = paperWidth === "a4" ? "297mm" : `${measuredHeightMm}mm`;
+  iframe.style.height = `${measuredHeightMm}mm`;
 
   await new Promise((resolve) => frameWindow.requestAnimationFrame(() => resolve(null)));
   const previousTitle = document.title;

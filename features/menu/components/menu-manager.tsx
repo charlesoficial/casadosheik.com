@@ -16,6 +16,7 @@ import {
   Copy,
   ExternalLink,
   Eye,
+  GripVertical,
   ImageIcon,
   Loader2,
   Pencil,
@@ -67,6 +68,13 @@ const emptyDraft: ProductDraft = {
 
 type DialogMode = "create" | "edit" | null;
 type AvailFilter = "all" | "available" | "inactive";
+
+function moveItem<T>(items: T[], fromIndex: number, toIndex: number) {
+  const next = [...items];
+  const [item] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, item);
+  return next;
+}
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
@@ -403,6 +411,12 @@ function DeleteDialog({
 
 function ProductCard({
   product,
+  draggable,
+  isDragging,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
   onEdit,
   onCopy,
   onToggleAvail,
@@ -412,6 +426,12 @@ function ProductCard({
   busyKey,
 }: {
   product: MenuProduct;
+  draggable?: boolean;
+  isDragging?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: () => void;
+  onDrop?: () => void;
+  onDragEnd?: () => void;
   onEdit: () => void;
   onCopy: () => void;
   onToggleAvail: () => void;
@@ -426,7 +446,36 @@ function ProductCard({
   const isEditBusy = busyKey === `product-update-${product.id}`;
 
   return (
-    <article className="group flex flex-col gap-4 rounded-ds-xl border border-admin-border-faint bg-admin-surface p-4 shadow-card transition-[border-color,background-color,box-shadow,transform] duration-motion-default ease-motion-in-out hover:-translate-y-0.5 hover:border-admin-border hover:bg-admin-elevated hover:shadow-panel sm:flex-row">
+    <article
+      draggable={draggable}
+      onDragStart={(event) => {
+        if (!draggable) return;
+        event.dataTransfer.effectAllowed = "move";
+        onDragStart?.();
+      }}
+      onDragOver={(event) => {
+        if (!draggable) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        onDragOver?.();
+      }}
+      onDrop={(event) => {
+        if (!draggable) return;
+        event.preventDefault();
+        onDrop?.();
+      }}
+      onDragEnd={onDragEnd}
+      className={[
+        "group flex flex-col gap-4 rounded-ds-xl border border-admin-border-faint bg-admin-surface p-4 shadow-card transition-[border-color,background-color,box-shadow,opacity,transform] duration-motion-default ease-motion-in-out hover:-translate-y-0.5 hover:border-admin-border hover:bg-admin-elevated hover:shadow-panel sm:flex-row",
+        draggable ? "cursor-grab active:cursor-grabbing" : "",
+        isDragging ? "opacity-55 ring-2 ring-brand-purple/60" : "",
+      ].join(" ")}
+    >
+      {draggable && (
+        <div className="flex items-center justify-center text-admin-fg-faint sm:-ml-1">
+          <GripVertical className="h-5 w-5" strokeWidth={1.5} />
+        </div>
+      )}
       {/* Image */}
       <div className="relative aspect-square min-h-[112px] w-full shrink-0 overflow-hidden rounded-ds-lg border border-admin-border bg-admin-overlay sm:w-28">
         {product.image ? (
@@ -629,6 +678,9 @@ export function MenuManager({
   const setError   = (msg: string) => fb.setError(msg);
   const setSuccess = (msg: string) => fb.setSuccess(msg);
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
+  const [draggedProductId, setDraggedProductId] = useState<string | null>(null);
+  const [dragOverCategoryId, setDragOverCategoryId] = useState<string | null>(null);
 
   const categoryInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -648,8 +700,9 @@ export function MenuManager({
       if (q && !p.name.toLowerCase().includes(q) && !p.description?.toLowerCase().includes(q))
         return false;
       return true;
-    });
+    }).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [products, selectedCategory, search, availFilter]);
+  const canReorderProducts = search.trim() === "" && availFilter === "all";
 
   const stats = useMemo(() => {
     const inCat = products.filter(
@@ -867,6 +920,43 @@ export function MenuManager({
   }
 
   // ── Product handlers ──
+  async function persistCategoryOrder(nextCategories: CategoryItem[]) {
+    reset();
+    try {
+      setBusyKey("category-reorder");
+      const res = await fetch("/api/admin/categories/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: nextCategories.map((category) => category.id) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao reordenar categorias");
+      setSuccess("Ordem das categorias salva.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao reordenar categorias");
+      router.refresh();
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  function handleCategoryDrop(targetCategoryId: string) {
+    if (!draggedCategoryId || draggedCategoryId === targetCategoryId) return;
+
+    const fromIndex = categories.findIndex((category) => category.id === draggedCategoryId);
+    const toIndex = categories.findIndex((category) => category.id === targetCategoryId);
+    if (fromIndex < 0 || toIndex < 0) return;
+
+    const nextCategories = moveItem(categories, fromIndex, toIndex).map((category, index) => ({
+      ...category,
+      order: index + 1,
+    }));
+
+    setCategories(nextCategories);
+    setDraggedCategoryId(null);
+    void persistCategoryOrder(nextCategories);
+  }
+
   async function handleCreateProduct() {
     reset();
     try {
@@ -1010,6 +1100,131 @@ export function MenuManager({
   }
 
   // ─── Render ─────────────────────────────────────────────────────────────────
+
+  async function persistProductOrder(nextProducts: MenuProduct[]) {
+    if (!selectedCategory?.id) return;
+
+    reset();
+    try {
+      setBusyKey("product-reorder");
+      const res = await fetch("/api/admin/products/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          categoryId: selectedCategory.id,
+          ids: nextProducts.map((product) => product.id),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao reordenar produtos");
+      setSuccess("Ordem dos produtos salva.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao reordenar produtos");
+      router.refresh();
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  function handleProductDrop(targetProductId: string) {
+    if (!draggedProductId || draggedProductId === targetProductId || !selectedCategory?.id) return;
+    if (!canReorderProducts) return;
+
+    const categoryProducts = products
+      .filter(
+        (product) =>
+          product.categoryId === selectedCategory.id ||
+          product.category === selectedCategory.name
+      )
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const fromIndex = categoryProducts.findIndex((product) => product.id === draggedProductId);
+    const toIndex = categoryProducts.findIndex((product) => product.id === targetProductId);
+    if (fromIndex < 0 || toIndex < 0) return;
+
+    const nextProducts = moveItem(categoryProducts, fromIndex, toIndex).map((product, index) => ({
+      ...product,
+      order: index + 1,
+    }));
+    const reorderedById = new Map(nextProducts.map((product) => [product.id, product]));
+
+    setProducts((current) => current.map((product) => reorderedById.get(product.id) ?? product));
+    setDraggedProductId(null);
+    void persistProductOrder(nextProducts);
+  }
+
+  async function moveProductToCategory(productId: string, targetCategoryId: string) {
+    const product = products.find((item) => item.id === productId);
+    const targetCategory = categories.find((category) => category.id === targetCategoryId);
+    if (!product || !targetCategory) return;
+    if (product.categoryId === targetCategory.id || product.category === targetCategory.name) return;
+
+    reset();
+
+    const previousProducts = products;
+    const previousCategories = categories;
+    const nextOrder =
+      Math.max(
+        0,
+        ...products
+          .filter(
+            (item) =>
+              item.categoryId === targetCategory.id ||
+              item.category === targetCategory.name
+          )
+          .map((item) => item.order ?? 0)
+      ) + 1;
+
+    setProducts((current) =>
+      current.map((item) =>
+        item.id === product.id
+          ? {
+              ...item,
+              categoryId: targetCategory.id,
+              category: targetCategory.name,
+              order: nextOrder,
+            }
+          : item
+      )
+    );
+    setCategories((current) =>
+      current.map((category) => {
+        if (category.id === product.categoryId) {
+          return { ...category, productCount: Math.max(0, (category.productCount ?? 0) - 1) };
+        }
+        if (category.id === targetCategory.id) {
+          return { ...category, productCount: (category.productCount ?? 0) + 1 };
+        }
+        return category;
+      })
+    );
+    setSelectedCategoryId(targetCategory.id);
+    setDraggedProductId(null);
+    setDragOverCategoryId(null);
+
+    try {
+      setBusyKey(`product-move-${product.id}`);
+      const res = await fetch(`/api/admin/products/${product.id}/move`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ categoryId: targetCategory.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao mover produto");
+      if ("id" in data) {
+        setProducts((current) =>
+          current.map((item) => (item.id === product.id ? { ...item, ...data } : item))
+        );
+      }
+      setSuccess("Produto movido.");
+    } catch (err) {
+      setProducts(previousProducts);
+      setCategories(previousCategories);
+      setError(err instanceof Error ? err.message : "Erro ao mover produto");
+      router.refresh();
+    } finally {
+      setBusyKey(null);
+    }
+  }
 
   return (
     <>
@@ -1174,8 +1389,44 @@ export function MenuManager({
 
               {categories.map((cat) => {
                 const active = selectedCategory?.id === cat.id;
+                const productDropTarget = draggedProductId && dragOverCategoryId === cat.id;
                 return (
-                  <div key={cat.id} className="space-y-2">
+                  <div
+                    key={cat.id}
+                    draggable={editingCategoryId !== cat.id}
+                    onDragStart={(event) => {
+                      if (editingCategoryId === cat.id) return;
+                      event.dataTransfer.effectAllowed = "move";
+                      setDraggedProductId(null);
+                      setDraggedCategoryId(cat.id);
+                    }}
+                    onDragOver={(event) => {
+                      if (editingCategoryId === cat.id) return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                      if (draggedProductId) setDragOverCategoryId(cat.id);
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverCategoryId === cat.id) setDragOverCategoryId(null);
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      if (draggedProductId) {
+                        void moveProductToCategory(draggedProductId, cat.id);
+                      } else {
+                        handleCategoryDrop(cat.id);
+                      }
+                    }}
+                    onDragEnd={() => {
+                      setDraggedCategoryId(null);
+                      setDragOverCategoryId(null);
+                    }}
+                    className={[
+                      "space-y-2",
+                      editingCategoryId !== cat.id ? "cursor-grab active:cursor-grabbing" : "",
+                      draggedCategoryId === cat.id ? "opacity-60" : "",
+                    ].join(" ")}
+                  >
                     {/* Category row */}
                     <div
                       role="button"
@@ -1193,8 +1444,11 @@ export function MenuManager({
                         active
                           ? "border-brand-purple bg-brand-purple-bg"
                           : "border-transparent hover:border-admin-border hover:bg-admin-surface",
+                        draggedCategoryId === cat.id ? "ring-2 ring-brand-purple/60" : "",
+                        productDropTarget ? "border-brand-purple bg-brand-purple-bg ring-2 ring-brand-purple/70" : "",
                       ].join(" ")}
                     >
+                      <GripVertical className="mr-2 h-4 w-4 shrink-0 text-admin-fg-faint" strokeWidth={1.5} />
                       <div className="min-w-0 flex-1">
                         <p className={`text-sm font-medium ${active ? "text-admin-fg" : "text-admin-fg-secondary"}`}>
                           {cat.name}
@@ -1446,6 +1700,18 @@ export function MenuManager({
                 <ProductCard
                   key={product.id}
                   product={product}
+                  draggable={canReorderProducts}
+                  isDragging={draggedProductId === product.id}
+                  onDragStart={() => {
+                    setDraggedCategoryId(null);
+                    setDraggedProductId(product.id);
+                  }}
+                  onDragOver={() => undefined}
+                  onDrop={() => handleProductDrop(product.id)}
+                  onDragEnd={() => {
+                    setDraggedProductId(null);
+                    setDragOverCategoryId(null);
+                  }}
                   busyKey={busyKey}
                   onEdit={() => openEdit(product)}
                   onCopy={() => copyProductToDraft(product)}

@@ -6,11 +6,12 @@ import { listPrinters } from "@/lib/printers";
 import { requireAdminUser } from "@/lib/auth/server";
 
 // Faz um disparo de teste para validar se a impressora cadastrada responde como esperado.
-export async function POST(_: Request, { params }: { params: { id: string } }) {
+export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
     const printers = await listPrinters();
-    const printer = printers.find((item) => item.id === params.id);
+    const printer = printers.find((item) => item.id === id);
     if (!printer) {
       throw new Error("Impressora nao encontrada.");
     }

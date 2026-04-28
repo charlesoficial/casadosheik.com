@@ -92,6 +92,7 @@ export type MenuProduct = {
   description: string;
   price: number;
   image: string;
+  order?: number;
   available?: boolean;
   highlight?: boolean;
   badge?: string;

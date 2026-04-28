@@ -1,5 +1,4 @@
 import { DEFAULT_RECEIPT_PAPER_WIDTH } from "@/lib/receipt/constants";
-import { formatReceiptDateTime } from "@/lib/receipt/formatters";
 import type { ReceiptData } from "@/lib/receipt/types";
 import { ReceiptFooter } from "@/components/receipt/receipt-footer";
 import { ReceiptHeader } from "@/components/receipt/receipt-header";
@@ -29,7 +28,6 @@ export function ReceiptTemplateBase({ receipt }: { receipt: ReceiptData }) {
               <strong>{row.value}</strong>
             </div>
           ))}
-          {receipt.createdAt ? <p className="receipt-date">{formatReceiptDateTime(receipt.createdAt)}</p> : null}
         </section>
         <ReceiptSeparator />
         <ReceiptItems receipt={receipt} />

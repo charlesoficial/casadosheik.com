@@ -16,16 +16,40 @@ function ProductHero({
   heroFailed,
   setHeroFailed,
   sizes,
+  presentation = "cover",
 }: {
   product: MenuProduct;
   heroFailed: boolean;
   setHeroFailed: (failed: boolean) => void;
   sizes: string;
+  presentation?: "cover" | "showcase";
 }) {
   if (heroFailed || !product.image) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-menu-accent-bg">
-        <UtensilsCrossed className="h-16 w-16 text-menu-accent" strokeWidth={1.5} />
+      <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_50%_35%,rgba(184,128,25,0.28),rgba(30,23,20,0.92)_68%)]">
+        <div className="flex h-28 w-28 items-center justify-center rounded-full border border-menu-overlay-border/25 bg-menu-overlay/30 text-menu-overlay-fg shadow-card backdrop-blur-sm">
+          <UtensilsCrossed className="h-14 w-14" strokeWidth={1.4} />
+        </div>
+      </div>
+    );
+  }
+
+  if (presentation === "showcase") {
+    return (
+      <div className="relative h-full w-full overflow-hidden bg-[#fbf4e8]">
+        <div className="absolute inset-0 flex items-center justify-center px-10 py-16 xl:px-14 2xl:px-20">
+          <div className="relative h-[86vh] max-h-[920px] min-h-[520px] w-full max-w-[760px]">
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              priority
+              sizes={sizes}
+              className="object-contain object-center"
+              onError={() => setHeroFailed(true)}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -94,14 +118,14 @@ export function ProductDetailShell({ product, mesa }: { product: MenuProduct; me
   }
 
   return (
-    <main className="menu-theme min-h-screen bg-menu-bg text-menu-text lg:[background:var(--menu-bg-gradient-soft)]">
+    <main className="menu-theme min-h-screen bg-[#fbf4e8] text-menu-text">
       <section className="mx-auto min-h-screen max-w-[480px] bg-menu-bg lg:hidden">
         <div className="relative aspect-square w-full overflow-hidden bg-menu-accent-bg">
           <ProductHero
             product={product}
             heroFailed={heroFailed}
             setHeroFailed={setHeroFailed}
-            sizes="100vw"
+            sizes="(max-width: 1023px) 100vw, 0px"
           />
         </div>
 
@@ -171,62 +195,71 @@ export function ProductDetailShell({ product, mesa }: { product: MenuProduct; me
         </div>
       </section>
 
-      <section className="hidden min-h-screen px-6 py-6 lg:flex lg:items-center lg:justify-center xl:px-8">
-        <div className="grid w-full max-w-[1280px] overflow-hidden rounded-ds-2xl border border-menu-border bg-menu-surface-raised shadow-card lg:grid-cols-[minmax(340px,42%)_minmax(0,1fr)] xl:grid-cols-[minmax(440px,43%)_minmax(0,1fr)] 2xl:max-w-[1520px]">
-          <div className="relative min-h-[520px] overflow-hidden bg-menu-accent-bg lg:min-h-[620px] xl:min-h-[680px] 2xl:min-h-[760px]">
-            <ProductHero
-              product={product}
-              heroFailed={heroFailed}
-              setHeroFailed={setHeroFailed}
-              sizes="(min-width: 1280px) 520px, 44vw"
-            />
-            <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-menu-overlay/50 to-transparent" />
+      <section className="hidden min-h-screen lg:block">
+        <div className="grid min-h-screen bg-[#fbf4e8] lg:grid-cols-[minmax(520px,50vw)_minmax(0,1fr)] 2xl:grid-cols-[minmax(760px,52vw)_minmax(0,1fr)]">
+          <div className="relative min-h-screen overflow-hidden bg-[#fbf4e8] px-8 py-8 xl:px-10 xl:py-10">
+            <div className="relative h-full min-h-[calc(100vh-80px)] overflow-hidden rounded-[8px] bg-[#fbf4e8]">
+              <ProductHero
+                product={product}
+                heroFailed={heroFailed}
+                setHeroFailed={setHeroFailed}
+                sizes="(min-width: 1536px) 52vw, 50vw"
+              />
+            </div>
             <button
               type="button"
               aria-label="Voltar ao cardápio"
               onClick={() => router.push(menuHref)}
-              className="absolute left-6 top-6 flex h-12 w-12 items-center justify-center rounded-full border border-menu-overlay-border/35 bg-menu-overlay/45 text-menu-overlay-fg backdrop-blur-sm transition-colors hover:bg-menu-overlay/65"
+              className="absolute left-14 top-14 flex h-12 w-12 items-center justify-center rounded-full border border-white/25 bg-black/38 text-white shadow-soft backdrop-blur-md transition-colors hover:bg-black/55"
             >
               <ArrowLeft className="h-5 w-5" strokeWidth={1.5} />
             </button>
           </div>
 
-          <div className="grid min-w-0 gap-4 p-5 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-5 xl:p-9">
-            <div className="flex min-w-0 flex-col justify-center">
-              <h1 className="max-w-2xl text-4xl font-black leading-[0.98] text-menu-text xl:text-6xl">
+          <div className="grid min-w-0 bg-[#fbf4e8] px-8 py-8 xl:grid-cols-[minmax(0,500px)_390px] xl:gap-10 xl:px-10 xl:py-10 2xl:grid-cols-[minmax(0,560px)_440px] 2xl:gap-12 2xl:px-14">
+            <div className="flex min-w-0 flex-col justify-center py-10">
+              <div className="mb-6 flex flex-wrap items-center gap-3">
+                <span className="rounded-full border border-menu-border bg-menu-surface px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-menu-accent-strong">
+                  {mesa ? `Mesa ${mesa}` : "Delivery"}
+                </span>
+                <span className="rounded-full border border-menu-border bg-menu-surface px-4 py-2 text-xs font-bold text-menu-text-muted">
+                  {product.category}
+                </span>
+              </div>
+              <h1 className="max-w-[500px] text-[clamp(2.7rem,2.55vw,3.45rem)] font-black leading-[0.95] tracking-normal text-menu-text">
                 {product.name}
               </h1>
               {product.description ? (
-                <p className="mt-4 max-w-xl text-base leading-7 text-menu-text-muted xl:mt-5 xl:text-lg xl:leading-8">
+                <p className="mt-6 max-w-[650px] text-xl leading-9 text-menu-text-muted xl:mt-7 xl:text-[1.35rem] xl:leading-10">
                   {product.description}
                 </p>
               ) : null}
 
-              <div className="mt-5 grid max-w-xl grid-cols-2 gap-3 xl:mt-7">
-                <div className="rounded-2xl border border-menu-border bg-menu-surface p-3 xl:p-4">
+              <div className="mt-10 grid max-w-[560px] gap-4 xl:mt-11">
+                <div className="flex items-center justify-between rounded-[8px] border border-menu-border bg-white/78 px-7 py-6 shadow-soft backdrop-blur">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-menu-text-subtle">Preço</p>
-                  <p className="mt-1 text-2xl font-black text-menu-accent-strong">{formatCurrency(product.price)}</p>
+                  <p className="text-[2.1rem] font-black leading-none text-menu-accent-strong">{formatCurrency(product.price)}</p>
                 </div>
-                <div className="rounded-2xl border border-menu-border bg-menu-surface p-3 xl:p-4">
+                <div className="flex items-center justify-between rounded-[8px] border border-menu-border bg-white/64 px-7 py-6 shadow-soft backdrop-blur">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-menu-text-subtle">Pedido</p>
-                  <p className="mt-1 text-xl font-black text-menu-text">{mesa ? `Mesa ${mesa}` : "Delivery"}</p>
+                  <p className="text-[1.75rem] font-black leading-none text-menu-text">{mesa ? `Mesa ${mesa}` : "Delivery"}</p>
                 </div>
               </div>
             </div>
 
             <aside className="self-center lg:max-w-[560px] xl:max-w-none">
-              <div className="rounded-ds-2xl border border-menu-border bg-menu-bg p-4 shadow-soft xl:p-5">
+              <div className="rounded-[8px] border border-menu-border bg-[#fffaf2]/96 p-5 shadow-[0_20px_55px_rgba(30,23,20,0.12)] backdrop-blur xl:p-6 2xl:p-7">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-bold text-menu-text-muted">Adicionar ao pedido</p>
-                    <p className="mt-1 text-3xl font-black tracking-tight text-menu-text xl:text-4xl">{formatCurrency(total)}</p>
+                    <p className="text-sm font-bold text-menu-text-muted">Resumo do pedido</p>
+                    <p className="mt-1 text-4xl font-black tracking-tight text-menu-text 2xl:text-5xl">{formatCurrency(total)}</p>
                   </div>
-                  <div className="rounded-2xl bg-menu-cta p-3 text-menu-cta-fg">
+                  <div className="rounded-[8px] bg-menu-cta p-4 text-menu-cta-fg shadow-soft">
                     <ShoppingBag className="h-6 w-6" strokeWidth={1.5} />
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-menu-border bg-menu-surface-raised p-3 xl:p-4">
+                <div className="mt-5 rounded-[8px] border border-menu-border bg-white/85 p-4 shadow-soft 2xl:p-5">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="font-bold text-menu-text">Quantidade</p>
@@ -236,21 +269,21 @@ export function ProductDetailShell({ product, mesa }: { product: MenuProduct; me
                   </div>
                 </div>
 
-                <div className="mt-3 rounded-2xl border border-menu-border bg-menu-surface-raised p-3 xl:mt-4 xl:p-4">
+                <div className="mt-4 rounded-[8px] border border-menu-border bg-white/85 p-4 shadow-soft 2xl:p-5">
                   <label className="font-bold text-menu-text">Observações</label>
                   <Textarea
                     placeholder="Alguma observação?"
                     maxLength={180}
                     value={note}
                     onChange={(event) => setNote(event.target.value)}
-                    className="mt-3 min-h-[86px] rounded-2xl border-menu-border bg-menu-surface text-menu-text placeholder:text-menu-text-subtle focus:border-menu-accent focus:ring-1 focus:ring-menu-accent-border xl:min-h-[112px]"
+                    className="mt-3 min-h-[112px] rounded-[8px] border-menu-border bg-menu-surface text-menu-text placeholder:text-menu-text-subtle focus:border-menu-accent focus:ring-1 focus:ring-menu-accent-border 2xl:min-h-[148px]"
                   />
                 </div>
 
                 <button
                   type="button"
                   onClick={handleAdd}
-                  className="mt-4 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-menu-cta px-5 text-base font-black text-menu-cta-fg shadow-soft transition-colors hover:bg-menu-cta-hover active:scale-[0.99] xl:mt-5 xl:h-14"
+                  className="mt-5 flex h-14 w-full items-center justify-center gap-3 rounded-[8px] bg-menu-cta px-5 text-base font-black text-menu-cta-fg shadow-card transition-colors hover:bg-menu-cta-hover active:scale-[0.99] 2xl:h-16 2xl:text-lg"
                 >
                   <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
                   Adicionar ao pedido
@@ -259,7 +292,7 @@ export function ProductDetailShell({ product, mesa }: { product: MenuProduct; me
                 <button
                   type="button"
                   onClick={() => router.push(menuHref)}
-                  className="mt-3 w-full rounded-2xl border border-menu-border bg-menu-surface px-5 py-3 text-sm font-bold text-menu-accent-strong transition-colors hover:bg-menu-accent-bg"
+                  className="mt-3 w-full rounded-[8px] border border-menu-border bg-white/75 px-5 py-3 text-sm font-bold text-menu-accent-strong transition-colors hover:bg-white"
                 >
                   Voltar ao cardápio
                 </button>

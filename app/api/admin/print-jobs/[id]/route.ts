@@ -5,11 +5,12 @@ import { updatePrintJob } from "@/lib/print-jobs";
 import { requireAdminUser } from "@/lib/auth/server";
 import { formatZodError, updatePrintJobSchema } from "@/lib/validators";
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
+    const { id } = await params;
     const payload = updatePrintJobSchema.parse(await request.json());
-    const job = await updatePrintJob(params.id, payload);
+    const job = await updatePrintJob(id, payload);
     return NextResponse.json(job);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {

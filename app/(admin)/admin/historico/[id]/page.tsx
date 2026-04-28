@@ -49,9 +49,9 @@ function MetaBlock({
 export default async function AdminHistoryDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  const { id } = await params;
   const detail = await getFinancialHistoryDetail(id);
 
   if (!detail) {

@@ -15,12 +15,12 @@ export function ReceiptItems({ receipt }: { receipt: ReceiptData }) {
                 {item.quantity ? `${item.quantity}x ` : ""}
                 {item.name}
               </strong>
-              {typeof item.total === "number" && receipt.showPrices ? (
-                <span>{formatReceiptCurrency(item.total)}</span>
-              ) : null}
             </div>
-            {typeof item.unitPrice === "number" && receipt.showPrices ? (
-              <p className="receipt-item-muted">Unitario: {formatReceiptCurrency(item.unitPrice)}</p>
+            {typeof item.unitPrice === "number" && typeof item.total === "number" && receipt.showPrices ? (
+              <div className="receipt-item-price-row">
+                <span>Unit. {formatReceiptCurrency(item.unitPrice)}</span>
+                <span>Subt. {formatReceiptCurrency(item.total)}</span>
+              </div>
             ) : null}
             {item.note ? <p className="receipt-item-note">Obs: {item.note}</p> : null}
           </div>

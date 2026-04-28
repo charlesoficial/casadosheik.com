@@ -17,7 +17,6 @@ begin
     admin_user_id := gen_random_uuid();
 
     insert into auth.users (
-      instance_id,
       id,
       aud,
       role,
@@ -28,12 +27,8 @@ begin
       raw_user_meta_data,
       created_at,
       updated_at,
-      confirmation_token,
-      email_change,
-      email_change_token_new,
-      recovery_token
+      last_sign_in_at
     ) values (
-      '00000000-0000-0000-0000-000000000000',
       admin_user_id,
       'authenticated',
       'authenticated',
@@ -44,10 +39,7 @@ begin
       jsonb_build_object('role', 'admin', 'display_name', 'Administrador'),
       now(),
       now(),
-      '',
-      '',
-      '',
-      ''
+      now()
     );
 
     insert into auth.identities (

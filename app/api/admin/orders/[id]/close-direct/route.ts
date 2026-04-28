@@ -6,16 +6,17 @@ import { requireAdminUser } from "@/lib/auth/server";
 import { closeDirectOrderSchema, formatZodError } from "@/lib/validators";
 
 // Fecha financeiramente pedidos que não passam por mesa, como delivery e retirada.
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireAdminUser();
+    const { id } = await params;
     const payload = closeDirectOrderSchema.parse(await request.json());
     const closedBy =
       user?.user_metadata?.name ||
       user?.user_metadata?.full_name ||
       user?.email ||
       null;
-    const result = await closeDirectOrder(params.id, payload.paymentMethod, closedBy);
+    const result = await closeDirectOrder(id, payload.paymentMethod, closedBy);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof ZodError) {
