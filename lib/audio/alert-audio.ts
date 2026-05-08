@@ -141,10 +141,10 @@ function normalizeSettings(input: Partial<AlertAudioSettings> = {}): AlertAudioS
     enabled: input.enabled ?? DEFAULT_ALERT_AUDIO_SETTINGS.enabled,
     volume: clamp(input.volume ?? profile.volume, 0, 1),
     gainBoost: clamp(input.gainBoost ?? profile.gainBoost, 0.1, 3),
-    repeatIfPending: true,
-    repeatIntervalMs: 0,
+    repeatIfPending: input.repeatIfPending ?? profile.repeatIfPending,
+    repeatIntervalMs: Math.max(0, input.repeatIntervalMs ?? profile.repeatIntervalMs),
     soundProfile: input.soundProfile ?? DEFAULT_ALERT_AUDIO_SETTINGS.soundProfile,
-    alertTone: RESTAURANT_BELL_TONE
+    alertTone: input.alertTone ?? RESTAURANT_BELL_TONE
   };
 }
 
@@ -233,7 +233,7 @@ class AlertAudioEngine {
     void this.playNewOrderSound();
     this.repeatTimer = window.setInterval(() => {
       void this.playNewOrderSound();
-    }, RESTAURANT_BELL_DURATION_MS);
+    }, Math.max(this.settings.repeatIntervalMs, RESTAURANT_BELL_DURATION_MS));
     this.log("repeat_started");
   }
 

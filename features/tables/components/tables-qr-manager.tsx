@@ -19,6 +19,19 @@ function buildQrImageUrl(href: string) {
   return `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(href)}`;
 }
 
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => {
+    const entities: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;"
+    };
+    return entities[char] ?? char;
+  });
+}
+
 export function TablesQrManager({ entries }: { entries: QrEntry[] }) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -34,6 +47,8 @@ export function TablesQrManager({ entries }: { entries: QrEntry[] }) {
 
   function printQr(entry: QrEntry) {
     const qrUrl = buildQrImageUrl(entry.href);
+    const safeTitle = escapeHtml(entry.title);
+    const safeSubtitle = escapeHtml(entry.subtitle);
     const printWindow = window.open("", "_blank", "width=800,height=1000");
     if (!printWindow) return;
 
@@ -41,7 +56,7 @@ export function TablesQrManager({ entries }: { entries: QrEntry[] }) {
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <title>${entry.title}</title>
+  <title>${safeTitle}</title>
   <style>
     @page {
       size: A4 portrait;
@@ -83,9 +98,9 @@ export function TablesQrManager({ entries }: { entries: QrEntry[] }) {
 </head>
 <body>
   <div class="card">
-    <div class="title">${entry.title}</div>
-    <img src="${qrUrl}" alt="${entry.title}" />
-    <div class="subtitle">${entry.subtitle}</div>
+    <div class="title">${safeTitle}</div>
+    <img src="${qrUrl}" alt="${safeTitle}" />
+    <div class="subtitle">${safeSubtitle}</div>
   </div>
   <script>
     var img = document.querySelector('img');

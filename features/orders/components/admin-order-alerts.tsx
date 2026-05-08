@@ -13,19 +13,22 @@ export function AdminOrderAlerts() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const refreshInFlightRef = useRef(false);
   const refreshQueuedRef = useRef(false);
-  const isEnabled = useMemo(() => Boolean(settings?.notificationsEnabled) && soundEnabled, [settings, soundEnabled]);
+  const isEnabled = useMemo(
+    () => Boolean(settings?.notificationsEnabled) && settings?.alertFrequency !== "none" && soundEnabled,
+    [settings, soundEnabled]
+  );
   const audioSettings = useMemo(
     () =>
       settings
         ? {
             enabled: isEnabled,
             volume: Math.max(1, settings.alertVolume) / 100,
-            repeatIfPending: true,
+            repeatIfPending: settings.alertFrequency === "repeat_while_pending",
             repeatIntervalMs: 0,
-            alertTone: "Alerta 1" as const
+            alertTone: settings.alertSound
           }
         : undefined,
-    [isEnabled, settings?.alertVolume]
+    [isEnabled, settings?.alertFrequency, settings?.alertSound, settings?.alertVolume]
   );
 
   async function refreshOrders() {

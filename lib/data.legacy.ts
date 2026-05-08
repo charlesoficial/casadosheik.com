@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { adminOrders, categories, products, restaurant, sampleCart } from "@/lib/mock-data";
 import { sanitizeString } from "@/lib/security/sanitize";
+import { getOrderSettings, getOrderWorkflow } from "@/lib/order-settings";
 import {
   hasServiceRoleConfigured,
   getSupabaseAdminClient,
@@ -327,6 +328,39 @@ async function getConfiguredDeliveryFee() {
   return roundCurrencyValue(Number(data?.taxa_entrega ?? 0));
 }
 
+async function resolveActiveTableForOrder(table: string | null) {
+  if (!table || !/^\d+$/.test(table)) {
+    throw new Error("Mesa invalida para este pedido.");
+  }
+
+  const tableNumber = Number(table);
+  if (!Number.isSafeInteger(tableNumber) || tableNumber <= 0) {
+    throw new Error("Mesa invalida para este pedido.");
+  }
+
+  if (!isSupabaseConfigured()) {
+    return { table: String(tableNumber), tableNumber };
+  }
+
+  const supabase = getPreferredServerClient();
+  const { data, error } = await supabase!
+    .from("mesas")
+    .select("numero")
+    .eq("numero", tableNumber)
+    .eq("ativa", true)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    throw new Error("Mesa invalida para este pedido.");
+  }
+
+  return { table: String(data.numero), tableNumber: Number(data.numero) };
+}
+
 // Esta etapa garante que o pedido use o catalogo do servidor como fonte de verdade.
 // Nome, preco e disponibilidade nunca devem depender do payload enviado pelo cliente.
 async function resolveCheckoutItems(
@@ -406,17 +440,11 @@ async function resolveCheckoutItems(
 }
 
 function getReferenceDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return getBusinessDayKey(date);
 }
 
 function getDayRange(referenceDate: string) {
-  return {
-    start: `${referenceDate}T00:00:00`,
-    end: `${referenceDate}T23:59:59.999`
-  };
+  return getSaoPauloBusinessDayRange(`${referenceDate}T12:00:00-03:00`);
 }
 
 function startOfDay(date: Date) {
@@ -973,10 +1001,13 @@ export async function createOrderFromCheckout(payload: CheckoutPayload) {
   const sanitizedCustomerPhone = sanitizePhone(payload.clienteTelefone);
   const sanitizedAddress = sanitizeAddress(payload.enderecoEntrega);
   const sanitizedNotes = sanitizeOptionalText(payload.observacaoGeral, 500);
-  const sanitizedTable = payload.mesa ? sanitizeOptionalText(payload.mesa, 20) : null;
+  let sanitizedTable = payload.mesa ? sanitizeOptionalText(payload.mesa, 20) : null;
+  let parsedMesaNumero: number | null = null;
 
-  if (payload.tipo === "mesa" && !sanitizedTable) {
-    throw new Error("Mesa invalida para este pedido.");
+  if (payload.tipo === "mesa") {
+    const resolvedTable = await resolveActiveTableForOrder(sanitizedTable);
+    sanitizedTable = resolvedTable.table;
+    parsedMesaNumero = resolvedTable.tableNumber;
   }
 
   if (!isSupabaseConfigured()) {
@@ -1018,13 +1049,6 @@ export async function createOrderFromCheckout(payload: CheckoutPayload) {
   try {
     const supabase = getSupabaseAdminClient();
 
-    // Tenta resolver mesa_numero a partir do texto da mesa para manter FK tipada.
-    // So popula quando o valor for um inteiro valido.
-    const parsedMesaNumero =
-      payload.tipo === "mesa" && sanitizedTable && /^\d+$/.test(sanitizedTable)
-        ? Number(sanitizedTable)
-        : null;
-
     const orderInsert = {
       tipo: payload.tipo,
       mesa: sanitizedTable,
@@ -1061,6 +1085,7 @@ export async function createOrderFromCheckout(payload: CheckoutPayload) {
     const { error: itemsError } = await supabase!.from("pedido_itens").insert(itemsInsert);
 
     if (itemsError) {
+      await supabase!.from("pedidos").delete().eq("id", order.id);
       throw new Error(itemsError.message);
     }
 
@@ -1090,6 +1115,36 @@ export async function updateOrderStatus(id: string, status?: AdminOrder["status"
   try {
     const current = await getOrderDetail(id);
     const nextStatus = status ?? nextStatusMap[current.status];
+
+    if (!nextStatus) {
+      throw new Error("Transicao de status invalida para este pedido.");
+    }
+
+    if ((current.financialClosed || current.tableAccountClosed) && nextStatus !== current.status) {
+      throw new Error("Pedido ja fechado no caixa nao pode mudar de status.");
+    }
+
+    if (current.status === "concluido" && nextStatus !== "concluido") {
+      throw new Error("Pedido concluido nao pode voltar ou ser cancelado.");
+    }
+
+    if (current.status === "cancelado" && nextStatus !== "cancelado") {
+      throw new Error("Pedido cancelado nao pode voltar para a operacao.");
+    }
+
+    if (nextStatus !== current.status && nextStatus !== "cancelado") {
+      const workflow = getOrderWorkflow(await getOrderSettings());
+      const currentIndex = workflow.indexOf(current.status as (typeof workflow)[number]);
+      const expectedNextStatus =
+        currentIndex >= 0
+          ? workflow[currentIndex + 1]
+          : nextStatusMap[current.status];
+
+      if (expectedNextStatus !== nextStatus) {
+        throw new Error("Transicao de status invalida para este pedido.");
+      }
+    }
+
     const supabase = getSupabaseAdminClient();
 
     const { error } = await supabase!

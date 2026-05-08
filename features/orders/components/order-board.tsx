@@ -238,6 +238,15 @@ function canCloseDirectOrder(
   return !isTableOrder(order) && order.status === "concluido" && !alreadyClosed;
 }
 
+function canCancelOrder(order: Pick<OrderDetail, "status" | "financialClosed" | "tableAccountClosed">) {
+  return (
+    order.status !== "concluido" &&
+    order.status !== "cancelado" &&
+    !order.financialClosed &&
+    !order.tableAccountClosed
+  );
+}
+
 async function readApiJson<T>(response: Response, fallbackMessage: string): Promise<T> {
   const contentType = response.headers.get("content-type") ?? "";
   if (contentType.includes("application/json")) {
@@ -1250,7 +1259,7 @@ export function OrderBoard({
                   </Button>
                 ) : null}
 
-                {selectedOrder ? (
+                {selectedOrder && canCancelOrder(selectedOrder) ? (
                   <Button
                     type="button"
                     variant="ghost"
