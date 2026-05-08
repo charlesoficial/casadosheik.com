@@ -165,13 +165,13 @@ export function PrintSettings({
     enableStepPreparing:        initialSettings.enableStepPreparing,
     enableStepDelivery:         initialSettings.enableStepDelivery,
     notificationsEnabled:       initialSettings.notificationsEnabled,
-    alertSound:                 "Alerta 1",
-    alertFrequency:             "repeat_while_pending",
-    alertVolume:                initialSettings.alertVolume,
-    autoPrintEnabled:           initialSettings.autoPrintEnabled,
-    autoPrintMode:              initialSettings.autoPrintMode,
-    defaultAutoPrintPrinterId:  initialSettings.defaultAutoPrintPrinterId ?? null,
-    autoPrintTriggerStatus:     initialSettings.autoPrintTriggerStatus,
+        alertSound:                 "Alerta 1",
+        alertFrequency:             "repeat_while_pending",
+        alertVolume:                initialSettings.alertVolume,
+        autoPrintEnabled:           false,
+        autoPrintMode:              initialSettings.autoPrintMode,
+        defaultAutoPrintPrinterId:  null,
+        autoPrintTriggerStatus:     initialSettings.autoPrintTriggerStatus,
   });
   const [loading, setLoading]               = useState(false);
   const [message, setMessage]               = useState<string | null>(null);
@@ -186,7 +186,7 @@ export function PrintSettings({
   const enabledOrigins = [
     form.enableTableOrders    ? "Mesa"     : null,
     form.enableDeliveryOrders ? "Delivery" : null,
-    form.enableManualOrders   ? "Manual"   : null,
+    form.enableManualOrders   ? "Caixa"    : null,
   ].filter(Boolean) as string[];
 
   const enabledSteps = [
@@ -196,7 +196,6 @@ export function PrintSettings({
   ].filter(Boolean) as string[];
 
   const autoPrintModeLabel   = form.autoPrintMode === "single_printer" ? "Impressora unica" : "Distribuicao por destino";
-  const triggerStatusLabel   = form.autoPrintTriggerStatus === "aceito" ? "No aceite" : "Ao entrar como novo";
 
   const destinationAssignments = useMemo(
     () =>
@@ -229,7 +228,13 @@ export function PrintSettings({
       const response = await fetch("/api/admin/order-settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, alertSound: "Alerta 1", alertFrequency: "repeat_while_pending" }),
+        body: JSON.stringify({
+          ...form,
+          alertSound: "Alerta 1",
+          alertFrequency: "repeat_while_pending",
+          autoPrintEnabled: false,
+          defaultAutoPrintPrinterId: null
+        }),
       });
       const data = await readApiJson<OrderSettingsRecord & { error?: string }>(
         response,
@@ -247,9 +252,9 @@ export function PrintSettings({
         alertSound:                 "Alerta 1",
         alertFrequency:             "repeat_while_pending",
         alertVolume:                data.alertVolume,
-        autoPrintEnabled:           data.autoPrintEnabled,
+        autoPrintEnabled:           false,
         autoPrintMode:              data.autoPrintMode,
-        defaultAutoPrintPrinterId:  data.defaultAutoPrintPrinterId ?? null,
+        defaultAutoPrintPrinterId:  null,
         autoPrintTriggerStatus:     data.autoPrintTriggerStatus,
       });
       setMessage("Configuracoes de pedidos salvas com sucesso.");
@@ -354,7 +359,7 @@ export function PrintSettings({
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-admin-fg-faint">Impressão</p>
             <p className="mt-2 text-2xl font-bold tabular-nums text-admin-fg">{printerOptions.length}</p>
             <p className="mt-0.5 text-xs text-admin-fg-secondary">
-              {form.autoPrintEnabled ? autoPrintModeLabel : "Manual disponível"}
+              {form.autoPrintEnabled ? autoPrintModeLabel : "Windows"}
             </p>
           </div>
 
@@ -382,7 +387,7 @@ export function PrintSettings({
               {([
                 ["enableTableOrders",    "Mesa / QR Code",       "Via QR Code na mesa."],
                 ["enableDeliveryOrders", "Delivery / Retirada",  "Menu público externo."],
-                ["enableManualOrders",   "Manual",               "Lançado pelo operador."],
+                ["enableManualOrders",   "Caixa",                "Lançado pelo operador."],
               ] as const).map(([key, label, hint]) => {
                 const checked = form[key as keyof OrderSettingsPayload] as boolean;
                 return (
@@ -592,16 +597,12 @@ export function PrintSettings({
             </div>
           </SectionShell>
 
-          {/* ── 4. Impressão automática ──────────────────────────────────────── */}
+          {/* ── 4. Impressão do Windows ──────────────────────────────────────── */}
           <SectionShell
             icon={<Printer className="h-4 w-4" />}
-            eyebrow="Automação"
-            title="Impressão automática"
-            badge={
-              <DSBadge variant={form.autoPrintEnabled ? "success" : "secondary"}>
-                {form.autoPrintEnabled ? "Ativa" : "Manual"}
-              </DSBadge>
-            }
+            eyebrow="Windows"
+            title="Janela nativa de impressao"
+            badge={<DSBadge variant="secondary">Windows</DSBadge>}
           >
             <div className="space-y-4">
 
@@ -625,15 +626,11 @@ export function PrintSettings({
 
                 <div className="flex items-start justify-between gap-4 rounded-ds-lg border border-admin-border bg-admin-elevated px-4 py-4">
                   <div>
-                    <p className="text-sm font-semibold text-admin-fg">Impressão automática</p>
+                    <p className="text-sm font-semibold text-admin-fg">Confirmacao do operador</p>
                     <p className="mt-1 text-xs leading-5 text-admin-fg-muted">
-                      Quando desligada, a impressão manual continua disponível.
+                      O botao Imprimir comanda abre a janela nativa de impressao do Windows.
                     </p>
                   </div>
-                  <Toggle
-                    checked={form.autoPrintEnabled}
-                    onChange={(v) => setForm((c) => ({ ...c, autoPrintEnabled: v }))}
-                  />
                 </div>
               </div>
 
@@ -641,7 +638,7 @@ export function PrintSettings({
               {autoPrintControlsDisabled && (
                 <div className="flex items-start gap-3 rounded-ds-lg border border-status-warning-border bg-status-warning-bg px-4 py-3 text-sm text-status-warning-fg">
                   <Info className="mt-0.5 h-4 w-4 shrink-0" />
-                  <p>Ative a impressão automática para configurar modo, impressora e disparo.</p>
+                  <p>Aceitar pedido nao imprime comanda. Use Imprimir comanda para abrir a janela do Windows.</p>
                 </div>
               )}
 
@@ -804,7 +801,7 @@ export function PrintSettings({
                 { label: "Canais",   value: enabledOrigins.length ? enabledOrigins.join(", ") : "Nenhum ativo" },
                 { label: "Etapas",   value: enabledSteps.length ? `Novo, ${enabledSteps.join(", ")}, Concluído` : "Novo e Concluído" },
                 { label: "Alerta",   value: form.notificationsEnabled ? `${selectedAlertTone.profile} — ${form.alertVolume}%` : "Silenciado" },
-                { label: "Impressão",value: form.autoPrintEnabled ? `${autoPrintModeLabel} / ${triggerStatusLabel}` : "Manual" },
+                { label: "Impressão",value: "Janela do Windows" },
               ].map(({ label, value }) => (
                 <div key={label} className="py-3 first:pt-0 last:pb-0">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-admin-fg-faint">{label}</p>
@@ -824,7 +821,7 @@ export function PrintSettings({
                 { label: "Canais definidos",  ok: enabledOrigins.length > 0 },
                 { label: "Som audível",       ok: form.notificationsEnabled },
                 { label: "Impressoras ativas",ok: printerOptions.length > 0 },
-                { label: "Print configurado", ok: form.autoPrintEnabled },
+                { label: "Janela do Windows", ok: true },
               ].map(({ label, ok }) => (
                 <div key={label} className="flex items-center justify-between gap-3 px-5 py-3">
                   <span className="text-sm text-admin-fg-secondary">{label}</span>

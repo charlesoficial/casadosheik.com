@@ -18,7 +18,9 @@ export async function POST(request: Request) {
         ?.trim() ||
       request.headers.get("x-real-ip") ||
       "anonymous";
-    const allowed = rateLimit(ip, 10, 60_000);
+    // Em salao real, varias mesas podem sair pelo mesmo IP do Wi-Fi/NAT.
+    // Mantemos protecao anti-spam, mas com folga para picos simultaneos.
+    const allowed = rateLimit(ip, 30, 60_000);
 
     if (!allowed) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });

@@ -9,7 +9,7 @@ export function formatReceiptDateTime(value?: string | null) {
   return new Date(value ?? new Date().toISOString()).toLocaleString("pt-BR");
 }
 
-export function formatReceiptOrderNumber(value: number, width = 4) {
+export function formatReceiptOrderNumber(value: number, width = 3) {
   return `#${String(value).padStart(width, "0")}`;
 }
 

@@ -29,6 +29,7 @@
 --   FIX-003: Adicionadas politicas UPDATE e DELETE no bucket 'produtos'
 --   FIX-004: Documentado que audit_log e coberto pelo GRANT generico
 --   FIX-005: Documentada decisao sobre campo mesa legado vs mesa_numero FK
+--   FIX-006: Endurecidos grants de funcoes internas e policies publicas anon
 --
 -- Garantias de idempotencia:
 --   - DROP ... IF EXISTS CASCADE em todos os objetos
@@ -59,6 +60,7 @@ create extension if not exists pgcrypto;
 -- =============================================================================
 
 drop function if exists set_updated_at() cascade;
+drop function if exists is_admin() cascade;
 drop function if exists fn_audit_log() cascade;
 drop function if exists fn_cleanup_print_jobs(integer) cascade;
 
@@ -192,13 +194,23 @@ end $$;
 create or replace function set_updated_at()
 returns trigger
 language plpgsql
-set search_path = public
+set search_path = public, pg_temp
 as $$
 begin
   -- Mantem a auditoria basica de alteracao sem repetir logica em cada tabela.
   new.updated_at = now();
   return new;
 end;
+$$;
+
+-- Role helper para policies admin em migrations incrementais.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+set search_path = public, pg_temp
+as $$
+  select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', auth.jwt() -> 'user_metadata' ->> 'role') = 'admin';
 $$;
 
 -- Trilha de auditoria para operacoes criticas.
@@ -209,7 +221,7 @@ create or replace function fn_audit_log()
 returns trigger
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_record_id uuid;
@@ -272,7 +284,7 @@ create or replace function fn_cleanup_print_jobs(retention_days integer default 
 returns integer
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp
 as $$
 declare
   v_deleted integer;
@@ -441,7 +453,7 @@ create table printers (
   ip_address text,
   port integer not null default 9100 check (port > 0 and port <= 65535),
   is_active boolean not null default true,
-  auto_print_on_accept boolean not null default true,
+  auto_print_on_accept boolean not null default false,
   copies integer not null default 1 check (copies > 0 and copies <= 10),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -768,7 +780,7 @@ drop policy if exists "restaurante_config_select_public" on restaurante_config;
 create policy "restaurante_config_select_public"
 on restaurante_config
 for select
-to public
+to anon
 using (true);
 
 drop policy if exists "restaurante_config_manage_authenticated" on restaurante_config;
@@ -787,7 +799,7 @@ drop policy if exists "categorias_select_public" on categorias;
 create policy "categorias_select_public"
 on categorias
 for select
-to public
+to anon
 using (ativa = true and deleted_at is null);
 
 drop policy if exists "categorias_manage_authenticated" on categorias;
@@ -809,7 +821,7 @@ drop policy if exists "produtos_select_public" on produtos;
 create policy "produtos_select_public"
 on produtos
 for select
-to public
+to anon
 using (disponivel = true and deleted_at is null);
 
 drop policy if exists "produtos_manage_authenticated" on produtos;
@@ -866,7 +878,7 @@ drop policy if exists "mesas_select_public" on mesas;
 create policy "mesas_select_public"
 on mesas
 for select
-to public
+to anon
 using (ativa = true);
 
 drop policy if exists "mesas_manage_authenticated" on mesas;
@@ -1009,11 +1021,7 @@ drop policy if exists "produtos_authenticated_insert" on storage.objects;
 drop policy if exists "produtos_authenticated_update" on storage.objects;
 drop policy if exists "produtos_authenticated_delete" on storage.objects;
 
-create policy "produtos_public_read"
-on storage.objects
-for select
-to public
-using (bucket_id = 'produtos');
+-- Bucket publico: URLs publicas funcionam sem uma policy SELECT ampla.
 
 create policy "produtos_authenticated_insert"
 on storage.objects
@@ -1034,6 +1042,20 @@ on storage.objects
 for delete
 to authenticated
 using (bucket_id = 'produtos');
+
+-- Grants restritos para funcoes internas.
+grant execute on function public.is_admin() to authenticated;
+grant execute on function public.is_admin() to service_role;
+
+revoke execute on function public.fn_audit_log() from public;
+revoke execute on function public.fn_audit_log() from anon;
+revoke execute on function public.fn_audit_log() from authenticated;
+grant execute on function public.fn_audit_log() to service_role;
+
+revoke execute on function public.fn_cleanup_print_jobs(integer) from public;
+revoke execute on function public.fn_cleanup_print_jobs(integer) from anon;
+revoke execute on function public.fn_cleanup_print_jobs(integer) from authenticated;
+grant execute on function public.fn_cleanup_print_jobs(integer) to service_role;
 
 
 -- =============================================================================

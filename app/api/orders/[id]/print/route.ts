@@ -62,7 +62,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       jobs,
       message: jobs.length
         ? "Impressao preparada para dispatch."
-        : "Nenhuma impressora ativa encontrada. Use o fallback manual."
+        : "Nenhuma impressora integrada ativa encontrada."
     });
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {

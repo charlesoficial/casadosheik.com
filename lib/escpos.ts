@@ -10,15 +10,20 @@ const CUT = `${GS}V\x00`;
 
 export const THERMAL_TEXT_WIDTH = 32;
 
-// Normaliza o texto para algo previsivel em impressoras termicas simples,
-// preservando acentos comuns e removendo caracteres que costumam corromper.
+function truncateWithSuffix(value: string, width: number, suffix = "...") {
+  if (value.length <= width) return value;
+  if (width <= suffix.length) return value.slice(0, width);
+  return `${value.slice(0, width - suffix.length)}${suffix}`;
+}
+
+// Keep thermal-printer text predictable and avoid unsupported punctuation bytes.
 export function sanitizeThermalText(value: string) {
   return value
     .normalize("NFC")
-    .replace(/[‐‑–—]/g, "-")
-    .replace(/[“”]/g, '"')
-    .replace(/[‘’]/g, "'")
-    .replace(/•/g, "-")
+    .replace(/[\u2010-\u2015]/g, "-")
+    .replace(/[\u201c\u201d]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\u2022/g, "-")
     .replace(/\t/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -41,42 +46,63 @@ export function centerText(text: string, width = THERMAL_TEXT_WIDTH) {
 export function pairLine(left: string, right: string, width = THERMAL_TEXT_WIDTH) {
   const leftText = sanitizeThermalText(left);
   const rightText = sanitizeThermalText(right);
-  const maxLeftWidth = Math.max(1, width - rightText.length - 1);
-  const leftSafe = leftText.length > maxLeftWidth ? `${leftText.slice(0, maxLeftWidth - 1)}…` : leftText;
-  const spaces = Math.max(1, width - leftSafe.length - rightText.length);
-  return `${leftSafe}${" ".repeat(spaces)}${rightText}`;
+  const rightSafe = truncateWithSuffix(rightText, Math.max(1, width - 2));
+  const maxLeftWidth = Math.max(1, width - rightSafe.length - 1);
+  const leftSafe = truncateWithSuffix(leftText, maxLeftWidth);
+  const spaces = Math.max(1, width - leftSafe.length - rightSafe.length);
+  return `${leftSafe}${" ".repeat(spaces)}${rightSafe}`;
 }
 
 export function wrapText(text: string, width = THERMAL_TEXT_WIDTH, indent = "") {
   const normalized = sanitizeThermalText(text);
   if (!normalized) return [];
 
+  const safeWidth = Math.max(1, width);
+  const safeIndent = indent.slice(0, Math.max(0, safeWidth - 1));
   const words = normalized.split(" ");
   const lines: string[] = [];
   let current = "";
 
+  const pushCurrent = () => {
+    if (!current) return;
+    lines.push(lines.length > 0 ? `${safeIndent}${current}` : current);
+    current = "";
+  };
+
   for (const word of words) {
+    const limit = Math.max(1, lines.length > 0 ? safeWidth - safeIndent.length : safeWidth);
+
+    if (word.length > limit) {
+      pushCurrent();
+      let remaining = word;
+
+      while (remaining) {
+        const chunkLimit = Math.max(1, lines.length > 0 ? safeWidth - safeIndent.length : safeWidth);
+        const chunk = remaining.slice(0, chunkLimit);
+        remaining = remaining.slice(chunkLimit);
+
+        if (remaining) {
+          lines.push(lines.length > 0 ? `${safeIndent}${chunk}` : chunk);
+          continue;
+        }
+
+        current = chunk;
+      }
+      continue;
+    }
+
     const candidate = current ? `${current} ${word}` : word;
-    const limit = lines.length > 0 ? width - indent.length : width;
 
     if (candidate.length <= limit) {
       current = candidate;
       continue;
     }
 
-    if (current) {
-      lines.push(lines.length > 0 ? `${indent}${current}` : current);
-      current = word;
-      continue;
-    }
-
-    lines.push(lines.length > 0 ? `${indent}${word.slice(0, limit)}` : word.slice(0, limit));
-    current = word.slice(limit);
+    pushCurrent();
+    current = word;
   }
 
-  if (current) {
-    lines.push(lines.length > 0 ? `${indent}${current}` : current);
-  }
+  pushCurrent();
 
   return lines;
 }

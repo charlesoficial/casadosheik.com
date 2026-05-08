@@ -250,7 +250,7 @@ create table printers (
   ip_address text,
   port integer not null default 9100 check (port > 0 and port <= 65535),
   is_active boolean not null default true,
-  auto_print_on_accept boolean not null default true,
+  auto_print_on_accept boolean not null default false,
   copies integer not null default 1 check (copies > 0 and copies <= 10),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),

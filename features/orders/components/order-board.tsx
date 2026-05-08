@@ -5,7 +5,7 @@ import { Clock3, Loader2, Printer, ShoppingBag, Truck, Volume2, VolumeX } from "
 
 import { getSupabaseBrowserClient } from "@/lib/realtime/client";
 import { getOrderWorkflow } from "@/lib/order-settings";
-import { printReceiptFromDom } from "@/lib/receipt/print";
+import { printReceiptFromDomNow } from "@/lib/receipt/print";
 import { OrderPrintSheet } from "@/features/orders/components/order-print-sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { usePrinterBridge } from "@/features/printers/hooks/use-printer-bridge";
 import { useAdminSoundPreference } from "@/features/orders/hooks/use-order-sound";
 import { cn, formatCurrency } from "@/lib/utils";
 import type {
@@ -29,7 +28,6 @@ import type {
   OrderDetail,
   OrderSettingsRecord,
   OrderStatus,
-  PrintDispatchResult,
   PrintJobRecord,
   PrinterRecord
 } from "@/lib/types";
@@ -40,7 +38,7 @@ const statusMeta = {
   novo: {
     label: "Novos",
     color: "bg-status-new-bg text-status-new-fg border-status-new-border",
-    description: "Pedidos que acabaram de chegar do QR Code, delivery ou lancamento manual."
+    description: "Pedidos que acabaram de chegar do QR Code, delivery ou lancamento do caixa."
   },
   aceito: {
     label: "Aceitos",
@@ -140,6 +138,18 @@ function formatOrderCode(number: number) {
   return String(number).padStart(3, "0");
 }
 
+function formatPrintTriggerLabel(triggerSource: PrintJobRecord["triggerSource"]) {
+  if (triggerSource === "auto_accept") return "Aceite";
+  if (triggerSource === "test") return "Teste";
+  return "Botao imprimir";
+}
+
+function formatPrintTransportLabel(transportType: PrintJobRecord["transportType"]) {
+  if (transportType === "usb") return "USB";
+  if (transportType === "network") return "Rede";
+  return "Windows";
+}
+
 function getOrderTypeLabel(order: Pick<OrderDetail, "kind" | "table" | "type"> | Pick<AdminOrder, "type">) {
   const isTableOrder = "kind" in order ? order.kind === "mesa" : order.type.includes("Mesa");
   if (!isTableOrder) {
@@ -196,7 +206,7 @@ function getPrimaryAction(status: AdminOrder["status"], settings: OrderSettingsR
   // evitando botao fixo que desrespeite a operacao do restaurante.
   const nextStatus = getNextStatus(status, settings);
   if (!nextStatus) return null;
-  if (nextStatus === "aceito") return { label: "Aceitar e imprimir", targetStatus: nextStatus };
+  if (nextStatus === "aceito") return { label: "Aceitar pedido", targetStatus: nextStatus };
   if (nextStatus === "preparo") return { label: "Iniciar preparo", targetStatus: nextStatus };
   if (nextStatus === "pronto") return { label: "Marcar pronto", targetStatus: nextStatus };
   return { label: "Concluir pedido", targetStatus: nextStatus };
@@ -260,13 +270,11 @@ export function OrderBoard({
 }) {
   // O componente mistura UI e regra operacional por necessidade:
   // atualiza fila, imprime, acompanha status e reage ao realtime do Supabase.
-  const printerBridge = usePrinterBridge();
   const { soundEnabled, toggleSound } = useAdminSoundPreference();
   const [orders, setOrders] = useState(initialOrders);
   const [settings] = useState(initialSettings);
   const [selectedId, setSelectedId] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
-  const [printSheetOrder, setPrintSheetOrder] = useState<OrderDetail | null>(null);
   const [printJobs, setPrintJobs] = useState<PrintJobRecord[]>([]);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -280,16 +288,11 @@ export function OrderBoard({
   const [closeDirectPaymentMethod, setCloseDirectPaymentMethod] =
     useState<CloseDirectOrderPayload["paymentMethod"]>("dinheiro");
   const refreshInFlightRef = useRef(false);
+  const refreshQueuedRef = useRef(false);
   const detailInFlightRef = useRef<string | null>(null);
   const printJobsInFlightRef = useRef<string | null>(null);
   const selectedIdRef = useRef("");
-  const autoPrintAttemptedRef = useRef<Set<string>>(new Set());
-  const seenOrderIdsRef = useRef<Set<string>>(new Set(initialOrders.map((order) => order.id)));
   const workflowStatuses = useMemo(() => getOrderWorkflow(settings), [settings]);
-  const hasUsbAutoPrintPrinters = useMemo(
-    () => activePrinters.some((printer) => printer.type === "usb" && printer.autoPrintOnAccept),
-    [activePrinters]
-  );
   const visibleStatuses = useMemo(
     () => workflowStatuses.filter((status) => status !== "novo" && status !== "concluido"),
     [workflowStatuses]
@@ -348,6 +351,10 @@ export function OrderBoard({
   const selectedTableGroup = useMemo(() => {
     return selectedEntry && isConcludedTableGroup(selectedEntry) ? selectedEntry : null;
   }, [selectedEntry]);
+  const visiblePrintJobs = useMemo(
+    () => printJobs.filter((job) => job.transportType !== "manual"),
+    [printJobs]
+  );
   const activeTabMeta = statusMeta[activeStatus as keyof typeof statusMeta];
   const closeTableOrder = useMemo(() => {
     if (!closeTableOrderId) return null;
@@ -391,7 +398,10 @@ export function OrderBoard({
     return orders.find((order) => order.id === closeDirectOrderId) ?? null;
   }, [closeDirectOrderId, orders, selectedOrder]);
   async function refreshOrders() {
-    if (refreshInFlightRef.current) return;
+    if (refreshInFlightRef.current) {
+      refreshQueuedRef.current = true;
+      return;
+    }
     refreshInFlightRef.current = true;
     try {
       const response = await fetch("/api/admin/orders", { cache: "no-store" });
@@ -402,6 +412,10 @@ export function OrderBoard({
       // Evita erro uncaught quando o servidor local reinicia ou cai temporariamente.
     } finally {
       refreshInFlightRef.current = false;
+      if (refreshQueuedRef.current) {
+        refreshQueuedRef.current = false;
+        void refreshOrders();
+      }
     }
   }
 
@@ -453,38 +467,6 @@ export function OrderBoard({
     }
   }
 
-  async function updatePrintJobStatus(printJobId: string, success: boolean, message?: string) {
-    try {
-      await fetch(`/api/admin/print-jobs/${printJobId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: success ? "success" : "failed",
-          errorMessage: success ? null : message ?? "Falha na impressao."
-        })
-      });
-    } catch {
-      // Nao bloqueia o fluxo operacional se o log falhar.
-    }
-  }
-
-  async function createManualFallbackJob(orderId: string, lines: string[]) {
-    const response = await fetch("/api/admin/print-jobs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId,
-        destination: "geral",
-        transportType: "manual",
-        triggerSource: "manual_reprint",
-        payloadPreview: lines.slice(0, 16).join("\n")
-      })
-    });
-
-    if (!response.ok) return null;
-    return await readApiJson<PrintJobRecord>(response, "Nao foi possivel criar fallback de impressao.");
-  }
-
   useEffect(() => {
     setOrders(initialOrders);
   }, [initialOrders]);
@@ -498,13 +480,6 @@ export function OrderBoard({
       setActiveStatus(workflowStatuses[0] ?? "novo");
     }
   }, [activeStatus, workflowStatuses]);
-
-  useEffect(() => {
-    if (!settings.autoPrintEnabled || !hasUsbAutoPrintPrinters) return;
-    void printerBridge.connectQzTray().catch(() => {
-      // A tentativa real acontece novamente no clique/impressao.
-    });
-  }, [hasUsbAutoPrintPrinters, printerBridge, settings.autoPrintEnabled]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -522,7 +497,7 @@ export function OrderBoard({
         void loadOrderDetail(currentSelectedId, { silent: true });
         void loadPrintJobs(currentSelectedId, { silent: true });
       }
-    }, 30000);
+    }, 5000);
 
     const supabase = getSupabaseBrowserClient();
     const channel = supabase
@@ -546,11 +521,7 @@ export function OrderBoard({
     };
   }, []);
 
-  async function updateStatus(
-    orderId: string,
-    status?: OrderStatus,
-    options?: { printAfterStatusUpdate?: boolean }
-  ) {
+  async function updateStatus(orderId: string, status?: OrderStatus) {
     try {
       setError(null);
       setMessage(null);
@@ -581,13 +552,6 @@ export function OrderBoard({
       if (selectedId === orderId) {
         setSelectedOrder(updated as OrderDetail);
       }
-
-      const updatedStatus = (updated.status as OrderStatus) || targetStatus;
-      if (options?.printAfterStatusUpdate && updatedStatus === "aceito") {
-        await handleManualPrint(orderId, updated as OrderDetail);
-      } else if (settings.autoPrintEnabled && updatedStatus === settings.autoPrintTriggerStatus) {
-        await dispatchAutoPrintOnce(orderId, updatedStatus);
-      }
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : "Erro ao atualizar status");
     } finally {
@@ -595,154 +559,19 @@ export function OrderBoard({
     }
   }
 
-  async function dispatchPreparedJobs(orderId: string, triggerSource: "auto_accept" | "manual_reprint") {
-    const printerId =
-      triggerSource === "auto_accept" && settings.autoPrintMode === "single_printer"
-        ? settings.defaultAutoPrintPrinterId ?? undefined
-        : undefined;
-    const response = await fetch(`/api/admin/orders/${orderId}/print`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ destination: "all", triggerSource, printerId })
-    });
-    const data = await readApiJson<{
-      error?: string;
-      order: OrderDetail;
-      jobs: Array<{ printer: PrinterRecord; lines: string[]; printJob: PrintJobRecord }>;
-      message: string;
-    }>(response, "Falha ao preparar impressao.");
-    if (!response.ok) {
-      throw new Error(data.error || "Falha ao preparar impressao.");
-    }
-
-    return data as {
-      order: OrderDetail;
-      jobs: Array<{ printer: PrinterRecord; lines: string[]; printJob: PrintJobRecord }>;
-      message: string;
-    };
-  }
-
-  async function dispatchAutoPrintOnce(orderId: string, status: OrderStatus) {
-    const key = `${status}:${orderId}`;
-    if (autoPrintAttemptedRef.current.has(key)) return;
-    autoPrintAttemptedRef.current.add(key);
-    await dispatchAutoPrint(orderId);
-  }
-
-  async function dispatchAutoPrint(orderId: string) {
-    try {
-      const prepared = await dispatchPreparedJobs(orderId, "auto_accept");
-      if (!prepared.jobs.length) {
-        setMessage(prepared.message);
-        return;
-      }
-
-      const results: PrintDispatchResult[] = [];
-      for (const job of prepared.jobs) {
-        const copies = Math.max(1, job.printer.copies || 1);
-        let hasFailure = false;
-        let lastMessage = "Impressao enviada.";
-        for (let index = 0; index < copies; index += 1) {
-          const result = await printerBridge.printToPrinter(job.printer, job.lines);
-          hasFailure = hasFailure || !result.success;
-          lastMessage = result.message;
-          results.push(result);
-        }
-        await updatePrintJobStatus(job.printJob.id, !hasFailure, hasFailure ? lastMessage : undefined);
-      }
-
-      await loadPrintJobs(orderId);
-      const failures = results.filter((result) => !result.success);
-      if (failures.length) {
-        setError(
-          `Impressao parcial: ${failures.map((item) => `${item.printerName} (${item.message})`).join(", ")}`
-        );
-      } else {
-        setMessage("Impressao automatica enviada com sucesso.");
-      }
-    } catch (dispatchError) {
-      setError(dispatchError instanceof Error ? dispatchError.message : "Falha na impressao automatica.");
-    }
-  }
-
-  useEffect(() => {
-    const newlySeenOrders: AdminOrder[] = [];
-
-    for (const order of orders) {
-      if (seenOrderIdsRef.current.has(order.id)) continue;
-      seenOrderIdsRef.current.add(order.id);
-      newlySeenOrders.push(order);
-    }
-
-    if (!settings.autoPrintEnabled || settings.autoPrintTriggerStatus !== "novo") return;
-
-    for (const order of newlySeenOrders) {
-      if (order.status === "novo") {
-        void dispatchAutoPrintOnce(order.id, "novo");
-      }
-    }
-  }, [orders, settings.autoPrintEnabled, settings.autoPrintTriggerStatus]);
-
-  async function handleManualPrint(orderId: string, orderForFallback?: OrderDetail | null) {
+  function handleNativePrint(orderId: string, orderForPrint?: OrderDetail | null) {
     try {
       setError(null);
       setMessage(null);
-      const prepared = await dispatchPreparedJobs(orderId, "manual_reprint");
-      if (!prepared.jobs.length) {
-        setMessage("Nenhuma impressora ativa encontrada. Usando fallback manual.");
-        await handlePrint(orderId, orderForFallback ?? prepared.order);
-        return;
+      const order = orderForPrint ?? (selectedOrder?.id === orderId ? selectedOrder : null);
+      if (!order) {
+        setSelectedId(orderId);
+        throw new Error("Pedido selecionado. Clique em Imprimir comanda novamente quando os detalhes carregarem.");
       }
-
-      const results: PrintDispatchResult[] = [];
-      for (const job of prepared.jobs) {
-        const copies = Math.max(1, job.printer.copies || 1);
-        let hasFailure = false;
-        let lastMessage = "Impressao enviada.";
-        for (let index = 0; index < copies; index += 1) {
-          const result = await printerBridge.printToPrinter(job.printer, job.lines);
-          hasFailure = hasFailure || !result.success;
-          lastMessage = result.message;
-          results.push(result);
-        }
-        await updatePrintJobStatus(job.printJob.id, !hasFailure, hasFailure ? lastMessage : undefined);
-      }
-
-      await loadPrintJobs(orderId);
-      const failures = results.filter((result) => !result.success);
-      if (failures.length) {
-        setError("Uma ou mais impressoras falharam. Abrindo fallback manual.");
-        await handlePrint(orderId, orderForFallback ?? prepared.order);
-      } else {
-        setMessage("Pedido impresso com sucesso.");
-      }
+      printReceiptFromDomNow();
+      setMessage("Janela nativa de impressao aberta. Confirme no Windows.");
     } catch (printError) {
-      setError(printError instanceof Error ? printError.message : "Falha ao imprimir. Abrindo fallback manual.");
-      await handlePrint(orderId, orderForFallback ?? selectedOrder);
-    }
-  }
-
-  async function handlePrint(orderId: string, order?: OrderDetail | null) {
-    const orderToPrint = order ?? selectedOrder;
-    setPrintSheetOrder(orderToPrint ?? null);
-    const fallbackLines =
-      orderToPrint?.items?.length
-        ? [
-            `Pedido #${String(orderToPrint.number).padStart(4, "0")}`,
-            ...orderToPrint.items.map((item) => `${item.qty}x ${item.name}`)
-          ]
-        : ["Fallback manual"];
-    const job = await createManualFallbackJob(orderId, fallbackLines);
-    if (job) {
-      await updatePrintJobStatus(job.id, true);
-    }
-    window.setTimeout(() => {
-      printReceiptFromDom().catch((printError: unknown) => {
-        setError(printError instanceof Error ? printError.message : "Erro ao imprimir cupom.");
-      });
-    }, 50);
-    if (selectedId === orderId) {
-      await loadPrintJobs(orderId);
+      setError(printError instanceof Error ? printError.message : "Falha ao abrir a janela de impressao.");
     }
   }
 
@@ -950,21 +779,8 @@ export function OrderBoard({
       {!activePrinters.length ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-status-warning-border bg-status-warning-bg px-4 py-3 text-sm text-status-warning-text">
           <span>
-            Nenhuma impressora esta cadastrada. O botao Aceitar e imprimir abre a impressao do navegador como fallback.
+            Use Imprimir comanda para abrir a janela nativa de impressao do Windows.
           </span>
-        </div>
-      ) : null}
-      {settings.autoPrintEnabled && hasUsbAutoPrintPrinters && !printerBridge.automaticPrintingAvailable ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-status-warning-border bg-status-warning-bg px-4 py-3 text-sm text-status-warning-text">
-          <span>QZ Tray ainda nao esta conectado nesta maquina. Conecte antes do rush para a USB imprimir sem susto.</span>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-8 border-status-warning-border bg-transparent text-status-warning-fg hover:bg-status-warning-bg"
-            onClick={() => void printerBridge.connectQzTray()}
-          >
-            Conectar QZ
-          </Button>
         </div>
       ) : null}
 
@@ -1074,9 +890,7 @@ export function OrderBoard({
                         disabled={pendingId === order.id}
                         onClick={(e) => {
                           e.stopPropagation();
-                          void updateStatus(order.id, primaryAction.targetStatus, {
-                            printAfterStatusUpdate: primaryAction.targetStatus === "aceito"
-                          });
+                          void updateStatus(order.id, primaryAction.targetStatus);
                         }}
                       >
                         {pendingId === order.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
@@ -1090,7 +904,7 @@ export function OrderBoard({
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedId(entryKey);
-                        void handleManualPrint(order.id);
+                        handleNativePrint(order.id, selectedOrder?.id === order.id ? selectedOrder : null);
                       }}
                     >
                       <Printer className="h-3.5 w-3.5" />
@@ -1124,7 +938,7 @@ export function OrderBoard({
             );
           }) : (
             /* Empty state da lista */
-            <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-admin-border py-20 text-center">
+            <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-admin-border px-6 py-10 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-admin-border bg-admin-surface text-admin-fg-faint">
                 <ShoppingBag className="h-5 w-5" />
               </div>
@@ -1139,14 +953,14 @@ export function OrderBoard({
         </div>
 
         {/* ── Painel de detalhes ─────────────────────────────── */}
-        <div className="admin-orders-shell-card sticky top-4 overflow-hidden rounded-2xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)]">
+        <div className="admin-orders-shell-card sticky top-4 min-h-[280px] overflow-hidden rounded-2xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-bg)]">
           {detailLoading ? (
-            <div className="flex items-center justify-center py-24 text-[var(--admin-subtle)]">
+            <div className="flex min-h-[280px] items-center justify-center text-[var(--admin-subtle)]">
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : !selectedOrder && !selectedTableGroup ? (
             /* Empty state do detalhe */
-            <div className="flex flex-col items-center justify-center gap-4 px-6 py-24 text-center">
+            <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 px-6 py-10 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-admin-border bg-admin-surface text-admin-fg-faint">
                 <ShoppingBag className="h-5 w-5" />
               </div>
@@ -1324,15 +1138,15 @@ export function OrderBoard({
                 {!selectedTableGroup ? (
                   <div className="space-y-2 p-5">
                     <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--admin-subtle)]">Impressoes</p>
-                    {printJobs.length ? (
-                      printJobs.map((job) => (
+                    {visiblePrintJobs.length ? (
+                      visiblePrintJobs.map((job) => (
                         <div
                           key={job.id}
                           className="rounded-xl border border-[var(--admin-panel-border)] bg-[var(--admin-panel-header-bg)] px-4 py-2.5"
                         >
                           <div className="flex items-center justify-between gap-3">
                             <span className="text-sm text-[var(--admin-title)]">
-                              {job.printerName || "Fallback manual"}
+                              {job.printerName || "Impressora"}
                             </span>
                             <span
                               className={cn(
@@ -1348,7 +1162,7 @@ export function OrderBoard({
                             </span>
                           </div>
                           <p className="mt-1 text-xs text-[var(--admin-subtle)]">
-                            {job.triggerSource} · {job.transportType} ·{" "}
+                            {formatPrintTriggerLabel(job.triggerSource)} · {formatPrintTransportLabel(job.transportType)} ·{" "}
                             {new Date(job.createdAt).toLocaleString("pt-BR")}
                           </p>
                           {job.errorMessage ? (
@@ -1357,7 +1171,9 @@ export function OrderBoard({
                         </div>
                       ))
                     ) : (
-                      <p className="text-sm text-[var(--admin-subtle)]">Nenhum log ainda.</p>
+                      <p className="text-sm text-[var(--admin-subtle)]">
+                        Nenhum envio por impressora integrada para este pedido.
+                      </p>
                     )}
                   </div>
                 ) : null}
@@ -1382,9 +1198,7 @@ export function OrderBoard({
                     onClick={() => {
                       const action = getPrimaryAction(selectedOrder.status, settings);
                       if (action) {
-                        void updateStatus(selectedOrder.id, action.targetStatus, {
-                          printAfterStatusUpdate: action.targetStatus === "aceito"
-                        });
+                        void updateStatus(selectedOrder.id, action.targetStatus);
                       }
                     }}
                   >
@@ -1400,7 +1214,7 @@ export function OrderBoard({
                     className="h-11 w-full rounded-xl"
                     onClick={() => {
                       if (!selectedOrder) return;
-                      void handleManualPrint(selectedTableGroup?.representativeId ?? selectedOrder.id);
+                      handleNativePrint(selectedTableGroup?.representativeId ?? selectedOrder.id, selectedOrder);
                     }}
                   >
                     <Printer className="h-4 w-4" />
@@ -1452,7 +1266,7 @@ export function OrderBoard({
         </div>
       </div>
 
-      <OrderPrintSheet order={printSheetOrder ?? selectedOrder} />
+      <OrderPrintSheet order={selectedOrder} />
 
       {closeTableOrderId ? (
         <div

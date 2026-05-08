@@ -98,12 +98,12 @@ async function configureQzSecurity(qz: QzTrayApi) {
 
     qzSecurityMode = "unsigned";
     qzSecurityMessage = status.certificateConfigured
-      ? "QZ Tray conectado sem chave privada configurada. O navegador ainda pode pedir confirmacao manual."
+      ? "QZ Tray conectado sem chave privada configurada. O navegador ainda pode pedir confirmacao de seguranca."
       : "QZ Tray conectado em modo rapido. Para eliminar avisos, adicione certificado e chave de assinatura.";
     return { mode: qzSecurityMode, message: qzSecurityMessage };
   } catch {
     qzSecurityMode = "unsigned";
-    qzSecurityMessage = "QZ Tray conectado sem assinatura automatica. O operador pode precisar confiar manualmente na conexao.";
+    qzSecurityMessage = "QZ Tray conectado sem assinatura automatica. O operador pode precisar confirmar a conexao.";
     return { mode: qzSecurityMode, message: qzSecurityMessage };
   }
 }

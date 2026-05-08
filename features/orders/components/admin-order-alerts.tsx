@@ -12,6 +12,7 @@ export function AdminOrderAlerts() {
   const [settings, setSettings] = useState<OrderSettingsRecord | null>(null);
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const refreshInFlightRef = useRef(false);
+  const refreshQueuedRef = useRef(false);
   const isEnabled = useMemo(() => Boolean(settings?.notificationsEnabled) && soundEnabled, [settings, soundEnabled]);
   const audioSettings = useMemo(
     () =>
@@ -28,7 +29,10 @@ export function AdminOrderAlerts() {
   );
 
   async function refreshOrders() {
-    if (refreshInFlightRef.current) return;
+    if (refreshInFlightRef.current) {
+      refreshQueuedRef.current = true;
+      return;
+    }
     refreshInFlightRef.current = true;
     try {
       const response = await fetch("/api/admin/orders", { cache: "no-store" });
@@ -39,6 +43,10 @@ export function AdminOrderAlerts() {
       // evita ruido quando o servidor local reinicia
     } finally {
       refreshInFlightRef.current = false;
+      if (refreshQueuedRef.current) {
+        refreshQueuedRef.current = false;
+        void refreshOrders();
+      }
     }
   }
 
@@ -61,7 +69,7 @@ export function AdminOrderAlerts() {
     // fallback de resiliencia para quedas temporarias do canal.
     const interval = window.setInterval(() => {
       void refreshOrders();
-    }, 15000);
+    }, 5000);
 
     const settingsInterval = window.setInterval(() => {
       void refreshSettings();

@@ -27,34 +27,40 @@ const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({
   children,
-  initialItems
+  initialItems,
+  storageScope = "default"
 }: {
   children: ReactNode;
   initialItems: CartItem[];
+  storageScope?: string;
 }) {
   const [items, setItems] = useState<CartItem[]>(initialItems);
   const [hydrated, setHydrated] = useState(false);
+  const storageKey = useMemo(() => `${STORAGE_KEY}:${storageScope}`, [storageScope]);
 
   useEffect(() => {
+    setHydrated(false);
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
+      const saved = window.localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved) as CartItem[];
         if (Array.isArray(parsed)) {
           setItems(parsed);
+          return;
         }
       }
+      setItems(initialItems);
     } catch {
-      // Ignore invalid local storage payloads and keep defaults.
+      setItems(initialItems);
     } finally {
       setHydrated(true);
     }
-  }, []);
+  }, [initialItems, storageKey]);
 
   useEffect(() => {
     if (!hydrated) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  }, [hydrated, items]);
+    window.localStorage.setItem(storageKey, JSON.stringify(items));
+  }, [hydrated, items, storageKey]);
 
   const value = useMemo<CartContextValue>(() => {
     const totalItems = items.reduce((sum, item) => sum + item.qty, 0);

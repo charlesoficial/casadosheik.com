@@ -21,7 +21,7 @@ const demoPrinters = new Map<string, PrinterRecord>([
       destination: "caixa",
       printerName: "EPSON-TM-T20",
       isActive: true,
-      autoPrintOnAccept: true,
+      autoPrintOnAccept: false,
       copies: 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -37,7 +37,7 @@ const demoPrinters = new Map<string, PrinterRecord>([
       ipAddress: "192.168.0.55",
       port: 9100,
       isActive: true,
-      autoPrintOnAccept: true,
+      autoPrintOnAccept: false,
       copies: 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -68,7 +68,7 @@ function mapPrinterRow(row: {
     ipAddress: row.ip_address,
     port: row.port,
     isActive: row.is_active ?? true,
-    autoPrintOnAccept: row.auto_print_on_accept ?? true,
+    autoPrintOnAccept: row.auto_print_on_accept ?? false,
     copies: row.copies ?? 1,
     createdAt: row.created_at ?? undefined,
     updatedAt: row.updated_at ?? undefined
@@ -122,7 +122,7 @@ export async function createPrinter(payload: PrinterPayload) {
       ipAddress: payload.ipAddress ?? null,
       port: payload.port ?? 9100,
       isActive: payload.isActive ?? true,
-      autoPrintOnAccept: payload.autoPrintOnAccept ?? true,
+      autoPrintOnAccept: payload.autoPrintOnAccept ?? false,
       copies: payload.copies ?? 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
@@ -142,7 +142,7 @@ export async function createPrinter(payload: PrinterPayload) {
       ip_address: payload.ipAddress ?? null,
       port: payload.port ?? 9100,
       is_active: payload.isActive ?? true,
-      auto_print_on_accept: payload.autoPrintOnAccept ?? true,
+      auto_print_on_accept: payload.autoPrintOnAccept ?? false,
       copies: payload.copies ?? 1,
       updated_at: new Date().toISOString()
     })
@@ -170,7 +170,7 @@ export async function updatePrinter(id: string, payload: PrinterPayload) {
       ipAddress: payload.ipAddress ?? null,
       port: payload.port ?? 9100,
       isActive: payload.isActive ?? true,
-      autoPrintOnAccept: payload.autoPrintOnAccept ?? true,
+      autoPrintOnAccept: payload.autoPrintOnAccept ?? false,
       copies: payload.copies ?? 1,
       updatedAt: new Date().toISOString()
     } as PrinterRecord;
@@ -189,7 +189,7 @@ export async function updatePrinter(id: string, payload: PrinterPayload) {
       ip_address: payload.ipAddress ?? null,
       port: payload.port ?? 9100,
       is_active: payload.isActive ?? true,
-      auto_print_on_accept: payload.autoPrintOnAccept ?? true,
+      auto_print_on_accept: payload.autoPrintOnAccept ?? false,
       copies: payload.copies ?? 1,
       updated_at: new Date().toISOString()
     })

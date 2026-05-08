@@ -72,7 +72,7 @@ export function PrinterForm({
     ipAddress: printer?.ipAddress || "",
     port: printer?.port || 9100,
     copies: printer?.copies || 1,
-    autoPrintOnAccept: printer?.autoPrintOnAccept ?? true,
+    autoPrintOnAccept: printer?.autoPrintOnAccept ?? false,
     isActive: printer?.isActive ?? true
   });
 
@@ -207,7 +207,7 @@ export function PrinterForm({
                 Nome no QZ Tray
               </label>
               <DSBadge variant={availableUsbPrinters.length ? "success" : "secondary"}>
-                {availableUsbPrinters.length ? `${availableUsbPrinters.length} detectadas` : "Manual"}
+                {availableUsbPrinters.length ? `${availableUsbPrinters.length} detectadas` : "Windows"}
               </DSBadge>
             </div>
             {availableUsbPrinters.length ? (
@@ -279,7 +279,7 @@ export function PrinterForm({
           </div>
 
           {switchField({
-            checked: form.autoPrintOnAccept ?? true,
+            checked: form.autoPrintOnAccept ?? false,
             label: "Auto print no aceite",
             hint: "Dispara automaticamente quando o pedido for aceito.",
             onChange: (checked) => setForm((current) => ({ ...current, autoPrintOnAccept: checked }))
@@ -287,7 +287,7 @@ export function PrinterForm({
           {switchField({
             checked: form.isActive ?? true,
             label: "Impressora ativa",
-            hint: "Permite uso manual, testes e automacao.",
+            hint: "Permite testes e automacao.",
             onChange: (checked) => setForm((current) => ({ ...current, isActive: checked }))
           })}
         </div>

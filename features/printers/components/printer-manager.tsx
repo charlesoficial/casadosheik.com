@@ -267,7 +267,7 @@ export function PrinterManager({
         connected
           ? bridge.qzSecurityMode === "signed"
             ? "QZ Tray conectado com certificado e assinatura automatica."
-            : "QZ Tray conectado. O fluxo rapido funciona hoje, mas pode pedir confianca manual."
+            : "QZ Tray conectado. O fluxo rapido funciona hoje, mas pode pedir confirmacao de confianca."
           : "QZ Tray nao disponivel. Instale e deixe o app aberto nesta maquina."
       );
     } catch {
@@ -365,7 +365,7 @@ export function PrinterManager({
                   <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
                     <p className="text-xs uppercase tracking-[0.16em] text-admin-fg-faint">Automacao</p>
                     <p className="mt-2 text-lg font-semibold text-admin-fg">
-                      {automationReady ? "Pronta" : initialSettings.autoPrintEnabled ? "Sem ativa" : "Manual"}
+                      {automationReady ? "Pronta" : initialSettings.autoPrintEnabled ? "Sem ativa" : "Windows"}
                     </p>
                     <p className="mt-1 text-xs leading-5 text-admin-fg-muted">
                       Disparo em {initialSettings.autoPrintTriggerStatus}.
@@ -403,7 +403,7 @@ export function PrinterManager({
               {statCard({
                 eyebrow: "Ativas",
                 value: `${activePrinters.length}`,
-                hint: "Prontas para uso manual e automacao.",
+                hint: "Prontas para teste e automacao.",
                 icon: <BadgeCheck className="h-4 w-4" />
               })}
               {statCard({
@@ -421,7 +421,7 @@ export function PrinterManager({
               {statCard({
                 eyebrow: "Certificado",
                 value: qzStatus?.signingConfigured ? "Assinado" : qzStatus?.certificateConfigured ? "Parcial" : "Rapido",
-                hint: qzStatus?.signingConfigured ? "Sem popup extra do QZ Tray." : "Pode pedir confianca manual.",
+                hint: qzStatus?.signingConfigured ? "Sem popup extra do QZ Tray." : "Pode pedir confirmacao de confianca.",
                 icon: qzStatus?.signingConfigured ? <ShieldCheck className="h-4 w-4" /> : <ShieldOff className="h-4 w-4" />
               })}
             </div>
@@ -455,7 +455,7 @@ export function PrinterManager({
                   {initialSettings.autoPrintEnabled ? "Ligado" : "Desligado"}
                 </p>
                 <p className="mt-1 text-sm leading-6 text-admin-fg-muted">
-                  {initialSettings.autoPrintEnabled ? "Fluxo automatico habilitado." : "Operacao segue manual."}
+                  {initialSettings.autoPrintEnabled ? "Fluxo automatico habilitado." : "Impressao pelo Windows no botao Imprimir."}
                 </p>
               </div>
               <div className="rounded-ds-lg border border-admin-border bg-admin-elevated p-4">
@@ -569,7 +569,7 @@ export function PrinterManager({
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm text-admin-fg-muted">Automacao</span>
                 <DSBadge variant={automationReady ? "success" : "secondary"}>
-                  {automationReady ? "Pronta" : "Manual"}
+                  {automationReady ? "Pronta" : "Windows"}
                 </DSBadge>
               </div>
               <div className="flex items-center justify-between gap-3">

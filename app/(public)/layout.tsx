@@ -1,5 +1,11 @@
-import { CartProvider } from "@/components/cart-provider";
+import { Suspense } from "react";
+
+import { ScopedCartProvider } from "@/components/scoped-cart-provider";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
-  return <CartProvider initialItems={[]}>{children}</CartProvider>;
+  return (
+    <Suspense fallback={children}>
+      <ScopedCartProvider>{children}</ScopedCartProvider>
+    </Suspense>
+  );
 }

@@ -87,7 +87,7 @@ export function usePrinterBridge() {
   return useMemo(
     () => ({
       automaticPrintingAvailable: qzTray.connected,
-      provider: qzTray.connected ? ("qz-tray" as const) : ("manual" as const),
+      provider: qzTray.connected ? ("qz-tray" as const) : ("windows" as const),
       connectQzTray: qzTray.connect,
       availableUsbPrinters: qzTray.installedPrinters,
       qzAvailable: qzTray.available,

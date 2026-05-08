@@ -188,6 +188,64 @@ function formatOrderCode(number: number) {
   return String(number).padStart(3, "0");
 }
 
+const SAO_PAULO_UTC_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+function getSaoPauloBusinessDayRange(value: string | Date) {
+  const date = value instanceof Date ? value : new Date(value);
+  const shiftedToSaoPaulo = new Date(date.getTime() - SAO_PAULO_UTC_OFFSET_MS);
+  const localMidnightAsUtc = Date.UTC(
+    shiftedToSaoPaulo.getUTCFullYear(),
+    shiftedToSaoPaulo.getUTCMonth(),
+    shiftedToSaoPaulo.getUTCDate()
+  );
+
+  return {
+    start: new Date(localMidnightAsUtc + SAO_PAULO_UTC_OFFSET_MS).toISOString(),
+    end: new Date(localMidnightAsUtc + SAO_PAULO_UTC_OFFSET_MS + 24 * 60 * 60 * 1000).toISOString()
+  };
+}
+
+function getBusinessDayKey(value: string | Date) {
+  const { start } = getSaoPauloBusinessDayRange(value);
+  return start.slice(0, 10);
+}
+
+async function getDailyOperationalOrderNumbers(
+  orders: Array<{ id: string; created_at: string; numero: number }>
+) {
+  const map = new Map<string, number>();
+  if (!orders.length || !isSupabaseConfigured()) return map;
+
+  const supabase = getSupabaseAdminClient();
+  const ranges = new Map<string, { start: string; end: string }>();
+
+  for (const order of orders) {
+    const key = getBusinessDayKey(order.created_at);
+    if (!ranges.has(key)) {
+      ranges.set(key, getSaoPauloBusinessDayRange(order.created_at));
+    }
+  }
+
+  for (const range of ranges.values()) {
+    const { data, error } = await supabase!
+      .from("pedidos")
+      .select("id, numero, created_at")
+      .neq("status", "cancelado")
+      .gte("created_at", range.start)
+      .lt("created_at", range.end)
+      .order("created_at", { ascending: true })
+      .order("numero", { ascending: true });
+
+    if (error || !data) continue;
+
+    data.forEach((order, index) => {
+      map.set(order.id, index + 1);
+    });
+  }
+
+  return map;
+}
+
 function seedDemoOrders() {
   if (demoOrderDetails.size > 0) return;
 
@@ -722,9 +780,11 @@ export async function getAdminOrders(): Promise<AdminOrder[]> {
       return [];
     }
 
+    const operationalNumbers = await getDailyOperationalOrderNumbers(visibleOrders);
+
     return visibleOrders.map((order) => ({
       id: order.id,
-      number: Number(order.numero),
+      number: operationalNumbers.get(order.id) ?? Number(order.numero),
       type:
         order.tipo === "mesa"
           ? formatTableLabel(order.mesa)
@@ -851,9 +911,13 @@ export async function getOrderDetail(
         tableClosedTotal: null
       };
 
+    const operationalNumbers = await getDailyOperationalOrderNumbers([
+      { id: order.id, numero: Number(order.numero), created_at: order.created_at }
+    ]);
+
     return {
       id: order.id,
-      number: Number(order.numero),
+      number: operationalNumbers.get(order.id) ?? Number(order.numero),
       kind: order.tipo as OrderDetail["kind"],
       table: order.mesa ?? null,
       ...tableAccountInfo,
